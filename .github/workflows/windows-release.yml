@@ -26,7 +26,7 @@ jobs:
         run: npm ci
 
       - name: Prepare desktop tools
-        run: npm run desktop:deps
+        run: ./tools/prepare-youtube.ps1
 
       - name: Build frontend
         run: npm run build
