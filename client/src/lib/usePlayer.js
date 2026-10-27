@@ -143,6 +143,11 @@ export function usePlayer(tracks, onListen, notify) {
     repeat,
     setRepeat,
     queue: ids,
+    setQueueOrder: (orderedIds, expectedIds) => setQueue((current) => {
+      if (expectedIds && (current.length !== expectedIds.length ||
+          current.some((id, index) => id !== expectedIds[index]))) return current;
+      return orderedIds;
+    }),
     play,
     toggle,
     seek,

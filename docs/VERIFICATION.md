@@ -1,5 +1,11 @@
 # Biên bản kiểm tra MVP
 
+## Sắp xếp playlist 1.0.3 — 28/10/2026
+
+- Thêm kéo thả bài hát trong trang playlist và phím mũi tên lên/xuống trên nút sắp xếp để dùng bằng bàn phím.
+- Thứ tự mới được lưu qua API playlist hiện có; nếu trình phát đang dùng đúng playlist đó, hàng chờ cũng được đổi theo.
+- Frontend production build thành công.
+
 ## Bản vá YouTube 1.0.2 — 27/10/2026
 
 - Xác định yt-dlp và các tiến trình kiểm tra âm thanh không đọc được đường dẫn FFmpeg ảo trong `app.asar`; giờ dùng file FFmpeg/FFprobe thật trong `app.asar.unpacked`.

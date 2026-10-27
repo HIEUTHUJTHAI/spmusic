@@ -28,6 +28,7 @@ import {
   Headphones,
   Trash2,
   Pencil,
+  GripVertical,
   ListPlus,
   LoaderCircle,
 } from 'lucide-react';
@@ -79,12 +80,15 @@ export default function App() {
     [queueOpen, setQueueOpen] = useState(false),
     [mobile, setMobile] = useState(false),
     [menu, setMenu] = useState(null),
+    [draggedTrackId, setDraggedTrackId] = useState(null),
+    [dropTargetTrackId, setDropTargetTrackId] = useState(null),
     [userMenu, setUserMenu] = useState(false),
     [loggingOut, setLoggingOut] = useState(false),
     [toast, setToast] = useState(''),
     [selection, setSelection] = useState(null),
     [tab, setTab] = useState('Bài hát');
   const userMenuRef = useRef(null);
+  const reorderBusy = useRef(false);
   const timer = useRef(null),
     searchRef = useRef(null);
   const notify = (msg) => {
@@ -107,6 +111,40 @@ export default function App() {
     }
   };
   const p = usePlayer(tracks, record, notify);
+  async function reorderPlaylistTrack(fromId, toId) {
+    if (!user || !activePlaylist || !fromId || !toId || fromId === toId || reorderBusy.current)
+      return;
+    const previousIds = [...activePlaylist.trackIds];
+    const fromIndex = previousIds.indexOf(fromId);
+    const toIndex = previousIds.indexOf(toId);
+    if (fromIndex < 0 || toIndex < 0) return;
+    const nextIds = [...previousIds];
+    nextIds.splice(fromIndex, 1);
+    nextIds.splice(toIndex, 0, fromId);
+    reorderBusy.current = true;
+    setPlaylists((current) => current.map((item) =>
+      item.id === activePlaylist.id ? { ...item, trackIds: nextIds } : item,
+    ));
+    const playerUsesPlaylist =
+      p.queue.length === previousIds.length && p.queue.every((id, i) => id === previousIds[i]);
+    if (playerUsesPlaylist) p.setQueueOrder(nextIds, previousIds);
+    try {
+      const { playlist } = await api(`/playlists/${activePlaylist.id}`, {
+        method: 'PATCH',
+        body: { trackIds: nextIds },
+      });
+      setPlaylists((current) => current.map((item) => item.id === playlist.id ? playlist : item));
+      notify('Đã lưu thứ tự playlist.');
+    } catch (e) {
+      setPlaylists((current) => current.map((item) =>
+        item.id === activePlaylist.id ? { ...item, trackIds: previousIds } : item,
+      ));
+      if (playerUsesPlaylist) p.setQueueOrder(previousIds, nextIds);
+      notify(e.message || 'Không lưu được thứ tự playlist.');
+    } finally {
+      reorderBusy.current = false;
+    }
+  }
   useEffect(() => {
     document.documentElement.dataset.theme = user?.theme || 'pink';
   }, [user?.theme]);
@@ -360,8 +398,8 @@ export default function App() {
       ))}
     </div>
   );
-  const rows = (items) => (
-    <div className="track-table">
+  const rows = (items, sortablePlaylist = false) => (
+    <div className={`track-table ${sortablePlaylist ? 'reorder-enabled' : ''}`}>
       <div className="track-row table-head">
         <span>#</span>
         <span>Bài hát</span>
@@ -375,24 +413,67 @@ export default function App() {
       {items.length ? (
         items.map((t, i) => (
           <div
-            className={`track-row ${p.trackId === t.id ? 'current-track' : ''}`}
+            className={`track-row ${p.trackId === t.id ? 'current-track' : ''} ${draggedTrackId === t.id ? 'dragging-track' : ''} ${dropTargetTrackId === t.id ? 'drop-target' : ''}`}
             key={t.id}
             onDoubleClick={() => p.play(t, items)}
+            onDragOver={(event) => {
+              if (sortablePlaylist && draggedTrackId && draggedTrackId !== t.id) {
+                event.preventDefault();
+                setDropTargetTrackId(t.id);
+              }
+            }}
+            onDrop={(event) => {
+              if (!sortablePlaylist || !draggedTrackId) return;
+              event.preventDefault();
+              void reorderPlaylistTrack(draggedTrackId, t.id);
+              setDraggedTrackId(null);
+              setDropTargetTrackId(null);
+            }}
           >
-            <button
-              className="row-index"
-              aria-label={`Phát ${t.title}`}
-              onClick={() => (p.trackId === t.id ? p.toggle() : p.play(t, items))}
-            >
-              {p.trackId === t.id && p.playing ? (
-                <AudioLines size={16} />
-              ) : (
-                <>
-                  <span>{String(i + 1).padStart(2, '0')}</span>
-                  <Play className="index-play" size={15} fill="currentColor" />
-                </>
+            <div className="row-position">
+              {sortablePlaylist && user && (
+                <button
+                  className="playlist-order-handle"
+                  type="button"
+                  draggable
+                  title="Kéo để đổi thứ tự; dùng phím mũi tên lên/xuống"
+                  aria-label={`Di chuyển ${t.title}, vị trí ${i + 1}`}
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', t.id);
+                    setDraggedTrackId(t.id);
+                    setDropTargetTrackId(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedTrackId(null);
+                    setDropTargetTrackId(null);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+                    const nextIndex = i + (event.key === 'ArrowUp' ? -1 : 1);
+                    if (nextIndex < 0 || nextIndex >= activePlaylist.trackIds.length) return;
+                    event.preventDefault();
+                    void reorderPlaylistTrack(t.id, activePlaylist.trackIds[nextIndex]);
+                  }}
+                >
+                  <GripVertical size={15} />
+                </button>
               )}
-            </button>
+              <button
+                className="row-index"
+                aria-label={`Phát ${t.title}`}
+                onClick={() => (p.trackId === t.id ? p.toggle() : p.play(t, items))}
+              >
+                {p.trackId === t.id && p.playing ? (
+                  <AudioLines size={16} />
+                ) : (
+                  <>
+                    <span>{String(i + 1).padStart(2, '0')}</span>
+                    <Play className="index-play" size={15} fill="currentColor" />
+                  </>
+                )}
+              </button>
+            </div>
             <div className="track-identity">
               {cover(t)}
               <div>
@@ -1015,6 +1096,7 @@ export default function App() {
                       view === 'library' && selection === 'own'
                         ? list.filter((t) => !t.isDemo)
                         : list,
+                      view === 'playlist' && !!activePlaylist,
                     )
                   )}
                 </>
@@ -1025,7 +1107,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 1.0.2</span>
+                <span>Thư viện cá nhân • SPMusic 1.0.3</span>
               </div>
             </>
           )}

@@ -10,7 +10,7 @@ MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwi
 
 **Mới: Nhạc mở từ internet.** Tìm bản thu trên Internet Archive và Wikimedia Commons, chọn bài để app tự tải bản ưu tiên về thư viện riêng. Ưu tiên lossless nếu nguồn có file phù hợp, lưu nguồn và giấy phép cùng bài hát. Không cần API key. Xem [hướng dẫn nhạc mở](docs/OPEN-MUSIC.md).
 
-**Bản 1.0.2:** Chọn cùng lúc tối đa 50 file nhạc để thêm vào thư viện. Có thể dán link một video YouTube công khai và tải âm thanh thành MP3 khi bạn có quyền tải/sử dụng nội dung đó. Bản 1.0.2 sửa đường dẫn FFmpeg trong app Windows khi xử lý link YouTube. Chức năng này cần Internet; chất lượng phụ thuộc âm thanh nguồn và MP3 không phải lossless.
+**Bản 1.0.3:** Có thể sắp xếp bài hát trong playlist bằng cách kéo thả hoặc dùng phím mũi tên lên/xuống. Thứ tự được lưu và dùng khi phát playlist. Tính năng chọn nhiều file, thư viện không nhạc mẫu và nhập MP3 từ link YouTube của các bản trước vẫn được giữ.
 
 ## Ứng dụng Windows
 
@@ -76,7 +76,7 @@ Mở **http://localhost:3001** hoặc **http://127.0.0.1:3001**. Sau khi build, 
 2. **Tạo tài khoản:** chọn **Đăng nhập → Tạo tài khoản**, nhập tên, email và mật khẩu 8–128 ký tự. Đây là tài khoản cục bộ, không gửi email xác minh. Nhấn ảnh đại diện để xem tài khoản hoặc đăng xuất.
 3. **Thêm nhạc:** chọn **Tải nhạc lên**, kéo thả/chọn MP3, WAV, FLAC hoặc ALAC (.m4a), thêm ảnh bìa nếu muốn. Có thể chọn tối đa 50 file cùng lúc; tên bài lấy từ tên file, còn nghệ sĩ/album/thể loại/ảnh bìa dùng chung. Các file được xử lý lần lượt; nếu có file lỗi, bạn có thể thử lại riêng các file đó. Với một file, bạn có thể nhập thông tin và LRC riêng. Xác nhận bạn sở hữu hoặc được phép sử dụng nội dung trước khi lưu.
 4. **Quản lý thư viện:** mở **Thư viện của bạn**, chọn **Nhạc tải lên**. Menu ba chấm cạnh bài của bạn cho phép sửa thông tin, quản lý LRC và xóa bài. Biểu mẫu chỉnh sửa cập nhật metadata và lyrics, không thay file âm thanh/ảnh bìa.
-5. **Tạo playlist:** chọn dấu **+** ở Bộ sưu tập hoặc **Tạo playlist đầu tiên**; đặt tên, mô tả và chọn bài. Menu của bài hát có **Thêm vào playlist**. Trong playlist, dùng **Sửa playlist** để đổi tên/mô tả, thêm hoặc bỏ chọn bài; dùng biểu tượng thùng rác để xóa playlist. Xóa playlist không xóa nhạc.
+5. **Tạo và sắp xếp playlist:** chọn dấu **+** ở Bộ sưu tập hoặc **Tạo playlist đầu tiên**; đặt tên, mô tả và chọn bài. Menu của bài hát có **Thêm vào playlist**. Trong playlist, kéo biểu tượng nắm bên trái bài hát để đổi thứ tự; dùng phím ↑/↓ khi biểu tượng được chọn để di chuyển bằng bàn phím. Thứ tự được lưu tự động và áp dụng cho lần phát tiếp theo. **Sửa playlist** đổi tên/mô tả, thêm hoặc bỏ chọn bài; biểu tượng thùng rác xóa playlist mà không xóa nhạc.
 6. **Tìm và nghe lại:** nhập tên bài, album hoặc nghệ sĩ trong ô tìm kiếm; chuyển giữa các tab Bài hát/Album/Nghệ sĩ. **Nghe gần đây** hiển thị lần nghe gần nhất của từng bài, tối đa 50 bài. Biểu tượng tim lưu bài yêu thích.
 7. **Xem lời:** mở biểu tượng lyrics trong thanh phát. Dòng hiện tại được làm nổi bật và cuộn theo nhạc; bấm một dòng để tua tới câu đó. Bài không có LRC hiển thị thông báo phù hợp. Với bài do bạn tải lên, chọn chỉnh sửa lyrics để tải file, sửa nội dung hoặc xóa LRC.
 8. **AI căn lời cục bộ:** dán lời chưa có thời gian, mỗi câu một dòng; chọn ngôn ngữ và bấm **AI căn thời gian**. Xem/chỉnh mốc, bấm **Áp dụng LRC**, rồi lưu. Lần đầu tải mô hình khoảng 80 MB, các lần sau dùng lại trên máy. Xem [hướng dẫn AI cục bộ](docs/LOCAL-AI.md) để biết giới hạn, cách dùng ngoại tuyến và độ chính xác.
