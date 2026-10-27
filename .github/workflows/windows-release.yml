@@ -1,0 +1,45 @@
+name: Windows release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare desktop tools
+        run: npm run desktop:deps
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Package Windows installer
+        run: npx electron-builder --win nsis --config electron-builder.yml --publish never
+
+      - name: Upload installer and update metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          gh release upload "v$version" `
+            "release/SPMusic-$version-x64.exe" `
+            "release/SPMusic-$version-x64.exe.blockmap" `
+            release/latest.yml --clobber --repo "${{ github.repository }}"
