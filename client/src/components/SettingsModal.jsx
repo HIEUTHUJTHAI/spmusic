@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Download, Music2, Palette, RefreshCw, Trash2 } from 'lucide-react';
+import { Check, Download, Music2, Palette, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import { api } from '../lib/api';
 
@@ -9,16 +9,29 @@ const themes = [
   ['mint', 'Trắng xanh', '#207f6c'],
   ['dark', 'Đêm hồng', '#f499bc'],
 ];
+const defaultCustomTheme = {
+  accent: '#bb326c', background: '#fff9fc', surface: '#ffffff', text: '#382934',
+};
+const customColors = [
+  ['accent', 'Màu nhấn'],
+  ['background', 'Nền trang'],
+  ['surface', 'Thẻ và thanh điều hướng'],
+  ['text', 'Màu chữ'],
+];
 
-export default function SettingsModal({ user, tracks, onUser, onDeleted, onClose }) {
+export default function SettingsModal({ user, tracks, onUser, onDeleted, onEditTrack, onClose }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [message, setMessage] = useState(''),
     [query, setQuery] = useState(''),
     [deleting, setDeleting] = useState(null),
     [update, setUpdate] = useState(null),
-    [appVersion, setAppVersion] = useState('');
+    [appVersion, setAppVersion] = useState(''),
+    [customTheme, setCustomTheme] = useState({ ...defaultCustomTheme, ...user.customTheme });
   const desktop = typeof window !== 'undefined' ? window.spmusicDesktop : null;
+  useEffect(() => {
+    setCustomTheme({ ...defaultCustomTheme, ...user.customTheme });
+  }, [user.customTheme]);
   useEffect(() => {
     if (!desktop) return undefined;
     let active = true;
@@ -98,7 +111,7 @@ export default function SettingsModal({ user, tracks, onUser, onDeleted, onClose
           Chọn màu bạn thích. SPMusic lưu lựa chọn theo tài khoản của bạn.
         </p>
         <div className="theme-options" role="group" aria-label="Màu giao diện">
-          {themes.map(([id, name, color]) => (
+          {[...themes, ['custom', 'Tự chọn', user.customTheme?.accent || defaultCustomTheme.accent]].map(([id, name, color]) => (
             <button
               key={id}
               disabled={busy}
@@ -107,7 +120,10 @@ export default function SettingsModal({ user, tracks, onUser, onDeleted, onClose
               onClick={() =>
                 action(async () => {
                   onUser(
-                    (await api('/account/preferences', { method: 'PATCH', body: { theme: id } }))
+                    (await api('/account/preferences', { method: 'PATCH', body: {
+                      theme: id,
+                      ...(id === 'custom' ? { customTheme } : {}),
+                    } }))
                       .user,
                   );
                 }, `Đã chọn giao diện ${name.toLowerCase()}.`)
@@ -119,6 +135,34 @@ export default function SettingsModal({ user, tracks, onUser, onDeleted, onClose
             </button>
           ))}
         </div>
+        {user.theme === 'custom' && (
+          <div className="custom-theme-editor">
+            <strong>Tạo bảng màu của bạn</strong>
+            <p className="field-hint">Chọn màu nhấn, nền, bề mặt và màu chữ. Hãy chọn màu chữ dễ đọc trên nền.</p>
+            <div className="custom-theme-grid">
+              {customColors.map(([key, label]) => (
+                <label key={key}>
+                  {label}
+                  <input type="color" aria-label={label} value={customTheme[key]}
+                    disabled={busy}
+                    onChange={(event) => setCustomTheme((previous) => ({ ...previous, [key]: event.target.value }))} />
+                </label>
+              ))}
+            </div>
+            <div className="custom-theme-preview" style={{ background: customTheme.background, color: customTheme.text }}>
+              <span style={{ background: customTheme.surface }}>Không gian âm nhạc của bạn</span>
+              <span className="theme-swatch" style={{ background: customTheme.accent }} />
+            </div>
+            <button className="form-primary" disabled={busy || JSON.stringify(customTheme) === JSON.stringify(user.customTheme)}
+              onClick={() => action(async () => {
+                onUser((await api('/account/preferences', {
+                  method: 'PATCH', body: { theme: 'custom', customTheme },
+                })).user);
+              }, 'Đã lưu bảng màu tùy chỉnh.')}>
+              <Check size={15} /> Lưu màu tùy chỉnh
+            </button>
+          </div>
+        )}
       </section>
       <section className="settings-section">
         <h3>
@@ -150,6 +194,15 @@ export default function SettingsModal({ user, tracks, onUser, onDeleted, onClose
                 <strong>{track.title}</strong>
                 <span>{track.artist}</span>
               </div>
+              <button
+                className="icon-btn"
+                aria-label={`Sửa ảnh bìa và thông tin ${track.title}`}
+                title="Sửa ảnh bìa và thông tin"
+                disabled={busy}
+                onClick={() => onEditTrack(track)}
+              >
+                <Pencil size={17} />
+              </button>
               <button
                 className="icon-btn danger"
                 aria-label={`Xóa ${track.title}`}

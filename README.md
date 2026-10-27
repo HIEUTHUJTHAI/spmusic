@@ -6,11 +6,13 @@ Bản cập nhật: giao diện **trắng–hồng**, menu avatar có **Tài kho
 
 **Ứng dụng Windows:** [cách cài/chạy, lưu dữ liệu và tạo bản mới](docs/DESKTOP-APP.md). File `.exe` đã build nằm trong thư mục `release/`.
 
-MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwind CSS**, **Node.js + Express** và **PostgreSQL/PGlite**. Giao diện trắng–hồng mặc định, có bốn bảng màu, thư viện cá nhân, playlist và lời bài hát đồng bộ LRC. Bản 1.0.2 không kèm bài hát hoặc lời mẫu; thư viện ban đầu trống. Ứng dụng không sử dụng dữ liệu hay nhận diện thương hiệu Spotify.
+MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwind CSS**, **Node.js + Express** và **PostgreSQL/PGlite**. Giao diện trắng–hồng mặc định, có bốn bảng màu cơ bản cùng chế độ tự chọn, thư viện cá nhân, playlist và lời bài hát đồng bộ LRC. Bản 1.0.2 không kèm bài hát hoặc lời mẫu; thư viện ban đầu trống. Ứng dụng không sử dụng dữ liệu hay nhận diện thương hiệu Spotify.
 
 **Mới: Nhạc mở từ internet.** Tìm bản thu trên Internet Archive và Wikimedia Commons, chọn bài để app tự tải bản ưu tiên về thư viện riêng. Ưu tiên lossless nếu nguồn có file phù hợp, lưu nguồn và giấy phép cùng bài hát. Không cần API key. Xem [hướng dẫn nhạc mở](docs/OPEN-MUSIC.md).
 
 **Bản 1.0.3:** Có thể sắp xếp bài hát trong playlist bằng cách kéo thả hoặc dùng phím mũi tên lên/xuống. Thứ tự được lưu và dùng khi phát playlist. Tính năng chọn nhiều file, thư viện không nhạc mẫu và nhập MP3 từ link YouTube của các bản trước vẫn được giữ.
+
+**Bản 1.0.4:** Có thể thay hoặc xóa ảnh bìa cho mọi bài hát trong thư viện, kể cả bài nhập từ YouTube hay nguồn nhạc mở. Playlist có ảnh bìa riêng, có thể thay hoặc xóa trong cửa sổ sửa playlist. Cài đặt thêm chế độ Tự chọn để lưu màu nhấn, nền trang, bề mặt và màu chữ theo tài khoản.
 
 ## Ứng dụng Windows
 

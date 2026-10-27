@@ -64,6 +64,14 @@ const normalize = (s) =>
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
     .toLowerCase();
+const contrastText = (hex) => {
+  const channels = [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16) / 255);
+  const luminance = channels.map((value) =>
+    value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4,
+  );
+  return luminance[0] * 0.2126 + luminance[1] * 0.7152 + luminance[2] * 0.0722 > 0.42
+    ? '#231b22' : '#ffffff';
+};
 export default function App() {
   const [tracks, setTracks] = useState([]),
     [user, setUser] = useState(null),
@@ -146,8 +154,20 @@ export default function App() {
     }
   }
   useEffect(() => {
-    document.documentElement.dataset.theme = user?.theme || 'pink';
-  }, [user?.theme]);
+    const root = document.documentElement;
+    root.dataset.theme = user?.theme || 'pink';
+    const properties = ['--accent', '--bg', '--panel', '--text', '--button-text'];
+    if (user?.theme === 'custom' && user.customTheme) {
+      const { accent, background, surface, text } = user.customTheme;
+      root.style.setProperty('--accent', accent);
+      root.style.setProperty('--bg', background);
+      root.style.setProperty('--panel', surface);
+      root.style.setProperty('--text', text);
+      root.style.setProperty('--button-text', contrastText(accent));
+    } else {
+      properties.forEach((property) => root.style.removeProperty(property));
+    }
+  }, [user?.theme, user?.customTheme]);
   useEffect(() => {
     if (!userMenu) return;
     const outside = (e) => {
@@ -544,7 +564,7 @@ export default function App() {
                           }}
                         >
                           <Pencil size={15} />
-                          Chỉnh sửa bài hát
+                          Chỉnh sửa bài hát và ảnh bìa
                         </button>
                         <button
                           onClick={() => {
@@ -679,7 +699,7 @@ export default function App() {
               onClick={() => navigate('playlist', pl.id)}
             >
               <span className={`nav-tile playlist-tile tile-${i % 3}`}>
-                <Music2 size={16} />
+                {pl.coverUrl ? <img src={pl.coverUrl} alt="" /> : <Music2 size={16} />}
               </span>
               <span className="truncate">{pl.name}</span>
             </button>
@@ -978,8 +998,10 @@ export default function App() {
               ) : (
                 <>
                   <div className="collection-heading">
-                    <div className={`collection-icon ${view === 'liked' ? 'liked-icon' : ''}`}>
-                      {view === 'liked' ? (
+                    <div className={`collection-icon ${view === 'liked' ? 'liked-icon' : ''} ${view === 'playlist' && activePlaylist?.coverUrl ? 'has-cover' : ''}`}>
+                      {view === 'playlist' && activePlaylist?.coverUrl ? (
+                        <img src={activePlaylist.coverUrl} alt={`Ảnh bìa playlist ${activePlaylist.name}`} />
+                      ) : view === 'liked' ? (
                         <Heart size={46} fill="currentColor" />
                       ) : view === 'recent' ? (
                         <Clock3 size={46} />
@@ -1107,7 +1129,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 1.0.3</span>
+                <span>Thư viện cá nhân • SPMusic 1.0.4</span>
               </div>
             </>
           )}
@@ -1387,6 +1409,7 @@ export default function App() {
           tracks={tracks}
           onUser={setUser}
           onDeleted={trackDeleted}
+          onEditTrack={(track) => setModal({ type: 'track', track })}
           onClose={() => setModal(null)}
         />
       )}

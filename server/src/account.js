@@ -4,6 +4,13 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { ApiError, validateCover } from './validation.js';
 
+const defaultCustomTheme = {
+  accent: '#bb326c',
+  background: '#fff9fc',
+  surface: '#ffffff',
+  text: '#382934',
+};
+
 export const safeUser = (row) =>
   row
     ? {
@@ -14,6 +21,7 @@ export const safeUser = (row) =>
           ? `/api/account/avatar?v=${encodeURIComponent(row.avatar_file)}`
           : null,
         theme: row.theme || 'pink',
+        customTheme: { ...defaultCustomTheme, ...row.custom_theme },
       }
     : null;
 
@@ -73,12 +81,21 @@ export function accountRoutes(
     res.json({ user: await replaceAvatar(req.user.id, null) });
   });
   app.patch('/api/account/preferences', requireAuth, async (req, res) => {
-    if (!['pink', 'lavender', 'mint', 'dark'].includes(req.body.theme))
+    if (!['pink', 'lavender', 'mint', 'dark', 'custom'].includes(req.body.theme))
       throw new ApiError(400, 'Màu giao diện không hợp lệ.');
-    const { rows } = await db.query('UPDATE users SET theme=$1 WHERE id=$2 RETURNING *', [
-      req.body.theme,
-      req.user.id,
-    ]);
+    let customTheme = req.user.custom_theme || defaultCustomTheme;
+    if (req.body.customTheme !== undefined) {
+      const input = req.body.customTheme;
+      if (!input || typeof input !== 'object' || Array.isArray(input) ||
+          Object.keys(input).sort().join(',') !== 'accent,background,surface,text' ||
+          Object.values(input).some((color) => typeof color !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(color)))
+        throw new ApiError(400, 'Bảng màu phải gồm bốn mã màu dạng #RRGGBB.');
+      customTheme = input;
+    }
+    const { rows } = await db.query(
+      'UPDATE users SET theme=$1,custom_theme=$2::jsonb WHERE id=$3 RETURNING *',
+      [req.body.theme, JSON.stringify(customTheme), req.user.id],
+    );
     res.json({ user: safeUser(rows[0]) });
   });
   app.put('/api/account/password', requireAuth, authRate, async (req, res) => {

@@ -34,6 +34,18 @@ jobs:
       - name: Package Windows installer
         run: npx electron-builder --win nsis --config electron-builder.yml --publish never
 
+      - name: Create release if needed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          gh release view "v$version" --repo '${{ github.repository }}' *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create "v$version" --target '${{ github.sha }}' `
+              --title "SPMusic $version" --generate-notes --repo '${{ github.repository }}'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
       - name: Upload installer and update metadata
         env:
           GH_TOKEN: ${{ github.token }}

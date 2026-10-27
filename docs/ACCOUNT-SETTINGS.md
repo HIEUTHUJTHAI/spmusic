@@ -20,7 +20,7 @@ Bấm ảnh đại diện ở góc trên bên phải để mở **Tài khoản**
 
 ### Cài đặt
 
-- Mặc định **Trắng hồng**. Có thêm Trắng tím, Trắng xanh và Đêm hồng. Màu áp dụng cho trang chủ, trình phát, lyrics và các biểu mẫu.
+- Mặc định **Trắng hồng**. Có thêm Trắng tím, Trắng xanh, Đêm hồng và **Tự chọn**. Với Tự chọn, bạn chỉnh màu nhấn, nền, bề mặt và màu chữ rồi lưu theo tài khoản.
 - **Nhạc đã thêm** chỉ liệt kê nhạc của chính tài khoản đang đăng nhập.
 - Tìm theo tên bài/nghệ sĩ rồi bấm thùng rác. **Giữ lại** hủy thao tác; **Xác nhận xóa** xóa file nhạc, bản phát chuyển đổi nếu có, ảnh bìa, lyrics và liên kết trong playlist/lịch sử. Nếu đang nghe bài đó, trình phát dừng. Không có thùng rác khôi phục.
 
@@ -35,7 +35,7 @@ Thu hồi phiên hiện tại, dừng nhạc và đóng các bảng cá nhân. T
 - `client/src/theme.css`: các biến màu dùng chung cho mọi thành phần.
 - `client/src/App.jsx`: menu avatar, cập nhật tài khoản, đăng xuất và đồng bộ thư viện khi xóa.
 - `server/src/account.js`: các API tài khoản, xác thực, đổi mật khẩu và lưu ảnh.
-- `server/src/schema.sql`: thêm `users.avatar_file` và `users.theme` bằng migration bổ sung; dữ liệu cũ được giữ nguyên.
+- `server/src/schema.sql`: thêm `users.avatar_file`, `users.theme`, `users.custom_theme` và `playlists.cover_file` bằng migration bổ sung; dữ liệu cũ được giữ nguyên.
 - `server/data/uploads/avatars/`: file avatar riêng, chỉ được truy cập qua API đã đăng nhập. Thư mục dữ liệu thay đổi nếu đặt `DATA_DIR`.
 
 | API | Chức năng |
@@ -43,7 +43,7 @@ Thu hồi phiên hiện tại, dừng nhạc và đóng các bảng cá nhân. T
 | GET `/api/account/avatar` | Ảnh của tài khoản đang đăng nhập |
 | PUT `/api/account/avatar` | Multipart, trường `avatar`, tối đa 5 MB |
 | DELETE `/api/account/avatar` | Gỡ ảnh của chính mình |
-| PATCH `/api/account/preferences` | JSON `{ "theme": "pink" }`, nhận pink/lavender/mint/dark |
+| PATCH `/api/account/preferences` | JSON `{ "theme": "pink" }`; nhận pink/lavender/mint/dark/custom. Custom nhận thêm `customTheme` gồm accent/background/surface/text dạng `#RRGGBB`. |
 | PUT `/api/account/password` | JSON currentPassword/newPassword, đổi và thu hồi phiên khác |
 | DELETE `/api/tracks/:id` | API hiện có, kiểm tra chủ sở hữu trước khi xóa |
 | POST `/api/auth/logout` | Thu hồi phiên hiện tại |

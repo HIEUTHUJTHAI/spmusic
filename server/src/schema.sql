@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_file TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'pink';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_theme JSONB NOT NULL DEFAULT '{"accent":"#bb326c","background":"#fff9fc","surface":"#ffffff","text":"#382934"}'::jsonb;
 CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions(expires_at);
 CREATE TABLE IF NOT EXISTS tracks (
  id TEXT PRIMARY KEY,
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS playlists (
  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS playlists_owner_idx ON playlists(owner_id);
+ALTER TABLE playlists ADD COLUMN IF NOT EXISTS cover_file TEXT;
 CREATE TABLE IF NOT EXISTS listening_history (
  owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
  track_id TEXT NOT NULL,

@@ -141,6 +141,19 @@ test('account settings: private avatars, preferences, password changes and sessi
         assert.equal(result.status, 200);
         assert.equal(result.data.user.theme, theme);
       }
+      const palette = {
+        accent: '#123456', background: '#f8f8f8', surface: '#ffffff', text: '#202020',
+      };
+      assert.equal((await request('/account/preferences', alice.cookie, 'PATCH', {
+        theme: 'custom', customTheme: { ...palette, accent: 'invalid' },
+      })).status, 400);
+      const custom = await request('/account/preferences', alice.cookie, 'PATCH', {
+        theme: 'custom', customTheme: palette,
+      });
+      assert.equal(custom.status, 200);
+      assert.deepEqual(custom.data.user.customTheme, palette);
+      assert.deepEqual((await request('/auth/me', alice.cookie)).data.user.customTheme, palette);
+      await request('/account/preferences', alice.cookie, 'PATCH', { theme: 'mint' });
       assert.equal((await request('/auth/me', alice.cookie)).data.user.theme, 'mint');
       assert.equal((await request('/auth/me', bob.cookie)).data.user.theme, 'pink');
     });
@@ -196,9 +209,12 @@ test('account settings: private avatars, preferences, password changes and sessi
     await db.close();
     db = await createDatabase({ dataDir, databaseUrl: '' });
     const stored = (
-      await db.query('SELECT theme, avatar_file FROM users WHERE id=$1', [alice.data.user.id])
+      await db.query('SELECT theme, custom_theme, avatar_file FROM users WHERE id=$1', [alice.data.user.id])
     ).rows[0];
     assert.equal(stored.theme, 'mint');
+    assert.deepEqual(stored.custom_theme, {
+      accent: '#123456', background: '#f8f8f8', surface: '#ffffff', text: '#202020',
+    });
     assert.ok(stored.avatar_file);
     assert.deepEqual(
       await fs.readFile(path.join(dataDir, 'uploads/avatars', stored.avatar_file)),

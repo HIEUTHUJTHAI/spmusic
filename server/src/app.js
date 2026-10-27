@@ -35,7 +35,9 @@ const trackView = (row) => ({
   ownerId: row.owner_id,
   isDemo: false,
   audioUrl: `/api/media/${row.id}/audio`,
-  coverUrl: row.cover_file ? `/api/media/${row.id}/cover` : '/covers/fallback.svg',
+  coverUrl: row.cover_file
+    ? `/api/media/${row.id}/cover?v=${encodeURIComponent(row.cover_file)}`
+    : '/covers/fallback.svg',
   hasLyrics: Boolean(row.lyrics_file),
   audioFormat: row.audio_format || '',
   sampleRate: row.sample_rate || null,
@@ -48,6 +50,9 @@ const playlistView = (row) => ({
   name: row.name,
   description: row.description,
   trackIds: row.track_ids,
+  coverUrl: row.cover_file
+    ? `/api/playlists/${row.id}/cover?v=${encodeURIComponent(row.cover_file)}`
+    : null,
   createdAt: row.created_at,
 });
 
@@ -78,7 +83,7 @@ export async function createApp({
   const uploadsDir = path.join(dataDir, 'uploads');
   const ai = lyricsAI || createLyricsAI({ dataDir });
   app.locals.lyricsAI = ai;
-  for (const folder of ['audio', 'covers', 'lyrics', 'playback', 'temp', 'avatars'])
+  for (const folder of ['audio', 'covers', 'playlist-covers', 'lyrics', 'playback', 'temp', 'avatars'])
     await fs.mkdir(path.join(uploadsDir, folder), { recursive: true });
   const demoTracks = demos ?? [];
   const demosById = new Map(
@@ -135,7 +140,7 @@ export async function createApp({
     const token = req.cookies.auralis_session;
     if (typeof token === 'string' && /^[a-f0-9]{64}$/.test(token)) {
       const { rows } = await db.query(
-        'SELECT u.id,u.name,u.email,u.avatar_file,u.theme FROM users u JOIN sessions s ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>CURRENT_TIMESTAMP',
+        'SELECT u.id,u.name,u.email,u.avatar_file,u.theme,u.custom_theme FROM users u JOIN sessions s ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>CURRENT_TIMESTAMP',
         [digest(token)],
       );
       req.user = rows[0] || null;
@@ -244,6 +249,10 @@ export async function createApp({
     storage: multer.memoryStorage(),
     limits: { fileSize: 256 * 1024, files: 1, fields: 1, parts: 2 },
   }).single('lyrics');
+  const coverUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 0, parts: 1 },
+  }).single('cover');
   async function ownTrack(req) {
     const { rows } = await db.query('SELECT * FROM tracks WHERE id=$1 AND owner_id=$2', [
       req.params.id,
@@ -258,6 +267,29 @@ export async function createApp({
     return ownTrack(req);
   }
   const unlink = (file) => (file ? fs.unlink(file).catch(() => {}) : Promise.resolve());
+  async function replaceCover(table, folder, id, ownerId, file) {
+    const ext = validateCover(file);
+    const filename = ext ? `${randomUUID()}${ext}` : null;
+    const directory = path.join(uploadsDir, folder);
+    if (filename) await fs.writeFile(path.join(directory, filename), file.buffer, { flag: 'wx' });
+    let row;
+    try {
+      const { rows } = await db.query(
+        `WITH previous AS (
+          SELECT id,cover_file FROM ${table} WHERE id=$2 AND owner_id=$3 FOR UPDATE
+        ) UPDATE ${table} item SET cover_file=$1 FROM previous p WHERE item.id=p.id
+          RETURNING item.*,p.cover_file AS old_cover`,
+        [filename, id, ownerId],
+      );
+      row = rows[0];
+      if (!row) throw new ApiError(404, 'Không tìm thấy mục trong thư viện của bạn.');
+    } catch (error) {
+      if (filename) await unlink(path.join(directory, filename));
+      throw error;
+    }
+    if (row.old_cover) await unlink(path.join(directory, row.old_cover));
+    return row;
+  }
   function sendAIJob(req, res, job) {
     if (res.destroyed) {
       ai.cancel(job.id, req.user.id);
@@ -441,6 +473,18 @@ export async function createApp({
     );
     res.json({ track: trackView(rows[0]) });
   });
+  app.put('/api/tracks/:id/cover', requireAuth, async (req, res, next) => {
+    await ownTrack(req);
+    next();
+  }, coverUpload, async (req, res) => {
+    if (!req.file) throw new ApiError(400, 'Hãy chọn ảnh bìa JPG, PNG hoặc WebP.');
+    const row = await replaceCover('tracks', 'covers', req.params.id, req.user.id, req.file);
+    res.json({ track: trackView(row) });
+  });
+  app.delete('/api/tracks/:id/cover', requireAuth, async (req, res) => {
+    const row = await replaceCover('tracks', 'covers', req.params.id, req.user.id, null);
+    res.json({ track: trackView(row) });
+  });
   app.delete('/api/tracks/:id', requireAuth, async (req, res) => {
     const current = await ownTrack(req);
     await db.query('UPDATE playlists SET track_ids=array_remove(track_ids,$1) WHERE owner_id=$2', [
@@ -564,6 +608,14 @@ export async function createApp({
       ).rows.map(playlistView),
     }),
   );
+  app.get('/api/playlists/:id/cover', requireAuth, async (req, res) => {
+    const { rows } = await db.query(
+      'SELECT cover_file FROM playlists WHERE id=$1 AND owner_id=$2',
+      [req.params.id, req.user.id],
+    );
+    if (!rows[0]?.cover_file) throw new ApiError(404, 'Playlist chưa có ảnh bìa.');
+    res.sendFile(path.join(uploadsDir, 'playlist-covers', rows[0].cover_file));
+  });
   app.post('/api/playlists', requireAuth, async (req, res) => {
     const name = text(req.body.name, 'Tên playlist', 100, true),
       description = text(req.body.description, 'Mô tả', 500);
@@ -599,12 +651,23 @@ export async function createApp({
     );
     res.json({ playlist: playlistView(rows[0]) });
   });
+  app.put('/api/playlists/:id/cover', requireAuth, coverUpload, async (req, res) => {
+    if (!req.file) throw new ApiError(400, 'Hãy chọn ảnh bìa JPG, PNG hoặc WebP.');
+    const row = await replaceCover('playlists', 'playlist-covers', req.params.id, req.user.id, req.file);
+    res.json({ playlist: playlistView(row) });
+  });
+  app.delete('/api/playlists/:id/cover', requireAuth, async (req, res) => {
+    const row = await replaceCover('playlists', 'playlist-covers', req.params.id, req.user.id, null);
+    res.json({ playlist: playlistView(row) });
+  });
   app.delete('/api/playlists/:id', requireAuth, async (req, res) => {
     const { rows } = await db.query(
-      'DELETE FROM playlists WHERE id=$1 AND owner_id=$2 RETURNING id',
+      'DELETE FROM playlists WHERE id=$1 AND owner_id=$2 RETURNING cover_file',
       [req.params.id, req.user.id],
     );
     if (!rows[0]) throw new ApiError(404, 'Không tìm thấy playlist của bạn.');
+    if (rows[0].cover_file)
+      await unlink(path.join(uploadsDir, 'playlist-covers', rows[0].cover_file));
     res.json({ ok: true });
   });
   app.get('/api/history', requireAuth, async (req, res) => {

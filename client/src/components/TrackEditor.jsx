@@ -26,6 +26,7 @@ export default function TrackEditor({ track, onClose, onSaved }) {
   const [bulkFiles, setBulkFiles] = useState([]);
   const [bulkResults, setBulkResults] = useState([]);
   const [cover, setCover] = useState(null);
+  const [removeCover, setRemoveCover] = useState(false);
   const [lyrics, setLyrics] = useState(null);
   const [content, setContent] = useState('');
   const [originalContent, setOriginalContent] = useState('');
@@ -101,7 +102,10 @@ export default function TrackEditor({ track, onClose, onSaved }) {
       if (!fields.title)
         setFields((value) => ({ ...value, title: file.name.replace(/\.[^.]+$/, '') }));
     }
-    if (kind === 'cover') setCover(file);
+    if (kind === 'cover') {
+      setCover(file);
+      setRemoveCover(false);
+    }
     if (kind === 'lyrics') {
       const readId = ++lyricsRead.current;
       setLyricsLoading(true);
@@ -168,7 +172,7 @@ export default function TrackEditor({ track, onClose, onSaved }) {
       setError('Hãy chọn file MP3, WAV, FLAC hoặc ALAC (.m4a).');
       return;
     }
-    if ((!editing || lyrics || content !== originalContent) && !licensed) {
+    if ((!editing || cover || lyrics || content !== originalContent) && !licensed) {
       setError('Vui lòng xác nhận quyền sử dụng nội dung trước khi lưu.');
       return;
     }
@@ -221,6 +225,13 @@ export default function TrackEditor({ track, onClose, onSaved }) {
       let result;
       if (editing) {
         result = await api(`/tracks/${track.id}`, { method: 'PATCH', body: fields });
+        if (cover) {
+          const form = new FormData();
+          form.append('cover', cover);
+          result = await upload(`/tracks/${track.id}/cover`, form, setProgress, 'PUT');
+        } else if (removeCover) {
+          result = await api(`/tracks/${track.id}/cover`, { method: 'DELETE' });
+        }
         if (removeLyrics && track.hasLyrics)
           await api(`/tracks/${track.id}/lyrics`, { method: 'DELETE' });
         else if (content !== originalContent || lyrics)
@@ -304,27 +315,36 @@ export default function TrackEditor({ track, onClose, onSaved }) {
         )}
         <div className="track-editor-grid">
           <div className="cover-upload">
-            {coverPreview || track?.coverUrl ? (
+            {!removeCover && (coverPreview || track?.coverUrl) ? (
               <img src={coverPreview || track.coverUrl} alt="Ảnh bìa bài hát" />
             ) : (
               <div className="cover-placeholder">
                 <FileMusic size={40} />
               </div>
             )}
-            {!editing && (
-              <label className="form-secondary file-button">
+            <label className="form-secondary file-button">
                 <ImagePlus size={16} />
-                {cover ? 'Đổi ảnh bìa' : 'Thêm ảnh bìa'}
+                {cover || (editing && track?.coverUrl !== '/covers/fallback.svg') ? 'Đổi ảnh bìa' : 'Thêm ảnh bìa'}
                 <input
                   type="file"
                   accept=".jpg,.jpeg,.png,.webp"
                   aria-label="Chọn ảnh bìa"
-                  onChange={(e) => chooseFile(e.target.files[0], 'cover')}
+                  disabled={busy || aligning}
+                  onChange={(e) => { chooseFile(e.target.files[0], 'cover'); e.target.value = ''; }}
                 />
               </label>
+            {editing && (cover || (!removeCover && track?.coverUrl !== '/covers/fallback.svg')) && (
+              <button
+                type="button"
+                className="form-text-button is-danger"
+                disabled={busy || aligning}
+                onClick={() => { setCover(null); setRemoveCover(true); }}
+              >
+                <Trash2 size={14} /> Xóa ảnh bìa
+              </button>
             )}
             <span className="field-hint">
-              {editing ? 'Ảnh bìa hiện tại' : 'JPG, PNG, WebP · Tối đa 5 MB'}
+              JPG, PNG, WebP · Tối đa 5 MB
             </span>
           </div>
           <div className="metadata-fields">
@@ -412,7 +432,7 @@ export default function TrackEditor({ track, onClose, onSaved }) {
             {error}
           </div>
         )}
-        {busy && !editing && (
+        {busy && (!editing || cover) && (
           <div className="upload-progress" role="status">
             <div>
               <span>

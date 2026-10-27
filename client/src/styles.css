@@ -300,6 +300,12 @@ input[type='range']::-moz-range-thumb {
   background: var(--soft);
   color: var(--accent);
 }
+.playlist-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
 .tile-1 {
   background: var(--soft);
   color: var(--accent);
@@ -1332,6 +1338,15 @@ main {
   color: var(--accent);
   box-shadow: 0 12px 50px var(--shadow);
 }
+.collection-icon.has-cover {
+  overflow: hidden;
+  padding: 0;
+}
+.collection-icon.has-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .liked-icon {
   background: linear-gradient(140deg, var(--accent-soft), var(--soft));
 }
@@ -1375,6 +1390,50 @@ main {
   display: flex;
   flex-direction: column;
   gap: 19px;
+}
+.playlist-cover-editor {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.playlist-cover-editor > img,
+.playlist-cover-placeholder {
+  width: 112px;
+  height: 112px;
+  flex: 0 0 112px;
+  border-radius: 11px;
+  object-fit: cover;
+}
+.playlist-cover-placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.playlist-cover-editor > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+}
+.playlist-cover-editor .file-button {
+  padding: 9px 12px;
+}
+@media (max-width: 480px) {
+  .playlist-cover-editor {
+    gap: 12px;
+  }
+  .playlist-cover-editor > img,
+  .playlist-cover-placeholder {
+    width: 86px;
+    height: 86px;
+    flex-basis: 86px;
+  }
+  .playlist-cover-editor .file-button {
+    font-size: 10px;
+    padding: 8px;
+  }
 }
 .modal-stack .muted,
 .aural-modal > p {

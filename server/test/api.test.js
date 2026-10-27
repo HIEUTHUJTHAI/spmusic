@@ -74,6 +74,11 @@ function uploadForm({ audio = wav(), filename = 'sample.wav', lyrics = validLyri
   if (cover) body.set('cover', new Blob([cover]), 'cover.png');
   return body;
 }
+function coverForm(bytes = validCover, name = 'cover.png') {
+  const body = new FormData();
+  body.set('cover', new Blob([bytes]), name);
+  return body;
+}
 
 test('LRC validation accepts timestamps, repeated stamps and offset; rejects corrupt and untimed data', () => {
   assert.equal(validateLrc(Buffer.from(validLyrics)), validLyrics);
@@ -262,6 +267,22 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
           .status,
         400,
       );
+    });
+    await t.test('owners can replace and remove track covers without leaving old files', async () => {
+      const url = `/api/tracks/${trackId}/cover`;
+      assert.equal((await request(url, { method: 'PUT', cookie: bobCookie, body: coverForm() })).status, 404);
+      assert.equal((await request(url, { method: 'PUT', cookie: aliceCookie, body: coverForm(Buffer.from('bad')) })).status, 400);
+      const first = await request(url, { method: 'PUT', cookie: aliceCookie, body: coverForm() });
+      assert.equal(first.status, 200);
+      const second = await request(url, { method: 'PUT', cookie: aliceCookie, body: coverForm() });
+      assert.notEqual(second.body.track.coverUrl, first.body.track.coverUrl);
+      assert.deepEqual((await request(second.body.track.coverUrl, { cookie: aliceCookie })).body, validCover);
+      assert.equal((await fs.readdir(path.join(dataDir, 'uploads/covers'))).length, 1);
+      assert.equal((await request(url, { method: 'DELETE', cookie: bobCookie })).status, 404);
+      const removed = await request(url, { method: 'DELETE', cookie: aliceCookie });
+      assert.equal(removed.body.track.coverUrl, '/covers/fallback.svg');
+      assert.equal((await fs.readdir(path.join(dataDir, 'uploads/covers'))).length, 0);
+      assert.equal((await request(url, { method: 'PUT', cookie: aliceCookie, body: coverForm() })).status, 200);
     });
     await t.test(
       'AI routes protect owners and return reviewable drafts for existing and new audio',
@@ -680,6 +701,21 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
       assert.equal(changed.body.playlist.name, 'Đêm yên');
       assert.equal(changed.body.playlist.trackIds.length, 2);
     });
+    await t.test('playlist cover is private and cleaned up when playlist is deleted', async () => {
+      const url = `/api/playlists/${playlistId}/cover`;
+      assert.equal((await request(url, { method: 'PUT', cookie: bobCookie, body: coverForm() })).status, 404);
+      assert.equal((await request(url, { method: 'PUT', cookie: aliceCookie, body: coverForm(Buffer.from('bad')) })).status, 400);
+      const saved = await request(url, { method: 'PUT', cookie: aliceCookie, body: coverForm() });
+      assert.equal(saved.status, 200);
+      assert.ok(saved.body.playlist.coverUrl.includes('/cover?v='));
+      assert.equal((await request(url, { cookie: bobCookie })).status, 404);
+      assert.deepEqual((await request(saved.body.playlist.coverUrl, { cookie: aliceCookie })).body, validCover);
+      assert.equal((await fs.readdir(path.join(dataDir, 'uploads/playlist-covers'))).length, 1);
+      const removed = await request(url, { method: 'DELETE', cookie: aliceCookie });
+      assert.equal(removed.body.playlist.coverUrl, null);
+      assert.equal((await fs.readdir(path.join(dataDir, 'uploads/playlist-covers'))).length, 0);
+      assert.equal((await request(url, { method: 'PUT', cookie: aliceCookie, body: coverForm() })).status, 200);
+    });
     await t.test(
       'Origin guard rejects cross-site changes while accepting the actual local server origin',
       async () => {
@@ -754,6 +790,7 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
             .status,
           200,
         );
+        assert.equal((await fs.readdir(path.join(dataDir, 'uploads/playlist-covers'))).length, 0);
         assert.equal(
           (await request('/api/auth/logout', { method: 'POST', cookie: aliceCookie })).status,
           200,

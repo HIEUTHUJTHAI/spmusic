@@ -62,6 +62,17 @@
   --shadow: #0003;
   --overlay: #08070dbb;
 }
+:root[data-theme='custom'] {
+  color-scheme: light;
+  --panel2: color-mix(in srgb, var(--accent) 7%, var(--panel));
+  --soft: color-mix(in srgb, var(--bg) 55%, var(--panel));
+  --line: color-mix(in srgb, var(--text) 18%, var(--panel));
+  --muted: color-mix(in srgb, var(--text) 68%, var(--bg));
+  --accent-hover: color-mix(in srgb, var(--accent) 82%, #161016);
+  --accent-soft: color-mix(in srgb, var(--accent) 17%, var(--panel));
+  --shadow: color-mix(in srgb, var(--text) 12%, transparent);
+  --overlay: #17101899;
+}
 .app-shell {
   background: var(--bg);
   color: var(--text);
@@ -298,6 +309,51 @@
   gap: 10px;
   margin-top: 18px;
 }
+.custom-theme-editor {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel2);
+}
+.custom-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+.custom-theme-grid label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+.custom-theme-grid input[type='color'] {
+  width: 42px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  cursor: pointer;
+}
+.custom-theme-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  font-size: 12px;
+}
+.custom-theme-preview span {
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+.custom-theme-editor > button {
+  margin-top: 14px;
+}
 .theme-choice {
   display: flex;
   align-items: center;
@@ -352,7 +408,7 @@
 }
 .settings-track {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 34px;
+  grid-template-columns: 40px minmax(0, 1fr) 34px 34px;
   align-items: center;
   gap: 12px;
   padding: 12px 3px;
