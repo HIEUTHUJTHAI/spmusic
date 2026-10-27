@@ -12,10 +12,10 @@ flowchart LR
     DBAdapter --> PGlite[PostgreSQL WASM / PGlite cục bộ]
     DBAdapter -. DATABASE_URL .-> PG[PostgreSQL qua pg]
     API --> Storage[Ổ đĩa: audio / covers / lyrics]
-    Browser --> Demo[Tài nguyên mẫu công khai trong client/public]
+    Browser --> Public[Tài nguyên giao diện công khai trong client/public]
 ```
 
-Frontend không truy cập database hoặc thư mục upload trực tiếp. API chịu trách nhiệm xác thực, quyền sở hữu, kiểm tra dữ liệu, lưu trữ và cung cấp media. Mã nguồn tách hai npm workspace `client` và `server`; tài nguyên mẫu có metadata riêng, không trộn với nhạc do người dùng tải lên.
+Frontend không truy cập database hoặc thư mục upload trực tiếp. API chịu trách nhiệm xác thực, quyền sở hữu, kiểm tra dữ liệu, lưu trữ và cung cấp media. Mã nguồn tách hai npm workspace `client` và `server`; bản phát hành không kèm nhạc mẫu.
 
 ## Frontend
 
@@ -33,9 +33,9 @@ Các thành phần trong `components/` tách giao diện phát nhạc (`Player`)
 
 Mật khẩu được băm bằng scrypt với salt ngẫu nhiên riêng. Đăng nhập thành công tạo token phiên ngẫu nhiên; database chỉ lưu SHA-256 của token, cookie giữ token gốc. Cookie là HttpOnly, SameSite=Lax và có thời hạn 7 ngày; thuộc tính Secure tùy cấu hình HTTPS. Đăng xuất thu hồi phiên trong database và xóa cookie.
 
-API lấy `user_id` từ phiên, không tin `ownerId` do client gửi. Mỗi truy vấn sửa/xóa/đọc tài nguyên riêng gắn điều kiện chủ sở hữu. Truy cập bài của tài khoản khác trả lỗi phù hợp thay vì tiết lộ metadata. Playlist chỉ được tham chiếu demo công khai hoặc upload của chính chủ; lịch sử cũng kiểm tra cùng phạm vi.
+API lấy `user_id` từ phiên, không tin `ownerId` do client gửi. Mỗi truy vấn sửa/xóa/đọc tài nguyên riêng gắn điều kiện chủ sở hữu. Truy cập bài của tài khoản khác trả lỗi phù hợp thay vì tiết lộ metadata. Playlist và lịch sử chỉ tham chiếu bài của chính chủ.
 
-Khách có thể đọc và nghe sáu demo. Lịch sử khách và lượt yêu thích nằm trong `localStorage`. Khi đăng nhập, lịch sử/playlist dùng database; lượt yêu thích vẫn ở trình duyệt và được tách khóa theo ID tài khoản. Không có quá trình tự nhập lịch sử khách vào tài khoản.
+Thư viện khách trống. Lượt yêu thích nằm trong `localStorage`. Khi đăng nhập, lịch sử/playlist dùng database; lượt yêu thích vẫn ở trình duyệt và được tách khóa theo ID tài khoản.
 
 ## Mô hình dữ liệu
 
@@ -49,7 +49,7 @@ Khách có thể đọc và nghe sáu demo. Lịch sử khách và lượt yêu 
 
 Schema có chỉ mục theo chủ sở hữu và hạn phiên. Truy vấn SQL đều dùng tham số. Lịch sử là danh sách các bài gần đây, không phải nhật ký lưu từng lần nhấn phát. API trả tối đa 50 bài theo lần nghe cuối. Playlist tối đa 1000 ID; các ID trùng bị loại.
 
-Metadata demo được đọc từ `server/src/data/demo.json`, thêm vào kết quả thư viện với `isDemo=true`, `ownerId=null`. Demo không bị sửa/xóa bởi người dùng. Các ID demo được phép xuất hiện trong playlist và lịch sử dù không nằm trong bảng `tracks`.
+Ứng dụng không nạp metadata nhạc mẫu. Các bài do người dùng thêm được lưu trong bảng `tracks` cùng ID chủ sở hữu; bài từ link YouTube có `source_key` để tránh nhập trùng cùng video cho một tài khoản.
 
 ## Database và file
 

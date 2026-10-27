@@ -2,6 +2,7 @@ node_modules/
 .runtime/
 client/dist/
 release/
+tools/vendor/
 server/data/
 server/uploads/
 server/test-temp-*/

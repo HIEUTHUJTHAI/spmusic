@@ -23,6 +23,8 @@ export default function TrackEditor({ track, onClose, onSaved }) {
     genre: track?.genre || '',
   });
   const [audio, setAudio] = useState(null);
+  const [bulkFiles, setBulkFiles] = useState([]);
+  const [bulkResults, setBulkResults] = useState([]);
   const [cover, setCover] = useState(null);
   const [lyrics, setLyrics] = useState(null);
   const [content, setContent] = useState('');
@@ -36,6 +38,7 @@ export default function TrackEditor({ track, onClose, onSaved }) {
   const [lyricsLoading, setLyricsLoading] = useState(false);
   const [aligning, setAligning] = useState(false);
   const lyricsRead = useRef(0);
+  const bulk = bulkFiles.length > 1;
   useEffect(() => {
     if (!track?.hasLyrics) return;
     let cancelled = false;
@@ -116,6 +119,34 @@ export default function TrackEditor({ track, onClose, onSaved }) {
       }
     }
   }
+  function chooseAudioFiles(selected) {
+    if (busy || aligning) return;
+    const files = Array.from(selected || []);
+    if (!files.length) return;
+    if (files.length > 50) {
+      setError('Mỗi lượt chọn tối đa 50 bài hát.');
+      return;
+    }
+    const allowed = new Set(['mp3', 'wav', 'flac', 'm4a', 'ogg', 'oga', 'opus']);
+    const invalid = files.find((file) =>
+      !allowed.has(file.name.split('.').at(-1)?.toLowerCase()) ||
+      !file.size ||
+      file.size > 250 * MB,
+    );
+    if (invalid) {
+      setError(`File “${invalid.name}” không hợp lệ hoặc vượt 250 MB.`);
+      return;
+    }
+    setError('');
+    setBulkResults([]);
+    if (files.length === 1) {
+      setBulkFiles([]);
+      chooseFile(files[0], 'audio');
+    } else {
+      setAudio(null);
+      setBulkFiles(files);
+    }
+  }
   function field(key, label, placeholder, maxLength) {
     return (
       <label>
@@ -133,7 +164,7 @@ export default function TrackEditor({ track, onClose, onSaved }) {
   async function save(event) {
     event.preventDefault();
     setError('');
-    if (!editing && !audio) {
+    if (!editing && !audio && !bulk) {
       setError('Hãy chọn file MP3, WAV, FLAC hoặc ALAC (.m4a).');
       return;
     }
@@ -141,11 +172,46 @@ export default function TrackEditor({ track, onClose, onSaved }) {
       setError('Vui lòng xác nhận quyền sử dụng nội dung trước khi lưu.');
       return;
     }
-    if (!removeLyrics && new TextEncoder().encode(content).length > 256 * 1024) {
+    if (bulk) {
+      setBusy(true);
+      const results = [...bulkResults];
+      let newlySaved = 0;
+      try {
+        for (let i = 0; i < bulkFiles.length; i++) {
+          if (results[i]?.ok) continue;
+          const file = bulkFiles[i];
+          const form = new FormData();
+          form.append('title', file.name.replace(/\.[^.]+$/, '').trim().slice(0, 160) || 'Bài hát');
+          form.append('artist', fields.artist.trim());
+          form.append('album', fields.album.trim());
+          form.append('genre', fields.genre.trim());
+          form.append('audio', file);
+          if (cover) form.append('cover', cover);
+          try {
+            await upload('/tracks', form, (value) =>
+              setProgress(((i + value / 100) / bulkFiles.length) * 100),
+            );
+            results[i] = { ok: true, message: 'Đã thêm' };
+            newlySaved++;
+          } catch (e) {
+            results[i] = { ok: false, message: e.message || 'Không thể thêm bài hát.' };
+          }
+          setBulkResults([...results]);
+          setProgress(((i + 1) / bulkFiles.length) * 100);
+        }
+        const failures = results.filter((item) => !item?.ok).length;
+        if (newlySaved) await onSaved?.({ count: newlySaved, stayOpen: failures > 0 });
+        if (failures) setError(`${failures} bài chưa được thêm. Bạn có thể thử lại các bài lỗi.`);
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    if (!bulk && !removeLyrics && new TextEncoder().encode(content).length > 256 * 1024) {
       setError('Lyrics không được vượt quá 256 KB.');
       return;
     }
-    if (!removeLyrics && content.trim() && !parseLrc(content).length) {
+    if (!bulk && !removeLyrics && content.trim() && !parseLrc(content).length) {
       setError('Lyrics cần ít nhất một dòng có mốc thời gian, ví dụ [00:12.50] Lời bài hát.');
       return;
     }
@@ -196,29 +262,44 @@ export default function TrackEditor({ track, onClose, onSaved }) {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
-              chooseFile(e.dataTransfer.files[0], 'audio');
+              chooseAudioFiles(e.dataTransfer.files);
             }}
           >
             <UploadCloud size={30} />
-            <strong>{audio?.name || 'Kéo thả file nhạc vào đây'}</strong>
+            <strong>{bulk ? `${bulkFiles.length} bài hát đã chọn` : audio?.name || 'Kéo thả file nhạc vào đây'}</strong>
             <span>
-              {audio
+              {bulk
+                ? 'Sẽ thêm lần lượt từng bài; tên bài lấy từ tên file.'
+                : audio
                 ? `${(audio.size / MB).toFixed(1)} MB · Đã sẵn sàng`
-                : 'MP3 · WAV · FLAC · ALAC · OGG · Opus · Tối đa 250 MB'}
+                : 'MP3 · WAV · FLAC · ALAC · OGG · Opus · Tối đa 250 MB/bài'}
             </span>
             <label className="form-secondary file-button">
-              {audio ? 'Chọn file khác' : 'Chọn file nhạc'}
+              {audio || bulk ? 'Chọn lại file' : 'Chọn một hoặc nhiều file nhạc'}
               <input
                 type="file"
+                multiple
                 accept=".mp3,.wav,.flac,.m4a,.ogg,.oga,.opus,audio/mpeg,audio/wav,audio/flac,audio/mp4,audio/ogg"
-                aria-label="Chọn file nhạc MP3, WAV, FLAC, ALAC, OGG hoặc Opus"
+                aria-label="Chọn một hoặc nhiều file nhạc MP3, WAV, FLAC, ALAC, OGG hoặc Opus"
                 disabled={busy || aligning}
-                onChange={(e) => chooseFile(e.target.files[0], 'audio')}
+                onChange={(e) => { chooseAudioFiles(e.target.files); e.target.value = ''; }}
               />
             </label>
             <span className="field-hint">
               ALAC được tạo bản phát FLAC lossless. File M4A chứa AAC chưa được hỗ trợ.
             </span>
+          </div>
+        )}
+        {bulk && (
+          <div className="bulk-track-list" aria-label="Các bài hát đã chọn">
+            {bulkFiles.map((file, index) => (
+              <div key={`${file.name}-${index}`}>
+                <span>{index + 1}. {file.name}</span>
+                <small className={bulkResults[index]?.ok ? 'bulk-success' : 'bulk-error'}>
+                  {bulkResults[index]?.message || `${(file.size / MB).toFixed(1)} MB`}
+                </small>
+              </div>
+            ))}
           </div>
         )}
         <div className="track-editor-grid">
@@ -247,14 +328,16 @@ export default function TrackEditor({ track, onClose, onSaved }) {
             </span>
           </div>
           <div className="metadata-fields">
-            {field('title', 'Tên bài hát *', 'Tên giai điệu của bạn', 160)}
+            {!bulk && field('title', 'Tên bài hát *', 'Tên giai điệu của bạn', 160)}
             {field('artist', 'Nghệ sĩ *', 'Tên nghệ sĩ', 120)}
             <div className="form-two-columns">
               {field('album', 'Album', 'Đĩa đơn', 160)}
               {field('genre', 'Thể loại', 'Ambient, Indie…', 80)}
             </div>
+            {bulk && <span className="field-hint">Nghệ sĩ, album, thể loại và ảnh bìa sẽ dùng chung. Bạn có thể sửa từng bài sau khi thêm.</span>}
           </div>
         </div>
+        {!bulk && <>
         <div className="lyrics-editor-heading">
           <label className="field-title" htmlFor="lyrics-content">
             Lyrics đồng bộ <span>Không bắt buộc</span>
@@ -315,6 +398,7 @@ export default function TrackEditor({ track, onClose, onSaved }) {
           )}
         </div>
         {removeLyrics && <p className="form-warning">Lyrics sẽ được xóa khi bạn lưu thay đổi.</p>}
+        </>}
         <label className="license-checkbox">
           <input
             type="checkbox"
@@ -354,7 +438,7 @@ export default function TrackEditor({ track, onClose, onSaved }) {
             disabled={busy || lyricsLoading || aligning}
           >
             {busy ? <LoaderCircle size={17} className="spinning" /> : <Check size={17} />}
-            {busy ? 'Đang lưu…' : editing ? 'Lưu thay đổi' : 'Thêm vào thư viện'}
+            {busy ? 'Đang lưu…' : editing ? 'Lưu thay đổi' : bulk ? (bulkResults.some((item) => item && !item.ok) ? 'Thử lại bài lỗi' : `Thêm ${bulkFiles.length} bài hát`) : 'Thêm vào thư viện'}
           </button>
         </footer>
       </form>

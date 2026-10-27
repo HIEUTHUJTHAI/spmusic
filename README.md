@@ -6,15 +6,17 @@ Bản cập nhật: giao diện **trắng–hồng**, menu avatar có **Tài kho
 
 **Ứng dụng Windows:** [cách cài/chạy, lưu dữ liệu và tạo bản mới](docs/DESKTOP-APP.md). File `.exe` đã build nằm trong thư mục `release/`.
 
-MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwind CSS**, **Node.js + Express** và **PostgreSQL**. Giao diện trắng–hồng mặc định, có bốn bảng màu, thư viện cá nhân, playlist và lời bài hát đồng bộ LRC. Tên gọi, biểu tượng, ảnh bìa, các đoạn nhạc và lời mẫu được tạo riêng cho dự án; không sử dụng dữ liệu hay nhận diện thương hiệu Spotify.
+MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwind CSS**, **Node.js + Express** và **PostgreSQL/PGlite**. Giao diện trắng–hồng mặc định, có bốn bảng màu, thư viện cá nhân, playlist và lời bài hát đồng bộ LRC. Bản 1.0.1 không kèm bài hát hoặc lời mẫu; thư viện ban đầu trống. Ứng dụng không sử dụng dữ liệu hay nhận diện thương hiệu Spotify.
 
 **Mới: Nhạc mở từ internet.** Tìm bản thu trên Internet Archive và Wikimedia Commons, chọn bài để app tự tải bản ưu tiên về thư viện riêng. Ưu tiên lossless nếu nguồn có file phù hợp, lưu nguồn và giấy phép cùng bài hát. Không cần API key. Xem [hướng dẫn nhạc mở](docs/OPEN-MUSIC.md).
+
+**Bản 1.0.1:** Chọn cùng lúc tối đa 50 file nhạc để thêm vào thư viện. Có thể dán link một video YouTube công khai và tải âm thanh thành MP3 khi bạn có quyền tải/sử dụng nội dung đó. Chức năng này cần Internet; chất lượng phụ thuộc âm thanh nguồn và MP3 không phải lossless.
 
 ## Ứng dụng Windows
 
 SPMusic có thể chạy như ứng dụng desktop: cài Node.js 22+ và npm, cài thư viện bằng `npm install`, sau đó chạy `npm run desktop:build`. File cài đặt `.exe` và bản chạy không cần cài sẽ nằm trong `release/`. Chạy thử app desktop từ mã nguồn bằng `npm run desktop:dev`.
 
-App mở trong cửa sổ riêng, tự khởi động backend Express trên cổng cục bộ tự chọn và lưu database, nhạc, ảnh, avatar vào %APPDATA%\SPMusic\data. Gỡ/cài lại chương trình không chủ động xóa thư viện. Sửa mã nguồn xong, build lại để tạo bản app mới. Bản build hiện chưa ký số; Windows có thể hiện cảnh báo nhà phát hành chưa xác định. Cập nhật Internet/GitHub sẽ được thêm ở giai đoạn sau.
+App mở trong cửa sổ riêng, tự khởi động backend Express trên cổng cục bộ tự chọn và lưu database, nhạc, ảnh, avatar vào %APPDATA%\SPMusic\data. Gỡ/cài lại chương trình không chủ động xóa thư viện. Sửa mã nguồn xong, build lại để tạo bản app mới. Bản build hiện chưa ký số; Windows có thể hiện cảnh báo nhà phát hành chưa xác định. Bản cài đặt kiểm tra cập nhật qua GitHub Releases khi mở và có nút kiểm tra thủ công trong Cài đặt.
 
 ## Chạy nhanh
 
@@ -39,7 +41,7 @@ npm install
 npm run dev
 ```
 
-Mở **http://127.0.0.1:5173**. Frontend chạy ở cổng **5173**, backend ở **3001**. Lần khởi động đầu tiên tạo cơ sở dữ liệu và thư mục lưu file tự động. Không cần Docker hoặc tài khoản dịch vụ bên ngoài. Cần kết nối Internet khi cài các gói npm lần đầu; nhạc và ảnh mẫu đã có sẵn trong mã nguồn.
+Mở **http://127.0.0.1:5173**. Frontend chạy ở cổng **5173**, backend ở **3001**. Lần khởi động đầu tiên tạo cơ sở dữ liệu và thư mục lưu file tự động. Không cần Docker hoặc tài khoản dịch vụ bên ngoài. Cần kết nối Internet khi cài các gói npm lần đầu. Thư viện ban đầu trống.
 
 Chưa cần tạo tệp `.env` nếu sử dụng thiết lập mặc định. Không có tài khoản hay mật khẩu mẫu: bạn tự đăng ký trong ứng dụng. Dùng **Ctrl+C** để dừng các tiến trình.
 
@@ -70,21 +72,22 @@ Mở **http://localhost:3001** hoặc **http://127.0.0.1:3001**. Sau khi build, 
 
 ## Thử ứng dụng
 
-1. **Khám phá và phát nhạc:** ngay khi chưa đăng nhập, bạn có thể nghe sáu bản nhạc mẫu, mở album/nghệ sĩ, tìm kiếm và xem lời đồng bộ. Thanh phát cố định có phát/tạm dừng, bài trước/sau, tua, âm lượng, phát ngẫu nhiên và lặp lại. Nút lặp luân phiên tắt → toàn bộ → một bài. Nhấn phím Space khi không nhập liệu để phát/tạm dừng.
+1. **Khám phá và phát nhạc:** tạo tài khoản và thêm nhạc của bạn. Khi có bài hát, bạn có thể mở album/nghệ sĩ, tìm kiếm và xem lời đồng bộ. Thanh phát cố định có phát/tạm dừng, bài trước/sau, tua, âm lượng, phát ngẫu nhiên và lặp lại. Nút lặp luân phiên tắt → toàn bộ → một bài. Nhấn phím Space khi không nhập liệu để phát/tạm dừng.
 2. **Tạo tài khoản:** chọn **Đăng nhập → Tạo tài khoản**, nhập tên, email và mật khẩu 8–128 ký tự. Đây là tài khoản cục bộ, không gửi email xác minh. Nhấn ảnh đại diện để xem tài khoản hoặc đăng xuất.
-3. **Thêm nhạc:** chọn **Tải nhạc lên**, kéo thả/chọn MP3, WAV, FLAC hoặc ALAC (.m4a), thêm ảnh bìa nếu muốn, nhập tên bài và nghệ sĩ; album/thể loại là tùy chọn. Bạn có thể thêm LRC trong cùng biểu mẫu. Xác nhận bạn sở hữu hoặc được phép sử dụng nội dung trước khi lưu. Biểu mẫu hiển thị phần trăm tải, trạng thái xử lý và lỗi cụ thể.
-4. **Quản lý thư viện:** mở **Thư viện của bạn**, chọn **Nhạc tải lên**. Menu ba chấm cạnh bài của bạn cho phép sửa thông tin, quản lý LRC và xóa bài. Nhạc mẫu chỉ dùng để nghe và thêm vào playlist. Bản MVP cho phép chọn ảnh bìa lúc tải bài mới; biểu mẫu chỉnh sửa cập nhật metadata và lyrics, không thay file âm thanh/ảnh bìa.
+3. **Thêm nhạc:** chọn **Tải nhạc lên**, kéo thả/chọn MP3, WAV, FLAC hoặc ALAC (.m4a), thêm ảnh bìa nếu muốn. Có thể chọn tối đa 50 file cùng lúc; tên bài lấy từ tên file, còn nghệ sĩ/album/thể loại/ảnh bìa dùng chung. Các file được xử lý lần lượt; nếu có file lỗi, bạn có thể thử lại riêng các file đó. Với một file, bạn có thể nhập thông tin và LRC riêng. Xác nhận bạn sở hữu hoặc được phép sử dụng nội dung trước khi lưu.
+4. **Quản lý thư viện:** mở **Thư viện của bạn**, chọn **Nhạc tải lên**. Menu ba chấm cạnh bài của bạn cho phép sửa thông tin, quản lý LRC và xóa bài. Biểu mẫu chỉnh sửa cập nhật metadata và lyrics, không thay file âm thanh/ảnh bìa.
 5. **Tạo playlist:** chọn dấu **+** ở Bộ sưu tập hoặc **Tạo playlist đầu tiên**; đặt tên, mô tả và chọn bài. Menu của bài hát có **Thêm vào playlist**. Trong playlist, dùng **Sửa playlist** để đổi tên/mô tả, thêm hoặc bỏ chọn bài; dùng biểu tượng thùng rác để xóa playlist. Xóa playlist không xóa nhạc.
 6. **Tìm và nghe lại:** nhập tên bài, album hoặc nghệ sĩ trong ô tìm kiếm; chuyển giữa các tab Bài hát/Album/Nghệ sĩ. **Nghe gần đây** hiển thị lần nghe gần nhất của từng bài, tối đa 50 bài. Biểu tượng tim lưu bài yêu thích.
 7. **Xem lời:** mở biểu tượng lyrics trong thanh phát. Dòng hiện tại được làm nổi bật và cuộn theo nhạc; bấm một dòng để tua tới câu đó. Bài không có LRC hiển thị thông báo phù hợp. Với bài do bạn tải lên, chọn chỉnh sửa lyrics để tải file, sửa nội dung hoặc xóa LRC.
 8. **AI căn lời cục bộ:** dán lời chưa có thời gian, mỗi câu một dòng; chọn ngôn ngữ và bấm **AI căn thời gian**. Xem/chỉnh mốc, bấm **Áp dụng LRC**, rồi lưu. Lần đầu tải mô hình khoảng 80 MB, các lần sau dùng lại trên máy. Xem [hướng dẫn AI cục bộ](docs/LOCAL-AI.md) để biết giới hạn, cách dùng ngoại tuyến và độ chính xác.
 9. **Nhạc từ internet:** đăng nhập, chọn **Nhạc mở từ internet**, nhập từ khóa và chọn nguồn. Mở kết quả rồi bấm **Thêm** bên cạnh bài. App tự chọn file, tải, kiểm tra và lưu vào thư viện. Menu ba chấm của bài có **Nguồn và giấy phép**. Có tiến trình, hủy tải và chống thêm trùng cùng bản thu.
+10. **Nhạc từ YouTube:** chọn **Nhạc từ link YouTube**, dán link của một video công khai, xác nhận quyền sử dụng rồi bấm tải. App dùng yt-dlp và FFmpeg để trích âm thanh thành MP3. Chỉ hỗ trợ một video mỗi lượt, tối đa 3 giờ/250 MB; không tải playlist, video riêng tư hoặc livestream. Cần Internet và YouTube có thể thay đổi khiến một số video không tải được.
 
 ### Dữ liệu khách và dữ liệu tài khoản
 
 | Dữ liệu | Khi chưa đăng nhập | Khi đã đăng nhập |
 | --- | --- | --- |
-| Nhạc mẫu | Nghe và tìm kiếm | Nghe, tìm kiếm, thêm vào playlist |
+| Thư viện ban đầu | Trống | Trống cho đến khi bạn thêm nhạc |
 | Nhạc tự tải, ảnh và LRC | Cần đăng nhập | Chỉ tài khoản sở hữu truy cập và quản lý |
 | Playlist | Cần đăng nhập | Lưu trong cơ sở dữ liệu, riêng từng tài khoản |
 | Nghe gần đây | Lưu trong trình duyệt | Lưu trong cơ sở dữ liệu theo tài khoản |
@@ -108,7 +111,7 @@ LRC là tệp văn bản **UTF-8**, đuôi `.lrc`, chứa ít nhất một dòng
 
 Hỗ trợ `[phút:giây]`, phần thập phân 1–3 chữ số, nhiều timestamp trên cùng một dòng, và `[offset:...]` tính bằng mili giây. Trong ứng dụng, offset được **cộng vào timestamp**: `[offset:500]` làm lời xuất hiện chậm hơn 0,5 giây; `-500` làm xuất hiện sớm hơn. Metadata như `[ti:...]`, `[ar:...]` không được hiển thị như lời hát. Các dòng được sắp xếp theo thời gian. Giây phải từ 00 đến 59; đồng bộ ở mức dòng, chưa có karaoke từng từ.
 
-Dùng `client/public/demo/sample.lrc` để thử. Bạn cũng có thể nhập hoặc sửa nội dung LRC trực tiếp trong ứng dụng.
+Bạn có thể nhập hoặc sửa nội dung LRC trực tiếp trong ứng dụng, hoặc tải lên file LRC của mình.
 
 ## Dung lượng và quyền truy cập
 
@@ -172,8 +175,7 @@ auralis/
 │   ├── vite.config.js            # React, Tailwind, proxy API
 │   ├── index.html
 │   ├── public/
-│   │   ├── covers/               # Ảnh bìa và phong cảnh SVG nguyên bản
-│   │   └── demo/                 # WAV, LRC, script tái tạo tài nguyên
+│   │   └── covers/               # Ảnh dự phòng cho bài chưa có bìa
 │   ├── src/
 │   │   ├── main.jsx              # Điểm khởi động React
 │   │   ├── App.jsx               # Trang khám phá/thư viện, tìm kiếm, playlist
@@ -193,7 +195,7 @@ auralis/
 │   │   ├── db.js                 # Adapter PGlite/PostgreSQL
 │   │   ├── schema.sql            # Users, sessions, tracks, playlists, history
 │   │   ├── validation.js         # Metadata và kiểm tra file
-│   │   └── data/demo.json        # Metadata nhạc mẫu công khai
+│   │   └── youtube.js            # Xác thực link, tải và lưu MP3
 │   ├── test/api.test.js          # Kiểm thử API và cách ly tài khoản
 │   └── data/                     # Tự tạo, không nằm trong mã nguồn bàn giao
 │       ├── postgres/             # Database PGlite
@@ -213,7 +215,7 @@ auralis/
 
 | Giai đoạn | Nội dung hiện có |
 | --- | --- |
-| 1. Giao diện và phát nhạc | Trang khám phá responsive, sidebar, album/nghệ sĩ, sáu demo nguyên bản, thanh phát và hàng chờ |
+| 1. Giao diện và phát nhạc | Trang khám phá responsive, sidebar, album/nghệ sĩ, thanh phát và hàng chờ |
 | 2. Tài khoản | Đăng ký, đăng nhập, đăng xuất, cookie phiên và cách ly dữ liệu |
 | 3. Upload/quản lý | MP3/WAV/FLAC/ALAC, ảnh, metadata, tiến trình, lỗi file và xóa bài kèm file |
 | 4. Playlist/tìm kiếm | Tạo/sửa/xóa playlist, thêm/bỏ bài, tìm tên bài/album/nghệ sĩ, lịch sử |
@@ -233,7 +235,7 @@ Chi tiết phạm vi kiểm thử và các bước thử thủ công nằm trong
 | --- | --- |
 | Không nhận lệnh `node`/`npm` | Cài Node.js đúng phiên bản, đóng và mở lại terminal |
 | PowerShell chặn `npm.ps1` | Dùng `npm.cmd` thay cho `npm`, hoặc chạy trong Command Prompt |
-| Không kết nối máy chủ | Kiểm tra backend đang chạy và mở `/api/health`; frontend cần backend kể cả khi nghe demo |
+| Không kết nối máy chủ | Kiểm tra backend đang chạy và mở `/api/health` |
 | Cổng đã được dùng | Dừng phiên chạy cũ; nếu đổi cổng backend, cập nhật proxy trong `client/vite.config.js` |
 | Không phát được nhạc | Nhấn phát để có tương tác người dùng; kiểm tra âm lượng, định dạng/codec và file không hỏng |
 | Không đăng nhập hoặc tải file được | Dùng cùng hostname ổn định; kiểm tra cookie được cho phép, `COOKIE_SECURE=false` ở HTTP và `CLIENT_ORIGIN` đúng |
@@ -245,7 +247,7 @@ Chi tiết phạm vi kiểm thử và các bước thử thủ công nằm trong
 - Chạy cục bộ; chưa triển khai hosting hoặc cấu hình hệ thống production.
 - Chưa có quên mật khẩu, email xác minh, OAuth, quản trị viên, chia sẻ thư viện hay playlist cộng tác.
 - File nằm trên ổ đĩa một máy chủ; chưa có object storage, CDN, chuyển mã audio, quét mã độc hoặc quota tổng dung lượng từng tài khoản.
-- Sáu bản mẫu là đoạn nhạc tổng hợp 28 giây để thử chức năng, không phải bản ghi âm dài hoàn chỉnh.
+- Thư viện mới trống; cần tự thêm file hoặc nhạc có quyền sử dụng.
 - Lyrics đồng bộ theo dòng; có AI cục bộ hỗ trợ căn thời gian cho lời bạn dán, cần xem lại kết quả. Không tự lấy lời từ Internet.
 - Yêu thích chỉ lưu trong trình duyệt. PGlite mặc định dành cho một tiến trình backend; có thể đổi sang PostgreSQL khi mở rộng.
 

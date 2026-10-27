@@ -6,7 +6,7 @@ API bổ sung: [Tài khoản, avatar, mật khẩu và bảng màu](../docs/ACCO
 
 Mặc định **PGlite** chạy PostgreSQL biên dịch WebAssembly trong Node và ghi dữ liệu bền vững vào `server/data/postgres/`; không cần cài dịch vụ cơ sở dữ liệu. Chỉ chạy **một tiến trình backend** trên cùng thư mục dữ liệu. Khi mở rộng, đặt `DATABASE_URL=postgresql://user:password@localhost:5432/auralis`; adapter `pg` dùng cùng schema và các truy vấn tham số hóa. PGlite phù hợp MVP cục bộ, không phải cụm PostgreSQL đa tiến trình. Schema tự khởi tạo lúc khởi động.
 
-File được lưu trong ba thư mục riêng: `data/uploads/audio/`, `data/uploads/covers/`, `data/uploads/lyrics/`. Không có đường dẫn tĩnh công khai đến thư mục upload. Endpoint media kiểm tra phiên và chủ sở hữu trước khi gửi file, hỗ trợ HTTP Range để tua nhạc. File mẫu là tài nguyên công khai của frontend.
+File được lưu trong ba thư mục riêng: `data/uploads/audio/`, `data/uploads/covers/`, `data/uploads/lyrics/`. Không có đường dẫn tĩnh công khai đến thư mục upload. Endpoint media kiểm tra phiên và chủ sở hữu trước khi gửi file, hỗ trợ HTTP Range để tua nhạc. Bản phát hành không kèm bài hát mẫu.
 
 ## API
 
@@ -19,7 +19,7 @@ Tất cả phản hồi lỗi có dạng `{ "error": "Thông báo tiếng Việt
 | POST | `/api/auth/register` | JSON `{name,email,password}`; 201 + cookie |
 | POST | `/api/auth/login` | JSON `{email,password}`; cookie |
 | POST | `/api/auth/logout` | Thu hồi phiên và xóa cookie |
-| GET | `/api/tracks?q=` | `{tracks}` gồm nhạc mẫu + bài của chính tài khoản; tìm tên bài/album/nghệ sĩ |
+| GET | `/api/tracks?q=` | `{tracks}` gồm bài của chính tài khoản; tìm tên bài/album/nghệ sĩ |
 | POST | `/api/tracks` | multipart `audio`, tùy chọn `cover`,`lyrics`; text `title`,`artist`,`album`,`genre` |
 | PATCH | `/api/tracks/:id` | JSON metadata; chỉ chủ sở hữu |
 | DELETE | `/api/tracks/:id` | Xóa bài, file, tham chiếu playlist/lịch sử của chủ sở hữu |
@@ -33,8 +33,14 @@ Tất cả phản hồi lỗi có dạng `{ "error": "Thông báo tiếng Việt
 | DELETE | `/api/playlists/:id` | Xóa playlist của tài khoản |
 | GET | `/api/history` | `{history:[{trackId,playedAt}]}` tối đa 50 bài gần nhất |
 | POST | `/api/history` | JSON `{trackId}`; cập nhật lần nghe gần nhất |
+| GET | `/api/youtube/jobs/active` | Tác vụ nhập YouTube đang chạy của tài khoản |
+| POST | `/api/youtube/jobs` | JSON `{url,licensed:true}`; bắt đầu nhập MP3 từ một video công khai |
+| GET | `/api/youtube/jobs/:id` | Trạng thái/tiến trình; chỉ tài khoản khởi tạo |
+| DELETE | `/api/youtube/jobs/:id` | Hủy tác vụ đang chạy |
 
-Playlist chứa tối đa 1000 bài; chỉ chấp nhận bài mẫu hoặc bài do chính tài khoản tải lên. Lịch sử lưu lần nghe gần nhất của mỗi bài (không phải nhật ký từng sự kiện).
+Playlist chứa tối đa 1000 bài; chỉ chấp nhận bài do chính tài khoản thêm vào. Lịch sử lưu lần nghe gần nhất của mỗi bài (không phải nhật ký từng sự kiện).
+
+Giao diện thêm nhiều bài gửi từng file qua `POST /api/tracks`; tối đa 50 file mỗi lần chọn và kết quả lỗi được hiển thị riêng cho từng bài. Nhập YouTube dùng yt-dlp và FFmpeg, chỉ nhận link HTTPS của một video, thời lượng tối đa 3 giờ và MP3 tối đa 250 MB. Người dùng cần xác nhận quyền sử dụng nội dung.
 
 ## Giới hạn và kiểm tra
 
@@ -54,6 +60,8 @@ AI cục bộ có API tác vụ riêng, phân quyền theo tài khoản và khô
 - `src/schema.sql`: bảng người dùng, phiên, bài hát, playlist, lịch sử.
 - `src/app.js`: API, phân quyền, session, upload, media và lỗi.
 - `src/validation.js`: xác thực metadata, chữ ký audio/ảnh, cú pháp LRC.
+- `src/youtube.js`: xác thực URL, quản lý tác vụ tải/huỷ, kiểm tra và lưu MP3 riêng theo tài khoản.
+- `test/youtube.test.js`: URL hợp lệ, nhập trùng và quyền truy cập tác vụ.
 - `test/api.test.js`: kiểm thử HTTP thực cho đăng nhập, cách ly tài khoản, upload, HTTP Range, playlist, lyrics, lịch sử và lưu dữ liệu sau khởi động lại.
 
 Chạy kiểm thử: `npm test --workspace @auralis/server` từ thư mục gốc, hoặc `npm test` trong `server/`. Kiểm thử tạo database trong thư mục tạm riêng và tự dọn sau khi hoàn tất; không sửa dữ liệu phát triển.

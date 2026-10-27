@@ -16,6 +16,7 @@ export async function startDesktopServer({ dataDir }) {
     });
   } catch (error) {
     await app?.locals.openMusic?.close();
+    await app?.locals.youtube?.close();
     await db.close();
     throw error;
   }
@@ -29,6 +30,7 @@ export async function startDesktopServer({ dataDir }) {
       closed = true;
       app.locals.lyricsAI.close();
       await app.locals.openMusic.close();
+      await app.locals.youtube.close();
       await new Promise((resolve, reject) =>
         server.close((error) => (error ? reject(error) : resolve())),
       );

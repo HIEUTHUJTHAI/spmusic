@@ -16,14 +16,14 @@ export function SourceCredit({ info }) {
         <a href={info.sourceUrl} target="_blank" rel="noreferrer">
           Nguồn: {info.providerName || info.source} <ExternalLink size={12} />
         </a>
-        <a href={info.license.url} target="_blank" rel="noreferrer">
+        {info.license?.url && <a href={info.license.url} target="_blank" rel="noreferrer">
           {info.license.name} <ExternalLink size={12} />
-        </a>
+        </a>}
       </div>
       {info.downloadedAt && (
         <p>
-          Đã tải bản {info.format} · {new Date(info.downloadedAt).toLocaleDateString('vi-VN')} · Giữ
-          nguyên nội dung âm thanh
+          Đã tải bản {info.format} · {new Date(info.downloadedAt).toLocaleDateString('vi-VN')}
+          {info.provider !== 'youtube' && ' · Giữ nguyên nội dung âm thanh'}
         </p>
       )}
     </div>

@@ -247,6 +247,28 @@
   color: var(--text);
   overflow-wrap: anywhere;
 }
+
+.bulk-track-list {
+  display: grid;
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 4px 12px;
+}
+.bulk-track-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.bulk-track-list > div:last-child { border-bottom: 0; }
+.bulk-track-list span { overflow-wrap: anywhere; }
+.bulk-track-list small { flex: none; color: var(--muted); }
+.bulk-track-list .bulk-success { color: #28754b; }
+.bulk-track-list .bulk-error:not(:empty) { color: var(--muted); }
 .upload-zone > span {
   font-size: 10px;
   color: var(--muted);

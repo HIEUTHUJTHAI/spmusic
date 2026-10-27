@@ -22,7 +22,7 @@ export default function Player({ p, onLyrics, lyricsOpen, onQueue, queueOpen, li
     <footer className="player" aria-label="Trình phát nhạc">
       <div className="now-playing">
         {p.track ? (
-          <img src={p.track.coverUrl || '/covers/demo-blue.svg'} alt="" />
+          <img src={p.track.coverUrl || '/covers/fallback.svg'} alt="" />
         ) : (
           <span className="empty-cover">
             <Music2 />

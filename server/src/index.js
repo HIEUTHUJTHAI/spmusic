@@ -19,6 +19,7 @@ for (const signal of ['SIGINT', 'SIGTERM'])
     app.locals.lyricsAI.close();
     server.close(async () => {
       await app.locals.openMusic.close();
+      await app.locals.youtube.close();
       await db.close();
       process.exit(0);
     });

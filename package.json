@@ -1,6 +1,6 @@
 {
   "name": "auralis",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SPMusic — không gian nghe nhạc cá nhân",
   "author": "SPMusic",
   "private": true,
@@ -15,7 +15,8 @@
     "build": "npm run build -w client",
     "start": "npm run start -w server",
     "desktop:dev": "vite build client --config client/vite.config.js && electron .",
-    "desktop:build": "vite build client --config client/vite.config.js && electron-builder --win --config electron-builder.yml",
+    "desktop:deps": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/prepare-youtube.ps1",
+    "desktop:build": "npm run desktop:deps && vite build client --config client/vite.config.js && electron-builder --win --config electron-builder.yml",
     "ai:prepare": "node tools/prepare-lyrics-ai.mjs",
     "test": "npm run test -w server && node --test client/test/*.test.mjs"
   },

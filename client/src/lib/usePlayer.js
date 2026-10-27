@@ -7,7 +7,7 @@ export function usePlayer(tracks, onListen, notify) {
     registered = useRef(null);
   listen.current = onListen;
   notice.current = notify;
-  const [trackId, setTrackId] = useState('demo-midnight'),
+  const [trackId, setTrackId] = useState(null),
     [playing, setPlaying] = useState(false),
     [time, setTime] = useState(0),
     [duration, setDuration] = useState(0),

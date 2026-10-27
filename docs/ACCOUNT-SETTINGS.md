@@ -21,12 +21,12 @@ Bấm ảnh đại diện ở góc trên bên phải để mở **Tài khoản**
 ### Cài đặt
 
 - Mặc định **Trắng hồng**. Có thêm Trắng tím, Trắng xanh và Đêm hồng. Màu áp dụng cho trang chủ, trình phát, lyrics và các biểu mẫu.
-- **Nhạc đã thêm** chỉ liệt kê nhạc của chính tài khoản đang đăng nhập; không liệt kê nhạc mẫu hoặc nhạc của người khác.
+- **Nhạc đã thêm** chỉ liệt kê nhạc của chính tài khoản đang đăng nhập.
 - Tìm theo tên bài/nghệ sĩ rồi bấm thùng rác. **Giữ lại** hủy thao tác; **Xác nhận xóa** xóa file nhạc, bản phát chuyển đổi nếu có, ảnh bìa, lyrics và liên kết trong playlist/lịch sử. Nếu đang nghe bài đó, trình phát dừng. Không có thùng rác khôi phục.
 
 ### Đăng xuất
 
-Thu hồi phiên hiện tại, dừng nhạc và đóng các bảng cá nhân. Trang trở về bộ nhạc mẫu. Nhạc và tài khoản đã lưu không bị xóa.
+Thu hồi phiên hiện tại, dừng nhạc và đóng các bảng cá nhân. Trang trở về thư viện trống cho khách. Nhạc và tài khoản đã lưu không bị xóa.
 
 ## File và API chính
 

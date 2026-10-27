@@ -23,7 +23,7 @@ App so sánh các file thuộc **cùng bản thu đã chọn** theo quan hệ fi
 - Giữ tác giả/ghi công, trang nguồn, giấy phép, file đã chọn và thời điểm tải trong cơ sở dữ liệu. Giấy phép được đọc lại ngay trước khi tải.
 - Việc lọc dựa trên thông tin nguồn công bố; không phải xác minh quyền sở hữu độc lập. Nếu chia sẻ lại, cần tuân thủ giấy phép của bản thu, bao gồm ghi công khi được yêu cầu.
 - Nhạc và metadata nhập về thuộc thư viện riêng của tài khoản, không tự chia sẻ cho tài khoản khác. Không tự tải lyrics hay ảnh bìa từ nguồn.
-- Mã nguồn bàn giao không kèm các bản thu tải thử. Chỉ có tài nguyên demo nguyên bản của dự án.
+- Mã nguồn bàn giao không kèm bất kỳ bản thu âm hay lyrics mẫu nào.
 
 ## Giới hạn và xử lý lỗi
 
@@ -33,7 +33,7 @@ App so sánh các file thuộc **cùng bản thu đã chọn** theo quan hệ fi
 - Lỗi, hủy hoặc file không hợp lệ được dọn khỏi thư mục tạm. Thêm lại cùng bản thu trong tài khoản trả về bài đã tồn tại.
 - Nguồn có thể chậm, ngừng dịch vụ hoặc giới hạn HTTP 429. App báo lỗi, không lưu file dở dang; thử lại sau hoặc chọn nguồn khác.
 - Không tự nối tiếp tác vụ sau khi backend tắt. Khởi động lại rồi thêm lại bài; các bài đã hoàn tất vẫn được giữ.
-- Không hỗ trợ dán URL tùy ý, trích nhạc từ YouTube hoặc dịch vụ streaming thương mại.
+- Mục **Nhạc mở từ internet** chỉ tìm trong Internet Archive và Wikimedia Commons. Tính năng nhập từ link YouTube nằm ở mục riêng, chỉ nhận một video công khai mỗi lượt và lưu MP3 khi người dùng xác nhận quyền sử dụng.
 
 ## File quan trọng và API
 

@@ -18,6 +18,7 @@ import { createLyricsAI } from './lyrics-ai.js';
 import { plainLyrics } from './lyrics-alignment.js';
 import { accountRoutes, safeUser } from './account.js';
 import { createOpenMusic, openMusicRoutes } from './open-music.js';
+import { createYoutubeImporter, youtubeRoutes } from './youtube.js';
 
 const scrypt = promisify(scryptCallback);
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -69,6 +70,7 @@ export async function createApp({
   cookieSecure = process.env.COOKIE_SECURE === 'true',
   lyricsAI,
   openMusicOptions,
+  youtubeOptions,
 } = {}) {
   if (!db || !dataDir) throw new Error('Database and dataDir are required.');
   const app = express();
@@ -78,8 +80,7 @@ export async function createApp({
   app.locals.lyricsAI = ai;
   for (const folder of ['audio', 'covers', 'lyrics', 'playback', 'temp', 'avatars'])
     await fs.mkdir(path.join(uploadsDir, folder), { recursive: true });
-  const demoTracks =
-    demos ?? JSON.parse(await fs.readFile(path.join(here, 'data/demo.json'), 'utf8'));
+  const demoTracks = demos ?? [];
   const demosById = new Map(
     demoTracks.map((track) => [track.id, { ...track, isDemo: true, ownerId: null }]),
   );
@@ -224,6 +225,9 @@ export async function createApp({
   const openMusic = createOpenMusic({ db, uploadsDir, trackView, ...openMusicOptions });
   app.locals.openMusic = openMusic;
   openMusicRoutes(app, { service: openMusic, requireAuth });
+  const youtube = createYoutubeImporter({ db, uploadsDir, trackView, ...youtubeOptions });
+  app.locals.youtube = youtube;
+  youtubeRoutes(app, { service: youtube, requireAuth });
   const multipart = multer({
     storage: multer.diskStorage({
       destination: (req, file, done) => done(null, req.uploadDir),

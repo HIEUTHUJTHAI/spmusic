@@ -4,8 +4,8 @@
 
 Sau khi chạy `npm run desktop:build`, thư mục `release/` có hai lựa chọn:
 
-- `SPMusic-1.0.0-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
-- `SPMusic-1.0.0-Portable.exe`: bản chạy trực tiếp, không cần cài đặt.
+- `SPMusic-1.0.1-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
+- `SPMusic-1.0.1-Portable.exe`: bản chạy trực tiếp, không cần cài đặt.
 
 Cả hai bản dành cho Windows 64-bit. Bản build hiện chưa ký số nên Windows SmartScreen có thể báo ứng dụng chưa xác định.
 
@@ -39,6 +39,8 @@ npm run desktop:build
 ```
 
 Kết quả mới nằm trong `release/`. Mã nguồn vẫn tách riêng ở React (`client/`), Express/database (`server/`) và cửa sổ desktop (`electron/`). Bản `.exe` đã đóng gói là chương trình biên dịch; sửa tính năng bằng mã nguồn rồi build bản mới.
+
+Lệnh build tải và kiểm tra checksum của yt-dlp và Node.js vào `tools/vendor/`, sau đó đóng gói vào app để hỗ trợ link YouTube. Cần Internet trong lần chuẩn bị công cụ này. Khi chạy app, tải YouTube vẫn cần Internet; nghe các file đã lưu có thể thực hiện offline.
 
 ## File cấu hình desktop
 

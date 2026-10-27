@@ -25,7 +25,7 @@ Build kiểm tra khả năng đóng gói React/Tailwind bằng Vite. Build thàn
 
 `server/test/api.test.js` kiểm tra:
 
-- Khách đọc demo, nhưng bị chặn khi quản lý playlist, lịch sử hoặc upload.
+- Khách thấy thư viện trống và bị chặn khi quản lý playlist, lịch sử hoặc upload.
 - Đăng ký, email/mật khẩu sai, email trùng không phân biệt hoa thường, đăng nhập sai và cookie HttpOnly.
 - Yêu cầu thay đổi dữ liệu từ origin không được phép bị từ chối.
 - File giả MP3, sai đuôi, lyrics không có timestamp, ảnh không hợp lệ và LRC quá dung lượng bị từ chối; upload lỗi không để lại file audio.
@@ -53,7 +53,7 @@ Chạy `npm run dev`, mở http://127.0.0.1:5173, sau đó thực hiện:
 
 | Luồng | Thao tác | Kết quả mong đợi |
 | --- | --- | --- |
-| Khách nghe demo | Phát Midnight Drive, tạm dừng, tiếp tục | Nhạc thực phát; biểu tượng/thời gian cập nhật |
+| Thư viện trống | Mở app khi chưa thêm nhạc | Hiển thị gợi ý thêm nhạc, không có bài mặc định |
 | Chuyển bài | Bài sau, bài trước; thử khi bài đang qua giây thứ 3 | Chuyển hàng chờ hoặc quay về đầu theo điều khiển |
 | Tua/âm lượng | Kéo thanh thời gian, đổi âm lượng, tắt tiếng | Audio và thời gian hiển thị theo giá trị chọn |
 | Shuffle/repeat | Bật ngẫu nhiên; chuyển ba chế độ lặp | Trạng thái điều khiển phản ánh lựa chọn, hết bài xử lý đúng |
@@ -70,7 +70,7 @@ Chạy `npm run dev`, mở http://127.0.0.1:5173, sau đó thực hiện:
 | Xóa bài | Xóa bài upload đang nằm trong playlist | Bài biến mất và không còn trong playlist/lịch sử |
 | Dữ liệu bền vững | Dừng ứng dụng rồi chạy lại | Tài khoản, bài và playlist vẫn còn |
 
-Có thể dùng `client/public/demo/demo-midnight.wav` và `sample.lrc` để thử luồng upload vì đây là tài nguyên nguyên bản của dự án. Để thử ảnh bìa, dùng PNG/JPG/WebP của bạn; các SVG mẫu được ứng dụng cung cấp nhưng không phải định dạng upload được cho phép.
+Dùng file âm thanh, ảnh và LRC mà bạn sở hữu hoặc được phép sử dụng để thử upload. Ảnh bìa nhận PNG/JPG/WebP; SVG không được phép tải lên.
 
 ## Responsive và khả năng sử dụng
 
@@ -89,7 +89,7 @@ npm run build
 npm start
 ```
 
-Mở http://localhost:3001. Kiểm tra trang tải được, `/api/health` trả trạng thái hoạt động, có thể đăng nhập, phát demo, tải nhạc và mở lyrics. Kiểm tra tải lại trang sau khi điều hướng. Không xóa `client/public` hoặc `server/src/data/demo.json`: backend dùng chúng để đọc lyrics mẫu/metadata trong bản MVP.
+Mở http://localhost:3001. Kiểm tra trang tải được, `/api/health` trả trạng thái hoạt động, có thể đăng nhập, tải nhạc và mở lyrics. Kiểm tra tải lại trang sau khi điều hướng.
 
 ## Các giới hạn cần ghi nhận
 

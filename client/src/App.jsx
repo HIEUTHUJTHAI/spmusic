@@ -21,6 +21,7 @@ import {
   UserRound,
   Settings,
   Globe2,
+  Link2,
   ExternalLink,
   Menu,
   Check,
@@ -42,6 +43,7 @@ import LyricsEditor from './components/LyricsEditor';
 import AccountModal, { Avatar } from './components/AccountModal';
 import SettingsModal from './components/SettingsModal';
 import OpenMusicModal, { SourceCredit } from './components/OpenMusicModal';
+import YoutubeModal from './components/YoutubeModal';
 
 const navs = [
   ['home', 'Khám phá', House],
@@ -134,7 +136,7 @@ export default function App() {
       await api('/auth/logout', { method: 'POST' });
       p.stop();
       setUser(null);
-      setTracks((ts) => ts.filter((t) => t.isDemo));
+      setTracks([]);
       setPlaylists([]);
       setHistory([]);
       setLikes([]);
@@ -314,7 +316,7 @@ export default function App() {
   const cover = (t, extra = '') => (
     <img
       className={extra}
-      src={t?.coverUrl || '/covers/demo-blue.svg'}
+      src={t?.coverUrl || '/covers/fallback.svg'}
       alt=""
       loading="lazy"
       onError={(e) => {
@@ -497,7 +499,7 @@ export default function App() {
           <p>
             {query
               ? 'Thử tên bài hát, nghệ sĩ hoặc album khác.'
-              : 'Thêm nhạc của bạn hoặc khám phá bộ sưu tập mẫu.'}
+              : 'Thêm nhạc của bạn để bắt đầu nghe.'}
           </p>
           <button
             className="secondary-btn"
@@ -549,6 +551,16 @@ export default function App() {
         >
           <Globe2 size={20} />
           Nhạc mở từ internet
+        </button>
+        <button
+          className="nav-item"
+          onClick={() => {
+            setMobile(false);
+            requireUser(() => setModal({ type: 'youtube' }));
+          }}
+        >
+          <Link2 size={20} />
+          Nhạc từ link YouTube
         </button>
         <div className="library-heading">
           <span>BỘ SƯU TẬP</span>
@@ -777,7 +789,7 @@ export default function App() {
                     <div className="hero-content">
                       <span className="hero-tag">
                         <span />
-                        SPMUSIC ORIGINALS
+                        THƯ VIỆN CỦA BẠN
                       </span>
                       <h2>
                         Thả mình vào
@@ -792,6 +804,7 @@ export default function App() {
                       <div className="hero-actions">
                         <button
                           className="primary-btn"
+                          disabled={!tracks.length}
                           onClick={() =>
                             p.play(filtered[0] || tracks[0], filtered.length ? filtered : tracks)
                           }
@@ -831,8 +844,10 @@ export default function App() {
                       cards()
                     ) : (
                       <div className="filter-empty">
-                        Chưa có nhạc thuộc thể loại này.{' '}
-                        <button onClick={() => setGenre('Tất cả')}>Xem tất cả</button>
+                        {tracks.length ? 'Chưa có nhạc thuộc thể loại này.' : 'Thư viện chưa có bài hát nào.'}{' '}
+                        <button onClick={() => tracks.length ? setGenre('Tất cả') : requireUser(() => setModal({ type: 'track' }))}>
+                          {tracks.length ? 'Xem tất cả' : 'Thêm nhạc'}
+                        </button>
                       </div>
                     )}
                   </section>
@@ -842,12 +857,12 @@ export default function App() {
                         <h2>
                           {recent.length
                             ? 'Tiếp tục câu chuyện của bạn'
-                            : 'Những giai điệu đáng nghe'}
+                            : 'Nhạc trong thư viện của bạn'}
                         </h2>
                         <p>
                           {recent.length
                             ? 'Quay lại với những bài hát bạn vừa nghe.'
-                            : 'Những bản nhạc gốc, dành cho không gian của bạn.'}
+                            : 'Thêm bài hát để bắt đầu nghe.'}
                         </p>
                       </div>
                       <button onClick={() => navigate(recent.length ? 'recent' : 'library')}>
@@ -861,7 +876,7 @@ export default function App() {
                     <div className="section-heading">
                       <div>
                         <h2>Những sắc màu âm nhạc</h2>
-                        <p>Khám phá thế giới của các nghệ sĩ mẫu.</p>
+                        <p>Khám phá các nghệ sĩ trong thư viện của bạn.</p>
                       </div>
                     </div>
                     <div className="artist-grid">
@@ -1010,7 +1025,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Nhạc mẫu nguyên gốc • MVP 1.0</span>
+                <span>Thư viện cá nhân • SPMusic 1.0.1</span>
               </div>
             </>
           )}
@@ -1132,10 +1147,10 @@ export default function App() {
         <TrackEditor
           track={modal.track}
           onClose={() => setModal(null)}
-          onSaved={async () => {
-            setModal(null);
+          onSaved={async (result) => {
+            if (!result?.stayOpen) setModal(null);
             await refresh();
-            notify('Đã lưu bài hát vào thư viện.');
+            notify(result?.count ? `Đã thêm ${result.count} bài hát vào thư viện.` : 'Đã lưu bài hát vào thư viện.');
           }}
         />
       )}
@@ -1267,8 +1282,20 @@ export default function App() {
           }}
         />
       )}
+      {user && (
+        <YoutubeModal
+          key={user.id}
+          open={modal?.type === 'youtube'}
+          onClose={() => setModal(null)}
+          onImported={(track, existing) => {
+            if (track)
+              setTracks((prev) => (prev.some((t) => t.id === track.id) ? prev : [track, ...prev]));
+            notify(existing ? 'Video này đã có trong thư viện.' : 'Đã thêm MP3 vào thư viện của bạn.');
+          }}
+        />
+      )}
       {modal?.type === 'source' && (
-        <Modal title="Nguồn và giấy phép" onClose={() => setModal(null)}>
+        <Modal title="Nguồn bài hát" onClose={() => setModal(null)}>
           <SourceCredit info={modal.track.sourceInfo} />
         </Modal>
       )}
