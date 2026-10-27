@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createYoutubeImporter, youtubeVideoUrl } from '../src/youtube.js';
+import ffmpeg from 'ffmpeg-static';
+import { externalBinaryPath } from '../src/audio.js';
+import { createYoutubeImporter, youtubeFfmpegPath, youtubeVideoUrl } from '../src/youtube.js';
 
 const id = 'AbCdEfGh123';
 const url = `https://www.youtube.com/watch?v=${id}`;
@@ -22,6 +24,21 @@ test('YouTube URLs accept one video and reject alternate hosts and playlists', (
     'https://www.youtube.com:8443/watch?v=AbCdEfGh123',
     'https://127.0.0.1/watch?v=AbCdEfGh123',
   ]) assert.throws(() => youtubeVideoUrl(candidate));
+});
+
+test('packaged yt-dlp receives a real FFmpeg path outside app.asar', async () => {
+  const resources = await fs.mkdtemp(path.join(path.dirname(fileURLToPath(import.meta.url)), 'test-resources-'));
+  try {
+    const binary = path.join(resources, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static',
+      process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg');
+    await fs.mkdir(path.dirname(binary), { recursive: true });
+    await fs.writeFile(binary, 'test binary');
+    assert.equal(youtubeFfmpegPath(resources), binary);
+    assert.equal(externalBinaryPath(binary.replace('app.asar.unpacked', 'app.asar')), binary);
+    assert.equal(youtubeFfmpegPath(path.join(resources, 'missing')), ffmpeg);
+  } finally {
+    await fs.rm(resources, { recursive: true, force: true });
+  }
 });
 
 test('YouTube import saves an owned MP3 once and hides jobs from other users', async () => {
@@ -74,6 +91,8 @@ test('YouTube import saves an owned MP3 once and hides jobs from other users', a
     assert.equal(done.track.owner_id, 'owner-a');
     assert.equal(rows.length, 1);
     assert.equal(await fs.readFile(path.join(uploadsDir, 'audio', rows[0].audio_file), 'utf8'), 'fake mp3');
+    for (let i = 0; i < 100 && service.active('owner-a'); i++)
+      await new Promise((resolve) => setTimeout(resolve, 10));
     const second = await settled(service.start('owner-a', { url, licensed: true }));
     assert.equal(second.existing, true);
     assert.equal(downloads, 1);

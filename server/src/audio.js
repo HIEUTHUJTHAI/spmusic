@@ -1,12 +1,19 @@
 import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
-import ffmpeg from 'ffmpeg-static';
-import ffprobe from 'ffprobe-static';
+import ffmpegPackage from 'ffmpeg-static';
+import ffprobePackage from 'ffprobe-static';
 import { ApiError } from './validation.js';
 
 const execute = promisify(execFile);
+export function externalBinaryPath(binary) {
+  const physical = binary?.replace(/([\\/])app\.asar([\\/])/i, '$1app.asar.unpacked$2');
+  return physical && physical !== binary && existsSync(physical) ? physical : binary;
+}
+const ffmpeg = externalBinaryPath(ffmpegPackage);
+const ffprobe = externalBinaryPath(ffprobePackage.path);
 export const MAX_AUDIO_BYTES = 250 * 1024 * 1024;
 const MAX_PLAYBACK_BYTES = 1024 * 1024 * 1024;
 const formats = {
@@ -82,7 +89,7 @@ export async function prepareAudio(file, workingDir) {
   const format = formats[ext];
   const input = ['-protocol_whitelist', 'file', '-f', format.demuxer, '-i', file.path];
   const { stdout } = await run(
-    ffprobe.path,
+    ffprobe,
     [
       '-v',
       'error',

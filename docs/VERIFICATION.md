@@ -1,5 +1,13 @@
 # Biên bản kiểm tra MVP
 
+## Bản vá YouTube 1.0.2 — 27/10/2026
+
+- Xác định yt-dlp và các tiến trình kiểm tra âm thanh không đọc được đường dẫn FFmpeg ảo trong `app.asar`; giờ dùng file FFmpeg/FFprobe thật trong `app.asar.unpacked`.
+- Kiểm thử link được báo lỗi qua luồng nhập thực: đọc thông tin video, tải âm thanh, chuyển MP3, kiểm tra codec và lưu vào thư viện thử nghiệm thành công. File thử đã được dọn; không đưa âm thanh vào mã nguồn.
+- Kiểm thử đường dẫn FFmpeg của bản đóng gói, URL hợp lệ, phân quyền và chống nhập trùng. 43 kiểm thử server và 11 kiểm thử client đạt; frontend production build thành công.
+
+Các mục bên dưới là biên bản của các bản phát hành trước đó.
+
 ## Ứng dụng Windows — 27/10/2026
 
 - Build Electron thành công, tạo bộ cài `SPMusic-1.0.0-x64.exe` và bản portable `SPMusic-1.0.0-Portable.exe` (Windows x64).

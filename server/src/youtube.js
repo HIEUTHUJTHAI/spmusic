@@ -18,6 +18,15 @@ const tool = (name) => {
     : path.join(localTools, name);
 };
 
+// yt-dlp is a separate process and cannot see Electron's virtual app.asar paths.
+export function youtubeFfmpegPath(resourcesPath = process.resourcesPath) {
+  const unpacked = resourcesPath && path.join(
+    resourcesPath, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static',
+    process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg',
+  );
+  return unpacked && existsSync(unpacked) ? unpacked : ffmpeg;
+}
+
 export function youtubeVideoUrl(input) {
   if (typeof input !== 'string' || input.length > 600) throw new ApiError(400, 'Link YouTube không hợp lệ.');
   let url;
@@ -68,7 +77,11 @@ function runDownloader(args, signal, timeout, onProgress) {
       if (signal?.aborted) return finish(new ApiError(499, 'Đã hủy tải video.'));
       if (timedOut) return finish(new ApiError(504, 'YouTube phản hồi quá lâu. Hãy thử lại.'));
       if (code !== 0) return finish(new ApiError(400,
-        /Sign in|login|cookies|private|unavailable|not available/i.test(stderr)
+        /ffmpeg.*(?:not found|does not exist)|ffprobe.*not found/i.test(stderr)
+          ? 'Không tìm thấy FFmpeg trong bản app. Hãy cài bản SPMusic mới nhất.'
+          : /HTTP Error 403|Forbidden/i.test(stderr)
+          ? 'YouTube từ chối tải âm thanh của video này (403). Hãy thử lại sau.'
+          : /Sign in|login|cookies|private|unavailable|not available/i.test(stderr)
           ? 'Video riêng tư, bị giới hạn hoặc không thể truy cập. Hãy chọn video công khai khác.'
           : 'Không thể lấy âm thanh từ video này. Hãy kiểm tra link và kết nối mạng.'));
       finish(null, stdout);
@@ -105,7 +118,7 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
     await runDownloader([
       ...baseArgs(), '--newline', '--format', 'bestaudio', '--extract-audio',
       '--audio-format', 'mp3', '--audio-quality', '0', '--max-filesize', '250M',
-      '--ffmpeg-location', path.dirname(ffmpeg),
+      '--ffmpeg-location', youtubeFfmpegPath(),
       '--output', path.join(directory, 'audio.%(ext)s'), url,
     ], signal, 15 * 60 * 1000, onProgress);
     return path.join(directory, 'audio.mp3');
