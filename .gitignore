@@ -1,0 +1,13 @@
+node_modules/
+.runtime/
+client/dist/
+release/
+server/data/
+server/uploads/
+server/test-temp-*/
+server/test-account-*/
+server/test-import-*/
+.env
+server/.env
+*.log
+.DS_Store

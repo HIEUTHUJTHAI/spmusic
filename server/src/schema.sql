@@ -1,0 +1,52 @@
+CREATE TABLE IF NOT EXISTS users (
+ id TEXT PRIMARY KEY,
+ name TEXT NOT NULL,
+ email TEXT UNIQUE NOT NULL,
+ password_hash TEXT NOT NULL,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS sessions (
+ token_hash TEXT PRIMARY KEY,
+ user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ expires_at TIMESTAMPTZ NOT NULL
+);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_file TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'pink';
+CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions(expires_at);
+CREATE TABLE IF NOT EXISTS tracks (
+ id TEXT PRIMARY KEY,
+ owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ title TEXT NOT NULL,
+ artist TEXT NOT NULL,
+ album TEXT NOT NULL DEFAULT '',
+ genre TEXT NOT NULL DEFAULT '',
+ duration REAL NOT NULL DEFAULT 0,
+ audio_file TEXT NOT NULL,
+ cover_file TEXT,
+ lyrics_file TEXT,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS tracks_owner_idx ON tracks(owner_id);
+-- Additive migration: preserve all existing accounts, tracks and playlists.
+ALTER TABLE tracks ADD COLUMN IF NOT EXISTS playback_file TEXT;
+ALTER TABLE tracks ADD COLUMN IF NOT EXISTS audio_format TEXT NOT NULL DEFAULT '';
+ALTER TABLE tracks ADD COLUMN IF NOT EXISTS sample_rate INTEGER;
+ALTER TABLE tracks ADD COLUMN IF NOT EXISTS bit_depth INTEGER;
+ALTER TABLE tracks ADD COLUMN IF NOT EXISTS source_key TEXT;
+ALTER TABLE tracks ADD COLUMN IF NOT EXISTS source_info JSONB;
+CREATE UNIQUE INDEX IF NOT EXISTS tracks_import_unique ON tracks(owner_id,source_key) WHERE source_key IS NOT NULL;
+CREATE TABLE IF NOT EXISTS playlists (
+ id TEXT PRIMARY KEY,
+ owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ name TEXT NOT NULL,
+ description TEXT NOT NULL DEFAULT '',
+ track_ids TEXT[] NOT NULL DEFAULT '{}',
+ created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS playlists_owner_idx ON playlists(owner_id);
+CREATE TABLE IF NOT EXISTS listening_history (
+ owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ track_id TEXT NOT NULL,
+ played_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ PRIMARY KEY (owner_id, track_id)
+);

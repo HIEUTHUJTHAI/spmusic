@@ -1,0 +1,45 @@
+appId: com.spmusic.desktop
+productName: SPMusic
+directories:
+  output: release
+  buildResources: electron/resources
+files:
+  - electron/main.cjs
+  - electron/preload.cjs
+  - server/src/**/*
+  - server/package.json
+  - client/dist/**/*
+  - client/public/**/*
+  - package.json
+  - '!node_modules/onnxruntime-node/bin/napi-v6/darwin/**'
+  - '!node_modules/onnxruntime-node/bin/napi-v6/linux/**'
+  - '!node_modules/onnxruntime-node/bin/napi-v6/win32/arm64/**'
+  - '!node_modules/ffprobe-static/bin/darwin/**'
+  - '!node_modules/ffprobe-static/bin/linux/**'
+  - '!node_modules/ffprobe-static/bin/win32/ia32/**'
+asar: true
+asarUnpack:
+  - node_modules/ffmpeg-static/**
+  - node_modules/ffprobe-static/**
+  - node_modules/@electric-sql/pglite/**
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-${arch}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+portable:
+  artifactName: ${productName}-${version}-Portable.${ext}
+publish:
+  provider: github
+  owner: HIEUTHUJTHAI
+  repo: spmusic
+  releaseType: release

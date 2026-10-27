@@ -1,0 +1,740 @@
+.modal-shade {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: var(--overlay);
+  backdrop-filter: blur(12px);
+  animation: modal-reveal 0.18s ease-out;
+}
+.aural-modal {
+  width: min(100%, 470px);
+  max-height: calc(100dvh - 56px);
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 28px 100px var(--shadow);
+  padding: 30px;
+}
+.aural-modal-wide {
+  width: min(100%, 720px);
+}
+.modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.modal-heading h2 {
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.9px;
+  line-height: 1.25;
+  margin: 6px 0 0;
+}
+.modal-eyebrow {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.form-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.form-icon-button:hover {
+  background: var(--soft);
+  color: var(--text);
+}
+.aural-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.aural-form label:not(.license-checkbox):not(.file-button) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+}
+.aural-form input:not([type='checkbox']):not([type='file']),
+.aural-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 9px;
+  padding: 12px 13px;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.18s;
+  box-sizing: border-box;
+}
+.aural-form input::placeholder,
+.aural-form textarea::placeholder {
+  color: var(--muted);
+}
+.aural-form input:focus,
+.aural-form textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--shadow);
+}
+.aural-form textarea {
+  resize: vertical;
+  line-height: 1.8;
+  min-height: 120px;
+}
+.aural-form textarea:disabled {
+  opacity: 0.45;
+}
+.form-primary,
+.form-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 9px;
+  padding: 12px 18px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.15s;
+  text-decoration: none;
+}
+.form-primary {
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--text);
+}
+.form-primary:hover:not(:disabled) {
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+}
+.form-secondary {
+  border: 1px solid var(--line);
+  color: var(--text);
+  background: var(--soft);
+}
+.form-secondary:hover:not(:disabled) {
+  background: var(--soft);
+}
+.form-primary:disabled,
+.form-secondary:disabled,
+.form-tabs button:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+.update-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 14px 0 8px;
+}
+.update-controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.form-error {
+  padding: 12px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  color: var(--danger);
+  background: var(--soft);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.form-warning {
+  color: var(--warning);
+  font-size: 12px;
+  margin: -8px 0 0;
+}
+.form-footnote,
+.form-description {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 0;
+}
+.form-footnote {
+  text-align: center;
+  font-size: 10px;
+}
+.auth-intro {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.auth-intro p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 0;
+}
+.auth-symbol {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+.form-tabs {
+  padding: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 10px;
+  background: var(--panel);
+  margin-bottom: 24px;
+}
+.form-tabs button {
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  border-radius: 7px;
+  padding: 11px 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.form-tabs button.selected {
+  color: var(--text);
+  background: var(--soft);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.upload-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 25px 20px;
+  gap: 9px;
+  border: 1px dashed var(--line);
+  border-radius: 13px;
+  background: var(--accent-soft);
+  text-align: center;
+  color: var(--accent);
+}
+.upload-zone strong {
+  font-size: 13px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.upload-zone > span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.upload-zone .form-secondary {
+  margin-top: 5px;
+  padding: 9px 16px;
+}
+.file-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.file-button input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  cursor: pointer;
+}
+.file-button:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.track-editor-grid {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 24px;
+}
+.cover-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+.cover-upload img,
+.cover-placeholder {
+  aspect-ratio: 1;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 11px;
+}
+.cover-placeholder {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, var(--soft), var(--soft));
+  color: var(--accent);
+}
+.cover-upload .form-secondary {
+  padding: 10px 8px;
+  font-size: 10px;
+}
+.field-hint {
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.metadata-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.form-two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+.lyrics-editor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 2px;
+}
+.aural-form .field-title {
+  flex-direction: row !important;
+  align-items: center;
+  font-size: 12px;
+}
+.field-title span {
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.lyrics-file-button {
+  font-size: 10px;
+  color: var(--accent);
+  max-width: 190px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.aural-form .lyrics-textarea {
+  margin-top: -8px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+}
+.lyrics-editor-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-top: -11px;
+}
+.form-text-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 10px;
+}
+.form-text-button:hover,
+.form-text-button.is-danger {
+  color: var(--danger);
+}
+.license-checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.license-checkbox input {
+  width: 14px;
+  height: 14px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.upload-progress > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.upload-progress strong {
+  color: var(--accent);
+}
+.upload-progress progress {
+  display: block;
+  width: 100%;
+  height: 5px;
+  border: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  appearance: none;
+}
+.upload-progress progress::-webkit-progress-bar {
+  background: var(--soft);
+}
+.upload-progress progress::-webkit-progress-value {
+  background: var(--accent);
+  border-radius: 10px;
+}
+.upload-progress progress::-moz-progress-bar {
+  background: var(--accent);
+}
+.lyrics-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  min-height: 470px;
+  color: var(--text);
+  position: relative;
+}
+.lyrics-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 16px 13px 22px;
+}
+.lyrics-panel-header > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+.lyrics-panel-header h2 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+.lyrics-panel-header > div > span {
+  font-size: 7px;
+  letter-spacing: 1px;
+  padding: 4px 5px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 3px;
+}
+.lyrics-track {
+  display: flex;
+  align-items: center;
+  padding: 4px 22px 19px;
+  gap: 11px;
+}
+.lyrics-track > img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.lyrics-track > div {
+  min-width: 0;
+  flex: 1;
+}
+.lyrics-track strong,
+.lyrics-track div > span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lyrics-track strong {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.lyrics-track div > span {
+  font-size: 9px;
+  color: var(--muted);
+}
+.lyrics-instruction {
+  margin: 0;
+  padding: 0 22px 13px;
+  color: var(--muted);
+  font-size: 8px;
+}
+.lyrics-lines {
+  position: relative;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  flex: 1;
+  padding: 24px 22px 160px;
+  mask-image: linear-gradient(transparent, black 6%, black 85%, transparent);
+  min-height: 250px;
+  max-height: 560px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.lyric-line {
+  padding: 0 0 24px;
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.8px;
+  line-height: 1.45;
+  text-align: left;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+.lyric-line:hover {
+  color: var(--text);
+}
+.lyric-line.played {
+  color: var(--muted);
+}
+.lyric-line.active {
+  color: var(--text);
+  text-shadow: 0 0 32px var(--shadow);
+}
+.lyrics-panel-footer {
+  padding: 17px 22px;
+  color: var(--muted);
+  font-size: 8px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.lyrics-sync-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 100%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--shadow);
+}
+.lyrics-empty {
+  flex: 1;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 30px 22px;
+  color: var(--muted);
+}
+.lyrics-empty strong {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
+.lyrics-empty p {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 0;
+}
+.lyrics-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.lyrics-empty .form-secondary {
+  margin-top: 8px;
+  font-size: 10px;
+}
+.spinning {
+  animation: form-spin 1s linear infinite;
+}
+@keyframes form-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes modal-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 600px) {
+  .modal-shade {
+    padding: 12px;
+  }
+  .aural-modal {
+    max-height: calc(100dvh - 24px);
+    border-radius: 16px;
+    padding: 23px 18px;
+  }
+  .modal-heading h2 {
+    font-size: 22px;
+  }
+  .track-editor-grid {
+    grid-template-columns: 98px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .metadata-fields {
+    gap: 11px;
+  }
+  .form-two-columns {
+    grid-template-columns: 1fr;
+  }
+  .aural-form input:not([type='checkbox']):not([type='file']),
+  .aural-form textarea {
+    padding: 10px 11px;
+    font-size: 13px;
+  }
+  .field-title span {
+    display: none;
+  }
+  .lyrics-editor-footer {
+    align-items: flex-start;
+  }
+  .cover-upload .form-secondary {
+    flex-wrap: wrap;
+    font-size: 9px;
+  }
+  .lyrics-lines {
+    max-height: 54dvh;
+  }
+  .lyric-line {
+    font-size: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-shade,
+  .spinning {
+    animation: none;
+  }
+  .lyrics-lines {
+    scroll-behavior: auto;
+  }
+  .lyric-line {
+    transition: none;
+  }
+}
+.lyrics-ai {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+.lyrics-ai p {
+  margin: 0;
+}
+.lyrics-ai-toolbar {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.lyrics-ai-toolbar label {
+  display: grid;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.lyrics-ai select {
+  max-width: 100%;
+  padding: 9px 12px;
+  color: var(--text);
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+}
+.ai-status {
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.ai-review {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.ai-review > strong {
+  font-size: 13px;
+}
+.ai-review-lines {
+  display: grid;
+  gap: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+.ai-review-line {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.ai-review-lines input {
+  width: 90px;
+  padding: 7px !important;
+  font: 12px monospace !important;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--text);
+  box-sizing: border-box;
+}
+.ai-review-lines span {
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.ai-uncertain span {
+  color: var(--danger);
+}
+.ai-review > button {
+  justify-self: start;
+}
