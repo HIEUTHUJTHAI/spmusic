@@ -53,7 +53,12 @@ jobs:
         run: |
           $version = (Get-Content package.json | ConvertFrom-Json).version
           $channel = if ($version -match '-(alpha|beta|rc)') { $Matches[1] } else { 'latest' }
+          $metadata = "release/$channel.yml"
+          if (-not (Test-Path $metadata)) {
+            if (-not (Test-Path 'release/latest.yml')) { throw 'Không tìm thấy metadata cập nhật.' }
+            Copy-Item 'release/latest.yml' $metadata
+          }
           gh release upload "v$version" `
             "release/SPMusic-$version-x64.exe" `
             "release/SPMusic-$version-x64.exe.blockmap" `
-            "release/$channel.yml" --clobber --repo "${{ github.repository }}"
+            $metadata --clobber --repo "${{ github.repository }}"
