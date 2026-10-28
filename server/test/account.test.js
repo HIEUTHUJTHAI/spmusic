@@ -37,6 +37,11 @@ test('account settings: private avatars, preferences, password changes and sessi
     data.set('avatar', new Blob([bytes]), name);
     return data;
   };
+  const backgroundForm = (bytes = png, name = 'background.png') => {
+    const data = new FormData();
+    data.set('background', new Blob([bytes]), name);
+    return data;
+  };
   try {
     const alice = await request('/auth/register', null, 'POST', {
       name: 'Alice',
@@ -56,6 +61,9 @@ test('account settings: private avatars, preferences, password changes and sessi
         ['/account/avatar', 'GET'],
         ['/account/avatar', 'PUT', form()],
         ['/account/avatar', 'DELETE'],
+        ['/account/background', 'GET'],
+        ['/account/background', 'PUT', backgroundForm()],
+        ['/account/background', 'DELETE'],
         ['/account/preferences', 'PATCH', { theme: 'mint' }],
         [
           '/account/password',
@@ -131,6 +139,23 @@ test('account settings: private avatars, preferences, password changes and sessi
         await request('/account/avatar', alice.cookie, 'PUT', form());
       },
     );
+    await t.test('background belongs to the account and old files are removed', async () => {
+      assert.equal((await request('/account/background', alice.cookie)).status, 404);
+      assert.equal((await request('/account/background', alice.cookie, 'PUT',
+        backgroundForm(Buffer.from('invalid')))).status, 400);
+      const first = await request('/account/background', alice.cookie, 'PUT', backgroundForm());
+      assert.equal(first.status, 200);
+      assert.ok(first.data.user.backgroundUrl);
+      assert.equal(first.data.user.background_file, undefined);
+      assert.deepEqual((await request('/account/background', alice.cookie)).data, png);
+      assert.equal((await request('/account/background', bob.cookie)).status, 404);
+      assert.equal((await request(first.data.user.backgroundUrl.slice(4), bob.cookie)).status, 404);
+      const second = await request('/account/background', alice.cookie, 'PUT', backgroundForm());
+      assert.notEqual(second.data.user.backgroundUrl, first.data.user.backgroundUrl);
+      assert.equal((await fs.readdir(path.join(dataDir, 'uploads/backgrounds'))).length, 1);
+      assert.equal((await request('/account/background', alice.cookie, 'DELETE')).data.user.backgroundUrl, null);
+      assert.equal((await fs.readdir(path.join(dataDir, 'uploads/backgrounds'))).length, 0);
+    });
     await t.test('theme is validated and stored per account', async () => {
       assert.equal(
         (await request('/account/preferences', alice.cookie, 'PATCH', { theme: 'invalid' })).status,

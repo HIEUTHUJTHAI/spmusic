@@ -41,8 +41,9 @@ jobs:
           $version = (Get-Content package.json | ConvertFrom-Json).version
           gh release view "v$version" --repo '${{ github.repository }}' *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create "v$version" --target '${{ github.sha }}' `
-              --title "SPMusic $version" --generate-notes --repo '${{ github.repository }}'
+            $releaseArgs = @('--target', '${{ github.sha }}', '--title', "SPMusic $version", '--generate-notes', '--repo', '${{ github.repository }}')
+            if ($version.Contains('-')) { $releaseArgs += '--prerelease' }
+            gh release create "v$version" @releaseArgs
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
 
@@ -51,7 +52,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $version = (Get-Content package.json | ConvertFrom-Json).version
+          $channel = if ($version -match '-(alpha|beta|rc)') { $Matches[1] } else { 'latest' }
           gh release upload "v$version" `
             "release/SPMusic-$version-x64.exe" `
             "release/SPMusic-$version-x64.exe.blockmap" `
-            release/latest.yml --clobber --repo "${{ github.repository }}"
+            "release/$channel.yml" --clobber --repo "${{ github.repository }}"

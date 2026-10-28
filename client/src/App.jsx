@@ -613,7 +613,9 @@ export default function App() {
     </div>
   );
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${user?.backgroundUrl ? 'has-wallpaper' : ''}`}>
+      <div className="app-wallpaper" aria-hidden="true"
+        style={user?.backgroundUrl ? { backgroundImage: `url("${user.backgroundUrl}")` } : undefined} />
       <audio {...p.audioProps[0]} />
       <audio {...p.audioProps[1]} />
       {mobile && (
@@ -1130,7 +1132,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 1.5.0</span>
+                <span>Thư viện cá nhân • SPMusic 2.0.0 beta 1</span>
               </div>
             </>
           )}

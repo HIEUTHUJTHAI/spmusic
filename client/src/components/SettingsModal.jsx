@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Check, Download, Music2, Palette, Pencil, RefreshCw, RotateCcw, SlidersHorizontal, Trash2, Waves, X } from 'lucide-react';
+import { Check, Download, ImagePlus, Music2, Palette, Pencil, RefreshCw, RotateCcw, SlidersHorizontal, Trash2, Waves, X } from 'lucide-react';
 import Modal from './Modal';
-import { api } from '../lib/api';
+import { api, upload } from '../lib/api';
 import { EQ_FREQUENCIES, EQ_PRESETS } from '../lib/audioSettings';
 
 const themes = [
@@ -33,11 +33,23 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
     [olderVersions, setOlderVersions] = useState([]),
     [versionsBusy, setVersionsBusy] = useState(false),
     [selectedVersion, setSelectedVersion] = useState(''),
-    [rollback, setRollback] = useState(null);
+    [rollback, setRollback] = useState(null),
+    [backgroundFile, setBackgroundFile] = useState(null),
+    [backgroundPreview, setBackgroundPreview] = useState(''),
+    [backgroundProgress, setBackgroundProgress] = useState(null);
   const desktop = typeof window !== 'undefined' ? window.spmusicDesktop : null;
   useEffect(() => {
     setCustomTheme({ ...defaultCustomTheme, ...user.customTheme });
   }, [user.customTheme]);
+  useEffect(() => {
+    if (!backgroundFile) {
+      setBackgroundPreview('');
+      return undefined;
+    }
+    const preview = URL.createObjectURL(backgroundFile);
+    setBackgroundPreview(preview);
+    return () => URL.revokeObjectURL(preview);
+  }, [backgroundFile]);
   useEffect(() => {
     if (!desktop) return undefined;
     let active = true;
@@ -91,6 +103,34 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
   async function installOlderVersion() {
     const result = await desktop.installOlderVersion(rollback.version);
     if (result.error) setError(result.error);
+  }
+  function chooseBackground(file) {
+    setError('');
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+        !/\.(jpe?g|png|webp)$/i.test(file.name)) {
+      setError('Ảnh nền phải là file JPG, PNG hoặc WebP.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Ảnh nền không được vượt quá 10 MB.');
+      return;
+    }
+    setBackgroundFile(file);
+  }
+  async function saveBackground() {
+    if (!backgroundFile) return;
+    await action(async () => {
+      const data = new FormData();
+      data.set('background', backgroundFile);
+      setBackgroundProgress(0);
+      try {
+        onUser((await upload('/account/background', data, setBackgroundProgress, 'PUT')).user);
+        setBackgroundFile(null);
+      } finally {
+        setBackgroundProgress(null);
+      }
+    }, 'Đã thay ảnh nền của bạn.');
   }
   return (
     <Modal title="Cài đặt" wide onClose={() => !busy && onClose()}>
@@ -284,6 +324,38 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
             </button>
           </div>
         )}
+      </section>
+      <section className="settings-section">
+        <h3><ImagePlus size={18} /> Ảnh nền ứng dụng</h3>
+        <p className="form-description">Chọn ảnh riêng để đặt sau giao diện kính mờ. Ảnh được lưu theo tài khoản và hiển thị cả khi dùng app offline trên máy này.</p>
+        <div className="background-preview" style={backgroundPreview || user.backgroundUrl ? {
+          backgroundImage: `url("${backgroundPreview || user.backgroundUrl}")`,
+        } : undefined}>
+          {!backgroundPreview && !user.backgroundUrl && <span>Chưa có ảnh nền · SPMusic dùng nền màu hiện tại</span>}
+          <span className="background-preview-glass">SPMusic · Liquid Glass</span>
+        </div>
+        <div className="background-actions">
+          <label className="form-secondary background-file-button">
+            <ImagePlus size={15} /> Chọn ảnh JPG, PNG hoặc WebP
+            <input type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+              disabled={busy} onChange={(event) => chooseBackground(event.target.files?.[0])} />
+          </label>
+          {backgroundFile && (
+            <button className="form-primary" disabled={busy} onClick={saveBackground}>
+              <Check size={15} /> Lưu ảnh nền
+            </button>
+          )}
+          {user.backgroundUrl && (
+            <button className="form-secondary" disabled={busy} onClick={() => action(async () => {
+              onUser((await api('/account/background', { method: 'DELETE' })).user);
+              setBackgroundFile(null);
+            }, 'Đã xóa ảnh nền.')}>
+              <Trash2 size={15} /> Xóa ảnh nền
+            </button>
+          )}
+        </div>
+        {backgroundFile && <p className="field-hint">Ảnh đã chọn: {backgroundFile.name} · tối đa 10 MB</p>}
+        {backgroundProgress !== null && <p className="form-description" role="status">Đang tải ảnh nền… {backgroundProgress}%</p>}
       </section>
       <section className="settings-section">
         <h3>

@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS sessions (
  expires_at TIMESTAMPTZ NOT NULL
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_file TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS background_file TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'pink';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_theme JSONB NOT NULL DEFAULT '{"accent":"#bb326c","background":"#fff9fc","surface":"#ffffff","text":"#382934"}'::jsonb;
 CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions(expires_at);

@@ -20,6 +20,9 @@ export const safeUser = (row) =>
         avatarUrl: row.avatar_file
           ? `/api/account/avatar?v=${encodeURIComponent(row.avatar_file)}`
           : null,
+        backgroundUrl: row.background_file
+          ? `/api/account/background?v=${encodeURIComponent(row.background_file)}`
+          : null,
         theme: row.theme || 'pink',
         customTheme: { ...defaultCustomTheme, ...row.custom_theme },
       }
@@ -30,6 +33,7 @@ export function accountRoutes(
   { db, uploadsDir, requireAuth, authRate, hashPassword, verifyPassword, digest },
 ) {
   const directory = path.join(uploadsDir, 'avatars');
+  const backgroundsDirectory = path.join(uploadsDir, 'backgrounds');
   const uploadAvatar = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -41,6 +45,12 @@ export function accountRoutes(
   }).single('avatar');
   const removeFile = (name) =>
     name ? fs.unlink(path.join(directory, name)).catch(() => {}) : Promise.resolve();
+  const uploadBackground = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 0, parts: 1 },
+  }).single('background');
+  const removeBackgroundFile = (name) =>
+    name ? fs.unlink(path.join(backgroundsDirectory, name)).catch(() => {}) : Promise.resolve();
 
   app.get('/api/account/avatar', requireAuth, (req, res) => {
     if (!req.user.avatar_file) throw new ApiError(404, 'Bạn chưa có ảnh đại diện.');
@@ -79,6 +89,41 @@ export function accountRoutes(
   });
   app.delete('/api/account/avatar', requireAuth, async (req, res) => {
     res.json({ user: await replaceAvatar(req.user.id, null) });
+  });
+  app.get('/api/account/background', requireAuth, (req, res) => {
+    if (!req.user.background_file) throw new ApiError(404, 'Bạn chưa có ảnh nền.');
+    res.sendFile(path.join(backgroundsDirectory, req.user.background_file));
+  });
+  async function replaceBackground(userId, filename) {
+    const { rows } = await db.query(
+      `WITH previous AS (
+        SELECT id, background_file FROM users WHERE id=$1 FOR UPDATE
+      ) UPDATE users u SET background_file=$2 FROM previous p WHERE u.id=p.id
+        RETURNING u.*, p.background_file AS old_background`,
+      [userId, filename],
+    );
+    await removeBackgroundFile(rows[0].old_background);
+    return safeUser(rows[0]);
+  }
+  app.put('/api/account/background', requireAuth, authRate, uploadBackground, async (req, res) => {
+    if (!req.file) throw new ApiError(400, 'Hãy chọn ảnh nền JPG, PNG hoặc WebP.');
+    let ext;
+    try {
+      ext = validateCover(req.file, 10 * 1024 * 1024);
+    } catch (error) {
+      throw new ApiError(400, error.message.replaceAll('Ảnh bìa', 'Ảnh nền'));
+    }
+    const filename = randomUUID() + ext;
+    await fs.writeFile(path.join(backgroundsDirectory, filename), req.file.buffer, { flag: 'wx' });
+    try {
+      res.json({ user: await replaceBackground(req.user.id, filename) });
+    } catch (error) {
+      await removeBackgroundFile(filename);
+      throw error;
+    }
+  });
+  app.delete('/api/account/background', requireAuth, async (req, res) => {
+    res.json({ user: await replaceBackground(req.user.id, null) });
   });
   app.patch('/api/account/preferences', requireAuth, async (req, res) => {
     if (!['pink', 'lavender', 'mint', 'dark', 'custom'].includes(req.body.theme))

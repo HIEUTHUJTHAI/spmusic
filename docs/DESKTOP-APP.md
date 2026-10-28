@@ -4,8 +4,8 @@
 
 Sau khi chạy `npm run desktop:build`, thư mục `release/` có hai lựa chọn:
 
-- `SPMusic-1.5.0-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
-- `SPMusic-1.5.0-Portable.exe`: bản chạy trực tiếp, không cần cài đặt.
+- `SPMusic-2.0.0-beta.1-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
+- `SPMusic-2.0.0-beta.1-Portable.exe`: bản chạy trực tiếp, không cần cài đặt.
 
 Cả hai bản dành cho Windows 64-bit. Bản build hiện chưa ký số nên Windows SmartScreen có thể báo ứng dụng chưa xác định.
 
@@ -13,7 +13,7 @@ Cả hai bản dành cho Windows 64-bit. Bản build hiện chưa ký số nên 
 
 App khởi động Express bên trong Electron trên một cổng cục bộ tự chọn, mở giao diện trong cửa sổ riêng, rồi đóng máy chủ/database khi thoát. Mỗi lần chạy chỉ mở một bản SPMusic.
 
-Database PGlite, file nhạc, bìa, LRC, avatar và mô hình AI lưu trong:
+Database PGlite, file nhạc, bìa, LRC, avatar, ảnh nền và mô hình AI lưu trong:
 
 ```text
 %APPDATA%\SPMusic\data\

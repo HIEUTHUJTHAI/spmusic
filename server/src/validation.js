@@ -51,9 +51,9 @@ export function validateLrc(buffer) {
   return content.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
 }
 
-export function validateCover(file) {
+export function validateCover(file, maxBytes = 5 * 1024 * 1024) {
   if (!file) return null;
-  if (!file.size || file.size > 5 * 1024 * 1024) throw new ApiError(400, 'Ảnh bìa tối đa 5 MB.');
+  if (!file.size || file.size > maxBytes) throw new ApiError(400, `Ảnh bìa tối đa ${maxBytes / 1024 / 1024} MB.`);
   const b = file.buffer,
     ext = path.extname(file.originalname).toLowerCase();
   const valid =

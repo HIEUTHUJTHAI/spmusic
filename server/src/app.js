@@ -83,7 +83,7 @@ export async function createApp({
   const uploadsDir = path.join(dataDir, 'uploads');
   const ai = lyricsAI || createLyricsAI({ dataDir });
   app.locals.lyricsAI = ai;
-  for (const folder of ['audio', 'covers', 'playlist-covers', 'lyrics', 'playback', 'temp', 'avatars'])
+  for (const folder of ['audio', 'covers', 'playlist-covers', 'lyrics', 'playback', 'temp', 'avatars', 'backgrounds'])
     await fs.mkdir(path.join(uploadsDir, folder), { recursive: true });
   const demoTracks = demos ?? [];
   const demosById = new Map(
@@ -140,7 +140,7 @@ export async function createApp({
     const token = req.cookies.auralis_session;
     if (typeof token === 'string' && /^[a-f0-9]{64}$/.test(token)) {
       const { rows } = await db.query(
-        'SELECT u.id,u.name,u.email,u.avatar_file,u.theme,u.custom_theme FROM users u JOIN sessions s ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>CURRENT_TIMESTAMP',
+        'SELECT u.id,u.name,u.email,u.avatar_file,u.background_file,u.theme,u.custom_theme FROM users u JOIN sessions s ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>CURRENT_TIMESTAMP',
         [digest(token)],
       );
       req.user = rows[0] || null;
@@ -701,7 +701,7 @@ export async function createApp({
       return res.status(400).json({
         error:
           error.code === 'LIMIT_FILE_SIZE'
-            ? 'File vượt giới hạn: nhạc 250 MB, ảnh 5 MB, LRC 256 KB.'
+            ? 'File vượt giới hạn: nhạc 250 MB, ảnh bìa 5 MB, ảnh nền 10 MB, LRC 256 KB.'
             : 'Biểu mẫu tải file không hợp lệ hoặc có quá nhiều file.',
       });
     if (error.type === 'entity.too.large')
