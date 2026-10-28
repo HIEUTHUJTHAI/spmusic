@@ -8,17 +8,17 @@ Bản cập nhật: giao diện **trắng–hồng**, menu avatar có **Tài kho
 
 MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwind CSS**, **Node.js + Express** và **PostgreSQL/PGlite**. Giao diện trắng–hồng mặc định, có bốn bảng màu cơ bản cùng chế độ tự chọn, thư viện cá nhân, playlist và lời bài hát đồng bộ LRC. Bản 1.0.2 không kèm bài hát hoặc lời mẫu; thư viện ban đầu trống. Ứng dụng không sử dụng dữ liệu hay nhận diện thương hiệu Spotify.
 
-**Mới: Nhạc mở từ internet.** Tìm bản thu trên Internet Archive và Wikimedia Commons, chọn bài để app tự tải bản ưu tiên về thư viện riêng. Ưu tiên lossless nếu nguồn có file phù hợp, lưu nguồn và giấy phép cùng bài hát. Không cần API key. Xem [hướng dẫn nhạc mở](docs/OPEN-MUSIC.md).
-
 **Bản 1.0.3:** Có thể sắp xếp bài hát trong playlist bằng cách kéo thả hoặc dùng phím mũi tên lên/xuống. Thứ tự được lưu và dùng khi phát playlist. Tính năng chọn nhiều file, thư viện không nhạc mẫu và nhập MP3 từ link YouTube của các bản trước vẫn được giữ.
 
-**Bản 1.0.4:** Có thể thay hoặc xóa ảnh bìa cho mọi bài hát trong thư viện, kể cả bài nhập từ YouTube hay nguồn nhạc mở. Playlist có ảnh bìa riêng, có thể thay hoặc xóa trong cửa sổ sửa playlist. Cài đặt thêm chế độ Tự chọn để lưu màu nhấn, nền trang, bề mặt và màu chữ theo tài khoản.
+**Bản 1.0.4:** Có thể thay hoặc xóa ảnh bìa cho mọi bài hát trong thư viện, kể cả bài nhập từ YouTube hay nguồn nhạc mở ở bản cũ. Playlist có ảnh bìa riêng, có thể thay hoặc xóa trong cửa sổ sửa playlist. Cài đặt thêm chế độ Tự chọn để lưu màu nhấn, nền trang, bề mặt và màu chữ theo tài khoản.
 
 **Bản 1.5.0:** Cài đặt có AutoMix bật/tắt, chuyển bài chồng âm với thời lượng thích nghi theo đoạn cuối yên lặng; EQ 5 dải và preset mở trong bảng nhỏ, lưu trên thiết bị. Bản Windows có thể tải bộ cài phiên bản cũ từ GitHub Releases, kiểm tra SHA-512 và mở bộ cài sau khi người dùng chọn cài.
 
 **Bản 2.0.0 beta 1:** Giao diện kính mờ trên điều hướng, thẻ nội dung, cửa sổ cài đặt và trình phát. Trong Cài đặt → Ảnh nền ứng dụng, mỗi tài khoản có thể tải lên ảnh JPG/PNG/WebP tối đa 10 MB, xem trước, thay hoặc xóa ảnh. Ảnh lưu cục bộ cùng dữ liệu ứng dụng; giao diện vẫn giữ hiệu ứng kính mờ khi đổi chủ đề màu.
 
-**Cập nhật trực tiếp từ bản cài 1.5.0:** Mở **Cài đặt → Kiểm tra cập nhật → Tải bản 2.0.0-beta.1 → Khởi động lại để cập nhật**. Bản beta này được đưa vào kênh cập nhật của 1.5.0 theo yêu cầu; bạn chủ động bấm tải và cài.
+**Bản 2.0.0 beta 2:** Khi mở bản cài Windows, app tự kiểm tra cập nhật và hiện thông báo nếu có bản mới; người dùng chọn cập nhật, để sau hoặc không nhắc lại riêng bản đó. Gỡ mục tìm/tải nhạc mở từ internet; bài đã lưu trước đây vẫn phát và giữ ghi công. Hiệu ứng kính mờ và chuyển động được tinh giản để cuộn và thao tác nhẹ hơn.
+
+**Cập nhật trực tiếp từ bản cài 1.5.0:** Mở **Cài đặt → Kiểm tra cập nhật → Tải bản 2.0.0-beta.2 → Khởi động lại để cập nhật**. Bản beta này được đưa vào kênh cập nhật của 1.5.0 theo yêu cầu; bạn chủ động bấm tải và cài. Sau khi lên beta 2, các lần mở app tiếp theo sẽ tự báo khi có bản mới.
 
 ## Ứng dụng Windows
 
@@ -88,8 +88,7 @@ Mở **http://localhost:3001** hoặc **http://127.0.0.1:3001**. Sau khi build, 
 6. **Tìm và nghe lại:** nhập tên bài, album hoặc nghệ sĩ trong ô tìm kiếm; chuyển giữa các tab Bài hát/Album/Nghệ sĩ. **Nghe gần đây** hiển thị lần nghe gần nhất của từng bài, tối đa 50 bài. Biểu tượng tim lưu bài yêu thích.
 7. **Xem lời:** mở biểu tượng lyrics trong thanh phát. Dòng hiện tại được làm nổi bật và cuộn theo nhạc; bấm một dòng để tua tới câu đó. Bài không có LRC hiển thị thông báo phù hợp. Với bài do bạn tải lên, chọn chỉnh sửa lyrics để tải file, sửa nội dung hoặc xóa LRC.
 8. **AI căn lời cục bộ:** dán lời chưa có thời gian, mỗi câu một dòng; chọn ngôn ngữ và bấm **AI căn thời gian**. Xem/chỉnh mốc, bấm **Áp dụng LRC**, rồi lưu. Lần đầu tải mô hình khoảng 80 MB, các lần sau dùng lại trên máy. Xem [hướng dẫn AI cục bộ](docs/LOCAL-AI.md) để biết giới hạn, cách dùng ngoại tuyến và độ chính xác.
-9. **Nhạc từ internet:** đăng nhập, chọn **Nhạc mở từ internet**, nhập từ khóa và chọn nguồn. Mở kết quả rồi bấm **Thêm** bên cạnh bài. App tự chọn file, tải, kiểm tra và lưu vào thư viện. Menu ba chấm của bài có **Nguồn và giấy phép**. Có tiến trình, hủy tải và chống thêm trùng cùng bản thu.
-10. **Nhạc từ YouTube:** chọn **Nhạc từ link YouTube**, dán link của một video công khai, xác nhận quyền sử dụng rồi bấm tải. App dùng yt-dlp và FFmpeg để trích âm thanh thành MP3. Chỉ hỗ trợ một video mỗi lượt, tối đa 3 giờ/250 MB; không tải playlist, video riêng tư hoặc livestream. Cần Internet và YouTube có thể thay đổi khiến một số video không tải được.
+9. **Nhạc từ YouTube:** chọn **Nhạc từ link YouTube**, dán link của một video công khai, xác nhận quyền sử dụng rồi bấm tải. App dùng yt-dlp và FFmpeg để trích âm thanh thành MP3. Chỉ hỗ trợ một video mỗi lượt, tối đa 3 giờ/250 MB; không tải playlist, video riêng tư hoặc livestream. Cần Internet và YouTube có thể thay đổi khiến một số video không tải được.
 
 ### Dữ liệu khách và dữ liệu tài khoản
 

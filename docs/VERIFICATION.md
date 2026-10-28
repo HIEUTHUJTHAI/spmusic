@@ -21,7 +21,7 @@ Các mục bên dưới là biên bản của các bản phát hành trước đ
 - Giao diện desktop dùng Electron sandbox/context isolation; Express chỉ lắng nghe ở `127.0.0.1` trên cổng tự chọn. Đường dẫn dữ liệu không nằm trong thư mục cài app.
 - Không có chứng chỉ ký số, nên SmartScreen có thể báo nhà phát hành chưa xác định. Cập nhật GitHub chưa cấu hình theo yêu cầu để ở bước sau.
 
-## Cập nhật nhạc mở — 27/10/2026
+## Cập nhật nhạc mở — 27/10/2026 (lịch sử, đã gỡ trong 2.0.0 beta 2)
 
 - **51/51 kiểm thử tự động đạt**, bao gồm API, tài khoản, LRC, AI, audio và 11 kiểm thử mới cho nhạc mở. Build production thành công.
 - Internet Archive và Wikimedia Commons đều trả kết quả tìm kiếm thực. Internet Archive chọn WAV gốc trước các bản chuyển đổi khi bản thu có nhiều định dạng hợp lệ.
@@ -31,7 +31,7 @@ Các mục bên dưới là biên bản của các bản phát hành trước đ
 - Kiểm tra desktop 1440×900 và điện thoại 390×844: trang rộng 390 px, hộp thoại 366 px, không tràn ngang. Ảnh kết quả được lưu cùng bàn giao.
 - Một lượt tải thực từ Wikimedia bị nguồn giới hạn HTTP 429. Ứng dụng báo lỗi, không lưu bài/file dở dang; tải thực từ nguồn này chưa được xác nhận trong phiên kiểm tra. Không né giới hạn của nguồn.
 - Kiểm thử tự động bổ sung: whitelist giấy phép/URL, chặn địa chỉ mạng riêng, chọn chất lượng, lỗi một nguồn, OGG/Opus thực, phân quyền tác vụ/media, chống trùng, file quá lớn/thiếu, hủy và đóng máy chủ, đổi giấy phép, dọn file, ghi công còn sau mở lại database.
-- Toàn bộ kiểm tra dùng dữ liệu tách riêng; không xóa hoặc sửa thư viện của người dùng. Chi tiết tính năng/API/giới hạn ở [OPEN-MUSIC.md](OPEN-MUSIC.md).
+- Toàn bộ kiểm tra dùng dữ liệu tách riêng; không xóa hoặc sửa thư viện của người dùng. Các API tìm và tải từ nguồn mở đã được gỡ ở 2.0.0 beta 2; bài đã nhập trước đó vẫn được giữ lại.
 
 **Cập nhật SPMusic / tài khoản / màu giao diện:** 40/40 kiểm thử tự động đạt và build thành công. Chi tiết phạm vi kiểm tra trình duyệt ở [ACCOUNT-SETTINGS.md](ACCOUNT-SETTINGS.md). Các số kiểm thử bên dưới là kết quả của các giai đoạn trước.
 

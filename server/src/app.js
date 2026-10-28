@@ -17,7 +17,6 @@ import { MAX_AUDIO_BYTES, prepareAudio } from './audio.js';
 import { createLyricsAI } from './lyrics-ai.js';
 import { plainLyrics } from './lyrics-alignment.js';
 import { accountRoutes, safeUser } from './account.js';
-import { createOpenMusic, openMusicRoutes } from './open-music.js';
 import { createYoutubeImporter, youtubeRoutes } from './youtube.js';
 
 const scrypt = promisify(scryptCallback);
@@ -74,7 +73,6 @@ export async function createApp({
   demos,
   cookieSecure = process.env.COOKIE_SECURE === 'true',
   lyricsAI,
-  openMusicOptions,
   youtubeOptions,
 } = {}) {
   if (!db || !dataDir) throw new Error('Database and dataDir are required.');
@@ -227,9 +225,6 @@ export async function createApp({
     verifyPassword,
     digest,
   });
-  const openMusic = createOpenMusic({ db, uploadsDir, trackView, ...openMusicOptions });
-  app.locals.openMusic = openMusic;
-  openMusicRoutes(app, { service: openMusic, requireAuth });
   const youtube = createYoutubeImporter({ db, uploadsDir, trackView, ...youtubeOptions });
   app.locals.youtube = youtube;
   youtubeRoutes(app, { service: youtube, requireAuth });

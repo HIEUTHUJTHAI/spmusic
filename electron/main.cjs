@@ -3,11 +3,15 @@ const { autoUpdater } = require('electron-updater');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { listOlderVersions, prepareOlderVersion } = require('./rollback.cjs');
+const { readIgnoredVersion, saveIgnoredVersion, shouldShowNotice } = require('./update-notice.cjs');
 
 let backend;
 let mainWindow;
 let stopping = false;
 let updateState = { status: 'idle', version: null, progress: 0, message: '' };
+let ignoredUpdateVersion = null;
+let delayedUpdateVersion = null;
+let updatePreferencesFile;
 let rollbackBusy = false;
 let rollbackReady = null;
 
@@ -35,6 +39,12 @@ else {
 
 async function start() {
   const dataDir = path.join(app.getPath('userData'), 'data');
+  updatePreferencesFile = path.join(app.getPath('userData'), 'update-notice.json');
+  try {
+    ignoredUpdateVersion = await readIgnoredVersion(updatePreferencesFile);
+  } catch (error) {
+    console.warn('[SPMusic] Cannot read update notice preference:', error.message);
+  }
   const serverModule = pathToFileURL(path.join(__dirname, '../server/src/desktop-server.js')).href;
   backend = await import(serverModule).then(({ startDesktopServer }) =>
     startDesktopServer({ dataDir }),
@@ -69,6 +79,7 @@ async function start() {
 
 function publishUpdate(payload) {
   updateState = { ...updateState, ...payload };
+  updateState.noticeVisible = shouldShowNotice(updateState, ignoredUpdateVersion, delayedUpdateVersion);
   mainWindow?.webContents.send('updates:event', updateState);
 }
 
@@ -80,7 +91,7 @@ function configureUpdates() {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.on('checking-for-update', () =>
-    publishUpdate({ status: 'checking', message: 'Đang kiểm tra bản cập nhật…' }),
+    publishUpdate({ status: 'checking', version: null, progress: 0, message: 'Đang kiểm tra bản cập nhật…' }),
   );
   autoUpdater.on('update-available', (info) =>
     publishUpdate({
@@ -90,7 +101,7 @@ function configureUpdates() {
     }),
   );
   autoUpdater.on('update-not-available', () =>
-    publishUpdate({ status: 'latest', message: 'Bạn đang dùng phiên bản mới nhất.' }),
+    publishUpdate({ status: 'latest', version: null, message: 'Bạn đang dùng phiên bản mới nhất.' }),
   );
   autoUpdater.on('download-progress', (progress) =>
     publishUpdate({ status: 'downloading', progress: Math.round(progress.percent), message: 'Đang tải bản cập nhật…' }),
@@ -111,11 +122,12 @@ async function checkForUpdates(interactive = true) {
   }
   try {
     const result = await autoUpdater.checkForUpdates();
-    const next = result?.updateInfo?.version
-      ? { status: 'available', version: result.updateInfo.version, message: `Có phiên bản SPMusic ${result.updateInfo.version} mới.` }
-      : updateState;
-    if (interactive) publishUpdate(next);
-    return next;
+    if (result?.isUpdateAvailable && updateState.status !== 'available')
+      publishUpdate({ status: 'available', version: result.updateInfo.version,
+        message: `Có phiên bản SPMusic ${result.updateInfo.version} mới.` });
+    if (!result?.isUpdateAvailable && updateState.status !== 'latest')
+      publishUpdate({ status: 'latest', version: null, message: 'Bạn đang dùng phiên bản mới nhất.' });
+    return updateState;
   } catch {
     const result = { status: 'error', message: 'Chưa thể kiểm tra cập nhật lúc này.' };
     if (interactive) publishUpdate(result);
@@ -124,6 +136,23 @@ async function checkForUpdates(interactive = true) {
 }
 
 ipcMain.handle('app:version', () => app.getVersion());
+ipcMain.handle('updates:state', () => updateState);
+ipcMain.handle('updates:dismiss', async (_event, version, mode) => {
+  if (version !== updateState.version || !['later', 'never'].includes(mode))
+    return { error: 'Thông báo cập nhật không còn hợp lệ.' };
+  if (mode === 'never') {
+    try {
+      await saveIgnoredVersion(updatePreferencesFile, version);
+      ignoredUpdateVersion = version;
+    } catch {
+      return { error: 'Không lưu được lựa chọn thông báo.' };
+    }
+  } else {
+    delayedUpdateVersion = version;
+  }
+  publishUpdate({});
+  return updateState;
+});
 ipcMain.handle('updates:check', () => checkForUpdates(true));
 ipcMain.handle('updates:download', async () => {
   try {

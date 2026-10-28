@@ -20,7 +20,6 @@ import {
   LogOut,
   UserRound,
   Settings,
-  Globe2,
   Link2,
   ExternalLink,
   Menu,
@@ -43,7 +42,8 @@ import PlaylistEditor from './components/PlaylistEditor';
 import LyricsEditor from './components/LyricsEditor';
 import AccountModal, { Avatar } from './components/AccountModal';
 import SettingsModal from './components/SettingsModal';
-import OpenMusicModal, { SourceCredit } from './components/OpenMusicModal';
+import SourceCredit from './components/SourceCredit';
+import UpdateNotice from './components/UpdateNotice';
 import YoutubeModal from './components/YoutubeModal';
 
 const navs = [
@@ -650,16 +650,6 @@ export default function App() {
           className="nav-item"
           onClick={() => {
             setMobile(false);
-            requireUser(() => setModal({ type: 'openMusic' }));
-          }}
-        >
-          <Globe2 size={20} />
-          Nhạc mở từ internet
-        </button>
-        <button
-          className="nav-item"
-          onClick={() => {
-            setMobile(false);
             requireUser(() => setModal({ type: 'youtube' }));
           }}
         >
@@ -1132,7 +1122,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 2.0.0 beta 1</span>
+                <span>Thư viện cá nhân • SPMusic 2.0.0 beta 2</span>
               </div>
             </>
           )}
@@ -1376,20 +1366,6 @@ export default function App() {
         <AccountModal user={user} onUser={setUser} onClose={() => setModal(null)} />
       )}
       {user && (
-        <OpenMusicModal
-          key={user.id}
-          open={modal?.type === 'openMusic'}
-          onClose={() => setModal(null)}
-          onImported={(track, existing) => {
-            if (track)
-              setTracks((prev) => (prev.some((t) => t.id === track.id) ? prev : [...prev, track]));
-            notify(
-              existing ? 'Bài hát đã có trong thư viện.' : 'Đã tải nhạc mở vào thư viện của bạn.',
-            );
-          }}
-        />
-      )}
-      {user && (
         <YoutubeModal
           key={user.id}
           open={modal?.type === 'youtube'}
@@ -1417,6 +1393,7 @@ export default function App() {
           onClose={() => setModal(null)}
         />
       )}
+      <UpdateNotice />
     </div>
   );
 }

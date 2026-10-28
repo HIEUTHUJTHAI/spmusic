@@ -4,8 +4,8 @@
 
 Sau khi chạy `npm run desktop:build`, thư mục `release/` có hai lựa chọn:
 
-- `SPMusic-2.0.0-beta.1-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
-- `SPMusic-2.0.0-beta.1-Portable.exe`: bản chạy trực tiếp, không cần cài đặt.
+- `SPMusic-2.0.0-beta.2-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
+- `SPMusic-2.0.0-beta.2-Portable.exe`: bản chạy trực tiếp, không cần cài đặt.
 
 Cả hai bản dành cho Windows 64-bit. Bản build hiện chưa ký số nên Windows SmartScreen có thể báo ứng dụng chưa xác định.
 
@@ -53,7 +53,9 @@ Lệnh build tải và kiểm tra checksum của yt-dlp và Node.js vào `tools/
 
 App desktop tự kiểm tra bản mới sau khi mở. Nếu có bản mới, người dùng có thể tải và khởi động lại để cài. Trong **Cài đặt → Cập nhật SPMusic**, nút **Kiểm tra cập nhật** cho phép kiểm tra thủ công khi lần kiểm tra nền bị lỗi hoặc bị bỏ qua. Trạng thái tải và lỗi được hiển thị ngay trong hộp thoại.
 
-Để chuyển từ bản cài 1.5.0 sang **2.0.0 beta 1** ngay trong ứng dụng, mở **Cài đặt → Kiểm tra cập nhật → Tải bản 2.0.0-beta.1 → Khởi động lại để cập nhật**. Release beta 1 được đưa vào kênh `latest` để bản 1.5.0 nhận ra; tên phiên bản và ghi chú phát hành vẫn ghi rõ đây là bản thử nghiệm. Ứng dụng sẽ không tự tải hoặc tự cài nếu bạn chưa bấm các nút này.
+Từ 2.0.0 beta 2, khi phát hiện bản mới app hiện thông báo ngay trên màn hình chính. **Cập nhật ngay** bắt đầu tải; tải xong chọn **Khởi động lại để cập nhật**. **Để sau** chỉ ẩn thông báo trong phiên dùng hiện tại. **Không nhắc bản này** được lưu trên thiết bị và chỉ ẩn thông báo tự động của đúng phiên bản đó; bản mới hơn vẫn được báo, và nút kiểm tra thủ công trong Cài đặt vẫn hoạt động.
+
+Để chuyển từ bản cài 1.5.0 sang **2.0.0 beta 2** ngay trong ứng dụng, mở **Cài đặt → Kiểm tra cập nhật → Tải bản 2.0.0-beta.2 → Khởi động lại để cập nhật**. Release beta 2 được đưa vào kênh `latest` để bản 1.5.0 nhận ra; tên phiên bản và ghi chú phát hành vẫn ghi rõ đây là bản thử nghiệm. Ứng dụng sẽ không tự tải hoặc tự cài nếu bạn chưa bấm các nút này.
 
 Bản cập nhật lấy từ GitHub Releases của repository `HIEUTHUJTHAI/spmusic` sau khi bạn đưa mã nguồn và các bản build lên đó. Mỗi bản phát hành cần tăng `version` trong `package.json` (ví dụ `1.0.0` → `1.0.1`) và tạo lại bộ cài. Bản cập nhật dùng file cài NSIS; bản portable không tự cập nhật ổn định như bản cài.
 

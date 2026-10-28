@@ -1,0 +1,14 @@
+.source-credit {
+  font-size: 11px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.source-credit strong { font-size: 13px; }
+.source-credit p { color: var(--muted); margin: 6px 0; }
+.source-credit > div { display: flex; gap: 12px; flex-wrap: wrap; }
+.source-credit a {
+  color: var(--accent);
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}

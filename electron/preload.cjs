@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld('spmusicDesktop', {
   isDesktop: true,
   version: () => ipcRenderer.invoke('app:version'),
   checkForUpdates: () => ipcRenderer.invoke('updates:check'),
+  getUpdateState: () => ipcRenderer.invoke('updates:state'),
+  dismissUpdateNotice: (version, mode) => ipcRenderer.invoke('updates:dismiss', version, mode),
   downloadUpdate: () => ipcRenderer.invoke('updates:download'),
   installUpdate: () => ipcRenderer.invoke('updates:install'),
   listOlderVersions: () => ipcRenderer.invoke('rollback:versions'),

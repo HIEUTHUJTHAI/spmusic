@@ -53,8 +53,15 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
   useEffect(() => {
     if (!desktop) return undefined;
     let active = true;
+    let sawUpdate = false;
     desktop.version().then((version) => active && setAppVersion(version));
-    const unsubscribe = desktop.onUpdate((state) => active && setUpdate(state));
+    const unsubscribe = desktop.onUpdate((state) => {
+      sawUpdate = true;
+      if (active) setUpdate(state);
+    });
+    desktop.getUpdateState().then((state) => {
+      if (active && !sawUpdate) setUpdate(state);
+    }).catch(() => {});
     const unsubscribeRollback = desktop.onRollback?.((state) => active && setRollback(state));
     return () => {
       active = false;

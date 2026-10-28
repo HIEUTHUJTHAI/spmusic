@@ -7,6 +7,7 @@ files:
   - electron/main.cjs
   - electron/preload.cjs
   - electron/rollback.cjs
+  - electron/update-notice.cjs
   - server/src/**/*
   - server/package.json
   - client/dist/**/*
