@@ -18,6 +18,8 @@ MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwi
 
 **Bản 2.0.0 beta 1:** Giao diện kính mờ trên điều hướng, thẻ nội dung, cửa sổ cài đặt và trình phát. Trong Cài đặt → Ảnh nền ứng dụng, mỗi tài khoản có thể tải lên ảnh JPG/PNG/WebP tối đa 10 MB, xem trước, thay hoặc xóa ảnh. Ảnh lưu cục bộ cùng dữ liệu ứng dụng; giao diện vẫn giữ hiệu ứng kính mờ khi đổi chủ đề màu.
 
+**Cập nhật trực tiếp từ bản cài 1.5.0:** Mở **Cài đặt → Kiểm tra cập nhật → Tải bản 2.0.0-beta.1 → Khởi động lại để cập nhật**. Bản beta này được đưa vào kênh cập nhật của 1.5.0 theo yêu cầu; bạn chủ động bấm tải và cài.
+
 ## Ứng dụng Windows
 
 SPMusic có thể chạy như ứng dụng desktop: cài Node.js 22+ và npm, cài thư viện bằng `npm install`, sau đó chạy `npm run desktop:build`. File cài đặt `.exe` và bản chạy không cần cài sẽ nằm trong `release/`. Chạy thử app desktop từ mã nguồn bằng `npm run desktop:dev`.

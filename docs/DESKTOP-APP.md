@@ -53,6 +53,8 @@ Lệnh build tải và kiểm tra checksum của yt-dlp và Node.js vào `tools/
 
 App desktop tự kiểm tra bản mới sau khi mở. Nếu có bản mới, người dùng có thể tải và khởi động lại để cài. Trong **Cài đặt → Cập nhật SPMusic**, nút **Kiểm tra cập nhật** cho phép kiểm tra thủ công khi lần kiểm tra nền bị lỗi hoặc bị bỏ qua. Trạng thái tải và lỗi được hiển thị ngay trong hộp thoại.
 
+Để chuyển từ bản cài 1.5.0 sang **2.0.0 beta 1** ngay trong ứng dụng, mở **Cài đặt → Kiểm tra cập nhật → Tải bản 2.0.0-beta.1 → Khởi động lại để cập nhật**. Release beta 1 được đưa vào kênh `latest` để bản 1.5.0 nhận ra; tên phiên bản và ghi chú phát hành vẫn ghi rõ đây là bản thử nghiệm. Ứng dụng sẽ không tự tải hoặc tự cài nếu bạn chưa bấm các nút này.
+
 Bản cập nhật lấy từ GitHub Releases của repository `HIEUTHUJTHAI/spmusic` sau khi bạn đưa mã nguồn và các bản build lên đó. Mỗi bản phát hành cần tăng `version` trong `package.json` (ví dụ `1.0.0` → `1.0.1`) và tạo lại bộ cài. Bản cập nhật dùng file cài NSIS; bản portable không tự cập nhật ổn định như bản cài.
 
 Cập nhật không thay đổi `%APPDATA%\SPMusic\data`, nên tài khoản, playlist, avatar, nhạc, lyrics và mô hình AI được giữ lại. App vẫn có thể báo lỗi kiểm tra nếu repository chưa có Release, máy không có Internet hoặc bản build chưa được ký số.
