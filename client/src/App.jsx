@@ -614,7 +614,8 @@ export default function App() {
   );
   return (
     <div className="app-shell">
-      <audio {...p.audioProps} />
+      <audio {...p.audioProps[0]} />
+      <audio {...p.audioProps[1]} />
       {mobile && (
         <button
           className="sidebar-backdrop"
@@ -1129,7 +1130,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 1.0.4</span>
+                <span>Thư viện cá nhân • SPMusic 1.5.0</span>
               </div>
             </>
           )}
@@ -1406,6 +1407,7 @@ export default function App() {
       {modal?.type === 'settings' && user && (
         <SettingsModal
           user={user}
+          player={p}
           tracks={tracks}
           onUser={setUser}
           onDeleted={trackDeleted}

@@ -4,8 +4,8 @@
 
 Sau khi chạy `npm run desktop:build`, thư mục `release/` có hai lựa chọn:
 
-- `SPMusic-1.0.4-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
-- `SPMusic-1.0.4-Portable.exe`: bản chạy trực tiếp, không cần cài đặt.
+- `SPMusic-1.5.0-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
+- `SPMusic-1.5.0-Portable.exe`: bản chạy trực tiếp, không cần cài đặt.
 
 Cả hai bản dành cho Windows 64-bit. Bản build hiện chưa ký số nên Windows SmartScreen có thể báo ứng dụng chưa xác định.
 
@@ -56,3 +56,7 @@ App desktop tự kiểm tra bản mới sau khi mở. Nếu có bản mới, ng�
 Bản cập nhật lấy từ GitHub Releases của repository `HIEUTHUJTHAI/spmusic` sau khi bạn đưa mã nguồn và các bản build lên đó. Mỗi bản phát hành cần tăng `version` trong `package.json` (ví dụ `1.0.0` → `1.0.1`) và tạo lại bộ cài. Bản cập nhật dùng file cài NSIS; bản portable không tự cập nhật ổn định như bản cài.
 
 Cập nhật không thay đổi `%APPDATA%\SPMusic\data`, nên tài khoản, playlist, avatar, nhạc, lyrics và mô hình AI được giữ lại. App vẫn có thể báo lỗi kiểm tra nếu repository chưa có Release, máy không có Internet hoặc bản build chưa được ký số.
+
+Từ bản 1.5.0, nút **Lùi về phiên bản trước** trong Cài đặt liệt kê các bản Windows cũ có bộ cài và `latest.yml`. App tải bộ cài, kiểm tra SHA-512 theo metadata phát hành, sau đó hỏi người dùng cài bản đã chọn. Nên sao lưu thư mục dữ liệu trước khi cài bản cũ: một phiên bản cũ có thể không đọc được dữ liệu hoặc tính năng tạo bởi bản mới. Sau khi quay về bản cũ, ứng dụng vẫn có thể đề xuất bản cập nhật mới.
+
+AutoMix và EQ nằm trong **Cài đặt → Chuyển tiếp và âm thanh**. AutoMix bắt đầu chồng hai bài gần cuối và có thể bắt đầu sớm hơn khi đoạn cuối yên lặng; đây là chuyển tiếp theo mức âm lượng, chưa phân tích BPM hay đồng bộ nhịp. EQ có 5 dải, preset và giảm mức đầu vào khi tăng tần số để hạn chế méo. Các lựa chọn được lưu trong hồ sơ ứng dụng trên thiết bị.

@@ -1,12 +1,15 @@
-const { app, BrowserWindow, dialog, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, dialog, shell, ipcMain, net } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
+const { listOlderVersions, prepareOlderVersion } = require('./rollback.cjs');
 
 let backend;
 let mainWindow;
 let stopping = false;
 let updateState = { status: 'idle', version: null, progress: 0, message: '' };
+let rollbackBusy = false;
+let rollbackReady = null;
 
 app.setName('SPMusic');
 const gotLock = app.requestSingleInstanceLock();
@@ -67,6 +70,10 @@ async function start() {
 function publishUpdate(payload) {
   updateState = { ...updateState, ...payload };
   mainWindow?.webContents.send('updates:event', updateState);
+}
+
+function publishRollback(payload) {
+  mainWindow?.webContents.send('rollback:event', payload);
 }
 
 function configureUpdates() {
@@ -130,6 +137,42 @@ ipcMain.handle('updates:download', async () => {
 });
 ipcMain.handle('updates:install', () => {
   autoUpdater.quitAndInstall(false, true);
+  return { status: 'installing' };
+});
+ipcMain.handle('rollback:versions', async () => {
+  try {
+    return { versions: await listOlderVersions(app.getVersion(), net.fetch) };
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+ipcMain.handle('rollback:download', async (_event, version) => {
+  if (!app.isPackaged) return { error: 'Hãy mở bản SPMusic đã cài để dùng tính năng này.' };
+  if (rollbackBusy) return { error: 'Đang tải một phiên bản khác.' };
+  rollbackBusy = true;
+  rollbackReady = null;
+  publishRollback({ status: 'downloading', version, progress: 0 });
+  try {
+    const file = await prepareOlderVersion(version, app.getVersion(),
+      path.join(app.getPath('userData'), 'rollback'), net.fetch,
+      (progress) => publishRollback({ status: 'downloading', version, progress }));
+    rollbackReady = { version, file };
+    publishRollback({ status: 'ready', version, progress: 100 });
+    return { status: 'ready', version };
+  } catch (error) {
+    publishRollback({ status: 'error', version, message: error.message });
+    return { error: error.message };
+  } finally {
+    rollbackBusy = false;
+  }
+});
+ipcMain.handle('rollback:install', async (_event, version) => {
+  if (!rollbackReady || version !== rollbackReady.version || rollbackBusy)
+    return { error: 'Hãy tải và kiểm tra phiên bản này trước.' };
+  const error = await shell.openPath(rollbackReady.file);
+  if (error) return { error: 'Không mở được bộ cài: ' + error };
+  autoUpdater.autoInstallOnAppQuit = false;
+  app.quit();
   return { status: 'installing' };
 });
 

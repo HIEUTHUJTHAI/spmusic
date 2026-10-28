@@ -14,6 +14,8 @@ MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwi
 
 **Bản 1.0.4:** Có thể thay hoặc xóa ảnh bìa cho mọi bài hát trong thư viện, kể cả bài nhập từ YouTube hay nguồn nhạc mở. Playlist có ảnh bìa riêng, có thể thay hoặc xóa trong cửa sổ sửa playlist. Cài đặt thêm chế độ Tự chọn để lưu màu nhấn, nền trang, bề mặt và màu chữ theo tài khoản.
 
+**Bản 1.5.0:** Cài đặt có AutoMix bật/tắt, chuyển bài chồng âm với thời lượng thích nghi theo đoạn cuối yên lặng; EQ 5 dải và preset mở trong bảng nhỏ, lưu trên thiết bị. Bản Windows có thể tải bộ cài phiên bản cũ từ GitHub Releases, kiểm tra SHA-512 và mở bộ cài sau khi người dùng chọn cài.
+
 ## Ứng dụng Windows
 
 SPMusic có thể chạy như ứng dụng desktop: cài Node.js 22+ và npm, cài thư viện bằng `npm install`, sau đó chạy `npm run desktop:build`. File cài đặt `.exe` và bản chạy không cần cài sẽ nằm trong `release/`. Chạy thử app desktop từ mã nguồn bằng `npm run desktop:dev`.

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Check, Download, Music2, Palette, Pencil, RefreshCw, Trash2 } from 'lucide-react';
+import { Check, Download, Music2, Palette, Pencil, RefreshCw, RotateCcw, SlidersHorizontal, Trash2, Waves, X } from 'lucide-react';
 import Modal from './Modal';
 import { api } from '../lib/api';
+import { EQ_FREQUENCIES, EQ_PRESETS } from '../lib/audioSettings';
 
 const themes = [
   ['pink', 'Trắng hồng', '#c83776'],
@@ -19,7 +20,7 @@ const customColors = [
   ['text', 'Màu chữ'],
 ];
 
-export default function SettingsModal({ user, tracks, onUser, onDeleted, onEditTrack, onClose }) {
+export default function SettingsModal({ user, tracks, player, onUser, onDeleted, onEditTrack, onClose }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [message, setMessage] = useState(''),
@@ -27,7 +28,12 @@ export default function SettingsModal({ user, tracks, onUser, onDeleted, onEditT
     [deleting, setDeleting] = useState(null),
     [update, setUpdate] = useState(null),
     [appVersion, setAppVersion] = useState(''),
-    [customTheme, setCustomTheme] = useState({ ...defaultCustomTheme, ...user.customTheme });
+    [customTheme, setCustomTheme] = useState({ ...defaultCustomTheme, ...user.customTheme }),
+    [eqOpen, setEqOpen] = useState(false),
+    [olderVersions, setOlderVersions] = useState([]),
+    [versionsBusy, setVersionsBusy] = useState(false),
+    [selectedVersion, setSelectedVersion] = useState(''),
+    [rollback, setRollback] = useState(null);
   const desktop = typeof window !== 'undefined' ? window.spmusicDesktop : null;
   useEffect(() => {
     setCustomTheme({ ...defaultCustomTheme, ...user.customTheme });
@@ -37,9 +43,11 @@ export default function SettingsModal({ user, tracks, onUser, onDeleted, onEditT
     let active = true;
     desktop.version().then((version) => active && setAppVersion(version));
     const unsubscribe = desktop.onUpdate((state) => active && setUpdate(state));
+    const unsubscribeRollback = desktop.onRollback?.((state) => active && setRollback(state));
     return () => {
       active = false;
       unsubscribe?.();
+      unsubscribeRollback?.();
     };
   }, [desktop]);
   const own = tracks.filter((t) => !t.isDemo && t.ownerId === user.id);
@@ -58,6 +66,31 @@ export default function SettingsModal({ user, tracks, onUser, onDeleted, onEditT
     } finally {
       setBusy(false);
     }
+  }
+  async function loadOlderVersions() {
+    setVersionsBusy(true);
+    setError('');
+    try {
+      const result = await desktop.listOlderVersions();
+      if (result.error) throw new Error(result.error);
+      setOlderVersions(result.versions);
+      setSelectedVersion((current) => current || result.versions[0]?.version || '');
+      if (!result.versions.length) setRollback({ status: 'empty' });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setVersionsBusy(false);
+    }
+  }
+  async function downloadOlderVersion() {
+    if (!selectedVersion) return;
+    setError('');
+    const result = await desktop.downloadOlderVersion(selectedVersion);
+    if (result.error) setError(result.error);
+  }
+  async function installOlderVersion() {
+    const result = await desktop.installOlderVersion(rollback.version);
+    if (result.error) setError(result.error);
   }
   return (
     <Modal title="Cài đặt" wide onClose={() => !busy && onClose()}>
@@ -100,7 +133,95 @@ export default function SettingsModal({ user, tracks, onUser, onDeleted, onEditT
                 {update.message}
               </p>
             )}
+            <div className="rollback-controls">
+              <button className="form-secondary" disabled={versionsBusy || rollback?.status === 'downloading'}
+                onClick={loadOlderVersions}>
+                <RotateCcw size={15} /> {versionsBusy ? 'Đang tìm bản cũ…' : 'Lùi về phiên bản trước'}
+              </button>
+              {olderVersions.length > 0 && (
+                <div className="rollback-picker">
+                  <label htmlFor="older-version">Chọn phiên bản</label>
+                  <select id="older-version" value={selectedVersion}
+                    disabled={rollback?.status === 'downloading'}
+                    onChange={(event) => setSelectedVersion(event.target.value)}>
+                    {olderVersions.map((entry) => (
+                      <option key={entry.version} value={entry.version}>SPMusic {entry.version}</option>
+                    ))}
+                  </select>
+                  <button className="form-secondary" disabled={rollback?.status === 'downloading'}
+                    onClick={downloadOlderVersion}>
+                    <Download size={15} /> Tải bản đã chọn
+                  </button>
+                </div>
+              )}
+              {olderVersions.length === 0 && selectedVersion === '' && !versionsBusy && rollback?.status === 'empty' && (
+                <p className="form-description">Chưa có bản cũ phù hợp để cài.</p>
+              )}
+              {rollback?.status === 'downloading' && (
+                <p className="form-description" role="status">Đang tải và kiểm tra bản {rollback.version}… {rollback.progress}%</p>
+              )}
+              {rollback?.status === 'ready' && rollback.version === selectedVersion && (
+                <div className="rollback-ready" role="status">
+                  <p>Bản {rollback.version} đã tải xong và được kiểm tra. Nên sao lưu thư viện trước khi cài bản cũ vì dữ liệu tạo ở bản mới có thể không tương thích.</p>
+                  <button className="form-primary" onClick={installOlderVersion}>
+                    Cài phiên bản {rollback.version}
+                  </button>
+                </div>
+              )}
+              {rollback?.status === 'error' && <p className="form-error" role="alert">{rollback.message}</p>}
+            </div>
           </>
+        )}
+      </section>
+      <section className="settings-section">
+        <h3><Waves size={18} /> Chuyển tiếp và âm thanh</h3>
+        <p className="form-description">Tùy chỉnh cách chuyển bài và âm sắc. Cài đặt này được lưu trên thiết bị.</p>
+        <label className="audio-toggle">
+          <span><strong>AutoMix</strong><small>Chuyển mượt khoảng 5 giây trước khi hết bài, sớm hơn nếu đoạn cuối yên lặng.</small></span>
+          <input type="checkbox" role="switch" checked={player.automix}
+            onChange={(event) => player.setAutomix(event.target.checked)} />
+        </label>
+        <label className="audio-toggle">
+          <span><strong>Bộ chỉnh EQ</strong><small>Điều chỉnh bass, giọng hát và treble theo thời gian thực.</small></span>
+          <input type="checkbox" role="switch" checked={player.eqEnabled}
+            onChange={(event) => {
+              player.setEqEnabled(event.target.checked);
+              setEqOpen(event.target.checked);
+            }} />
+        </label>
+        {player.eqEnabled && (
+          <button className="form-secondary eq-open-button" onClick={() => setEqOpen((value) => !value)}>
+            <SlidersHorizontal size={16} /> {eqOpen ? 'Ẩn bảng EQ' : 'Mở bảng EQ'}
+          </button>
+        )}
+        {player.eqEnabled && eqOpen && (
+          <div className="eq-window" role="group" aria-label="Bảng điều chỉnh EQ">
+            <div className="eq-window-heading">
+              <strong><SlidersHorizontal size={17} /> Bộ chỉnh EQ</strong>
+              <button className="icon-btn" aria-label="Đóng bảng EQ" onClick={() => setEqOpen(false)}><X size={17} /></button>
+            </div>
+            <label className="eq-preset">Chế độ
+              <select value={player.eqPreset} onChange={(event) => player.setEqPreset(event.target.value)}>
+                {Object.entries(EQ_PRESETS).map(([id, preset]) =>
+                  <option key={id} value={id}>{preset.label}</option>)}
+                {player.eqPreset === 'custom' && <option value="custom">Tùy chỉnh</option>}
+              </select>
+            </label>
+            <div className="eq-bands">
+              {EQ_FREQUENCIES.map((frequency, index) => (
+                <label key={frequency}>
+                  <span>{frequency >= 1000 ? `${frequency / 1000}k` : frequency} Hz</span>
+                  <input type="range" min="-12" max="12" step="1" value={player.eqBands[index]}
+                    aria-label={`EQ ${frequency} Hz`}
+                    onChange={(event) => player.setEqBand(index, Number(event.target.value))} />
+                  <output>{player.eqBands[index] > 0 ? '+' : ''}{player.eqBands[index]} dB</output>
+                </label>
+              ))}
+            </div>
+            <button className="form-secondary" onClick={() => player.setEqPreset('flat')}>
+              <RotateCcw size={15} /> Đặt lại EQ
+            </button>
+          </div>
         )}
       </section>
       <section className="settings-section">
