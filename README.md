@@ -20,6 +20,8 @@ MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwi
 
 **Bản chính thức 2.0.0:** Dùng logo SPMusic mới do chủ ứng dụng cung cấp. Thư viện chặn thêm lại cùng file âm thanh dù đổi tên file và chặn tên bài hát đã có trong cùng tài khoản, kể cả khi nhập từ YouTube. Những bài có sẵn không bị xóa.
 
+**Bản 2.0.1:** Sửa sidebar để playlist không đè lên nút tải nhạc; thêm dòng “by HIEUTHUJTHAI” dưới logo; làm thanh tìm kiếm liền với thanh công cụ; bỏ bảng giới thiệu “Thả mình vào những giai điệu” trên trang chủ.
+
 **Cập nhật lên bản 2.0.0:** Bản beta 2 sẽ tự báo khi có cập nhật; các bản cũ có thể dùng **Cài đặt → Kiểm tra cập nhật** rồi tải và khởi động lại để cài.
 
 ## Ứng dụng Windows

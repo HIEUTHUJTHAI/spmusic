@@ -204,10 +204,18 @@ input[type='range']::-moz-range-thumb {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin: 0 11px 40px;
+  margin: 0 11px 24px;
   font-size: 29px;
   letter-spacing: -1.6px;
   font-weight: 720;
+}
+.brand-wordmark { display: flex; flex-direction: column; line-height: 1; }
+.brand-wordmark small {
+  margin-top: 5px;
+  font-size: 8px;
+  font-weight: 550;
+  letter-spacing: .15px;
+  color: var(--muted);
 }
 .brand-symbol {
   width: 34px;
@@ -323,7 +331,10 @@ input[type='range']::-moz-range-thumb {
 }
 .playlist-nav {
   margin-top: 8px;
-  min-height: 65px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .create-playlist {
   padding: 10px 13px;
@@ -337,8 +348,9 @@ input[type='range']::-moz-range-thumb {
   color: var(--accent);
 }
 .sidebar-upload {
-  margin: auto 5px 0;
-  padding: 22px 15px 18px;
+  flex: 0 0 auto;
+  margin: 12px 5px 0;
+  padding: 15px 15px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background:
@@ -353,7 +365,7 @@ input[type='range']::-moz-range-thumb {
   justify-content: center;
   border: 1px solid var(--line);
   border-radius: 10px;
-  margin-bottom: 13px;
+  margin-bottom: 8px;
 }
 .sidebar-upload strong {
   display: block;
@@ -372,7 +384,7 @@ input[type='range']::-moz-range-thumb {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  margin-top: 17px;
+  margin-top: 10px;
   font-size: 10px;
   font-weight: 600;
   border: 1px solid var(--line);
@@ -412,7 +424,9 @@ input[type='range']::-moz-range-thumb {
   align-items: center;
   justify-content: space-between;
   gap: 25px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 0 0 0 24px;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--text) 4%, transparent);
 }
 .topbar-start {
   display: flex;
@@ -441,7 +455,7 @@ input[type='range']::-moz-range-thumb {
   flex: 1;
   border: 1px solid var(--line);
   background: var(--soft);
-  border-radius: 8px;
+  border-radius: 14px;
   color: var(--muted);
   height: 38px;
   padding: 0 12px;
@@ -1868,13 +1882,13 @@ main {
     font-size: 9px;
   }
   .sidebar-upload {
-    margin-top: 25px;
+    margin-top: 12px;
   }
   .sidebar-foot {
     margin-top: 20px;
   }
   .playlist-nav {
-    min-height: 40px;
+    min-height: 0;
   }
   .content-shell {
     margin: 0;

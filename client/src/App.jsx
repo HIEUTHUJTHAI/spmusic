@@ -628,7 +628,7 @@ export default function App() {
       <aside className={`sidebar ${mobile ? 'mobile-open' : ''}`}>
         <button className="brand" onClick={() => navigate('home')} aria-label="SPMusic trang chủ">
           <span className="brand-symbol"><img src="/spmusic-icon.png" alt="" width="32" height="32" /></span>
-          SPMusic<span className="brand-period">.</span>
+          <span className="brand-wordmark">SPMusic<span className="brand-period">.</span><small>by HIEUTHUJTHAI</small></span>
         </button>
         <div className="nav-label">KHÔNG GIAN CỦA BẠN</div>
         <nav>
@@ -876,51 +876,6 @@ export default function App() {
                       </button>
                     ))}
                   </div>
-                  <section className="hero">
-                    <img className="hero-scenery" src="/covers/hero.svg" alt="" />
-                    <div className="hero-content">
-                      <span className="hero-tag">
-                        <span />
-                        THƯ VIỆN CỦA BẠN
-                      </span>
-                      <h2>
-                        Thả mình vào
-                        <br />
-                        những <em>giai điệu.</em>
-                      </h2>
-                      <p>
-                        Chậm lại một chút. Để âm nhạc dẫn lối.
-                        <br />
-                        Khám phá những thanh âm dành riêng cho bạn.
-                      </p>
-                      <div className="hero-actions">
-                        <button
-                          className="primary-btn"
-                          disabled={!tracks.length}
-                          onClick={() =>
-                            p.play(filtered[0] || tracks[0], filtered.length ? filtered : tracks)
-                          }
-                        >
-                          <Play size={16} fill="currentColor" />
-                          Nghe ngay
-                        </button>
-                        <button className="hero-secondary" onClick={() => navigate('library')}>
-                          Khám phá thư viện
-                          <ArrowUpRight size={17} />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="hero-caption">
-                      <span className="mini-bars">
-                        <i />
-                        <i />
-                        <i />
-                        <i />
-                      </span>
-                      YOUR SOUND. YOUR SPACE.
-                    </div>
-                    <span className="hero-number">VOL. 01 / 2026</span>
-                  </section>
                   <section className="home-section">
                     <div className="section-heading">
                       <div>
@@ -1120,7 +1075,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 2.0.0</span>
+                <span>Thư viện cá nhân • SPMusic 2.0.1</span>
               </div>
             </>
           )}
