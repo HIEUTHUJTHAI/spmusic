@@ -36,7 +36,9 @@ ALTER TABLE tracks ADD COLUMN IF NOT EXISTS sample_rate INTEGER;
 ALTER TABLE tracks ADD COLUMN IF NOT EXISTS bit_depth INTEGER;
 ALTER TABLE tracks ADD COLUMN IF NOT EXISTS source_key TEXT;
 ALTER TABLE tracks ADD COLUMN IF NOT EXISTS source_info JSONB;
+ALTER TABLE tracks ADD COLUMN IF NOT EXISTS audio_hash TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS tracks_import_unique ON tracks(owner_id,source_key) WHERE source_key IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS tracks_audio_hash_unique ON tracks(owner_id,audio_hash) WHERE audio_hash IS NOT NULL;
 CREATE TABLE IF NOT EXISTS playlists (
  id TEXT PRIMARY KEY,
  owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

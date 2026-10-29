@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import ffmpeg from 'ffmpeg-static';
 import { ApiError } from './validation.js';
 import { MAX_AUDIO_BYTES, prepareAudio } from './audio.js';
+import { audioHash, rejectDuplicate } from './duplicates.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const localTools = path.resolve(here, '../../tools/vendor');
@@ -143,6 +144,8 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
         job.message = 'Video này đã có trong thư viện.';
         return;
       }
+      const title = clean(metadata.title, 160, video.id);
+      await rejectDuplicate(db, uploadsDir, job.ownerId, title, null);
       directory = await fs.mkdtemp(path.join(uploadsDir, 'temp', 'youtube-'));
       job.status = 'downloading'; job.progress = 10;
       job.message = 'Đang tải âm thanh chất lượng cao nhất có sẵn…';
@@ -155,11 +158,13 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
       job.status = 'processing'; job.progress = 90;
       job.message = 'Đang kiểm tra file MP3…';
       const info = await prepare({ path: file, originalname: 'youtube.mp3', size }, directory);
+      const hash = await audioHash(file);
+      await rejectDuplicate(db, uploadsDir, job.ownerId, title, hash);
       signal.throwIfAborted();
       const id = randomUUID(), audioFile = `${id}${info.ext}`;
       const provenance = {
         provider: 'youtube', providerName: 'YouTube', itemId: video.id,
-        title: clean(metadata.title, 160, video.id),
+        title,
         artist: clean(metadata.artist || metadata.uploader || metadata.channel, 120, 'Không rõ nghệ sĩ'),
         sourceUrl: video.url, format: info.format, downloadedAt: new Date().toISOString(),
       };
@@ -168,9 +173,9 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
       savedFile = path.join(uploadsDir, 'audio', audioFile);
       await fs.rename(file, savedFile);
       const { rows } = await db.query(
-        'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,audio_format,sample_rate,bit_depth,source_key,source_info) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
+        'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,audio_format,sample_rate,bit_depth,source_key,source_info,audio_hash) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
         [id, job.ownerId, provenance.title, provenance.artist, '', '', info.duration, audioFile,
-          info.format, info.sampleRate, info.bitDepth, sourceKey, JSON.stringify(provenance)],
+          info.format, info.sampleRate, info.bitDepth, sourceKey, JSON.stringify(provenance), hash],
       );
       savedFile = null;
       job.track = trackView(rows[0]);

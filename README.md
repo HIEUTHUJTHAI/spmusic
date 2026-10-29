@@ -18,7 +18,9 @@ MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwi
 
 **Bản 2.0.0 beta 2:** Khi mở bản cài Windows, app tự kiểm tra cập nhật và hiện thông báo nếu có bản mới; người dùng chọn cập nhật, để sau hoặc không nhắc lại riêng bản đó. Gỡ mục tìm/tải nhạc mở từ internet; bài đã lưu trước đây vẫn phát và giữ ghi công. Hiệu ứng kính mờ và chuyển động được tinh giản để cuộn và thao tác nhẹ hơn.
 
-**Cập nhật trực tiếp từ bản cài 1.5.0:** Mở **Cài đặt → Kiểm tra cập nhật → Tải bản 2.0.0-beta.2 → Khởi động lại để cập nhật**. Bản beta này được đưa vào kênh cập nhật của 1.5.0 theo yêu cầu; bạn chủ động bấm tải và cài. Sau khi lên beta 2, các lần mở app tiếp theo sẽ tự báo khi có bản mới.
+**Bản chính thức 2.0.0:** Dùng logo SPMusic mới do chủ ứng dụng cung cấp. Thư viện chặn thêm lại cùng file âm thanh dù đổi tên file và chặn tên bài hát đã có trong cùng tài khoản, kể cả khi nhập từ YouTube. Những bài có sẵn không bị xóa.
+
+**Cập nhật lên bản 2.0.0:** Bản beta 2 sẽ tự báo khi có cập nhật; các bản cũ có thể dùng **Cài đặt → Kiểm tra cập nhật** rồi tải và khởi động lại để cài.
 
 ## Ứng dụng Windows
 

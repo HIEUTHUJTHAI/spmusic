@@ -63,9 +63,9 @@ const validCover = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jOBsAAAAASUVORK5CYII=',
   'base64',
 );
-function uploadForm({ audio = wav(), filename = 'sample.wav', lyrics = validLyrics, cover } = {}) {
+function uploadForm({ audio = wav(), filename = 'sample.wav', lyrics = validLyrics, cover, title = 'Bản nhạc riêng' } = {}) {
   const body = new FormData();
-  body.set('title', 'Bản nhạc riêng');
+  body.set('title', title);
   body.set('artist', 'Nghệ sĩ riêng');
   body.set('album', 'Album của tôi');
   body.set('genre', 'Ambient');
@@ -261,6 +261,11 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
       assert.equal((await fs.readdir(path.join(dataDir, 'uploads/audio'))).length, 1);
       assert.equal((await fs.readdir(path.join(dataDir, 'uploads/covers'))).length, 1);
       assert.equal((await fs.readdir(path.join(dataDir, 'uploads/lyrics'))).length, 1);
+      const sameFile = uploadForm({ title: 'Tên khác', filename: 'renamed.wav', lyrics: null });
+      assert.equal((await request('/api/tracks', { method: 'POST', cookie: aliceCookie, body: sameFile })).status, 409);
+      const sameTitle = uploadForm({ title: '  BẢN NHẠC RIÊNG  ', audio: await fs.readFile(new URL('./fixtures/silence.mp3', import.meta.url)), filename: 'different.mp3', lyrics: null });
+      assert.equal((await request('/api/tracks', { method: 'POST', cookie: aliceCookie, body: sameTitle })).status, 409);
+      assert.equal((await fs.readdir(path.join(dataDir, 'uploads/audio'))).length, 1);
       const oversized = uploadForm({ lyrics: '[00:00.00]' + 'a'.repeat(256 * 1024) });
       assert.equal(
         (await request('/api/tracks', { method: 'POST', cookie: aliceCookie, body: oversized }))
@@ -366,7 +371,7 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
         const created = await request('/api/tracks', {
           method: 'POST',
           cookie: aliceCookie,
-          body: uploadForm({ audio: mp3, filename: 'silence.MP3', lyrics: null }),
+          body: uploadForm({ audio: mp3, filename: 'silence.MP3', lyrics: null, title: 'MP3 thử nghiệm' }),
         });
         assert.equal(created.status, 201);
         assert.equal(created.body.track.hasLyrics, false);
@@ -433,7 +438,7 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
           const result = await request('/api/tracks', {
             method: 'POST',
             cookie: aliceCookie,
-            body: uploadForm({ audio: bytes, filename: `Nhạc riêng.${extension.toUpperCase()}` }),
+            body: uploadForm({ audio: bytes, filename: `Nhạc riêng.${extension.toUpperCase()}`, title: `Lossless ${extension}` }),
           });
           assert.equal(result.status, 201, JSON.stringify(result.body));
           const track = result.body.track;

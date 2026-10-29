@@ -627,9 +627,7 @@ export default function App() {
       )}
       <aside className={`sidebar ${mobile ? 'mobile-open' : ''}`}>
         <button className="brand" onClick={() => navigate('home')} aria-label="SPMusic trang chủ">
-          <span className="brand-symbol">
-            <AudioLines size={25} />
-          </span>
+          <span className="brand-symbol"><img src="/spmusic-icon.png" alt="" width="32" height="32" /></span>
           SPMusic<span className="brand-period">.</span>
         </button>
         <div className="nav-label">KHÔNG GIAN CỦA BẠN</div>
@@ -1122,7 +1120,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 2.0.0 beta 2</span>
+                <span>Thư viện cá nhân • SPMusic 2.0.0</span>
               </div>
             </>
           )}

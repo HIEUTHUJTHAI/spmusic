@@ -18,6 +18,7 @@ import { createLyricsAI } from './lyrics-ai.js';
 import { plainLyrics } from './lyrics-alignment.js';
 import { accountRoutes, safeUser } from './account.js';
 import { createYoutubeImporter, youtubeRoutes } from './youtube.js';
+import { audioHash, rejectDuplicate } from './duplicates.js';
 
 const scrypt = promisify(scryptCallback);
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -407,6 +408,8 @@ export async function createApp({
       throw new ApiError(400, 'Lyrics phải là file .lrc.');
     const lrc = lyrics ? validateLrc(lyrics.buffer) : null;
     const audioInfo = await prepareAudio(audio, req.uploadDir);
+    const hash = await audioHash(audio.path);
+    await rejectDuplicate(db, uploadsDir, req.user.id, title, hash);
     const id = randomUUID(),
       audioFile = `${id}${audioInfo.ext}`,
       playbackFile = audioInfo.playbackPath ? `${id}.flac` : null,
@@ -429,7 +432,7 @@ export async function createApp({
       if (coverFile) await save('covers', coverFile, cover.buffer);
       if (lyricsFile) await save('lyrics', lyricsFile, lrc);
       const { rows } = await db.query(
-        'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,cover_file,lyrics_file,playback_file,audio_format,sample_rate,bit_depth) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
+        'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,cover_file,lyrics_file,playback_file,audio_format,sample_rate,bit_depth,audio_hash) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *',
         [
           id,
           req.user.id,
@@ -445,6 +448,7 @@ export async function createApp({
           audioInfo.format,
           audioInfo.sampleRate,
           audioInfo.bitDepth,
+          hash,
         ],
       );
       res.status(201).json({ track: trackView(rows[0]) });
@@ -462,6 +466,8 @@ export async function createApp({
     const album = req.body.album === undefined ? current.album : text(req.body.album, 'Album', 160);
     const genre =
       req.body.genre === undefined ? current.genre : text(req.body.genre, 'Thể loại', 80);
+    if (title !== current.title)
+      await rejectDuplicate(db, uploadsDir, req.user.id, title, null, current.id);
     const { rows } = await db.query(
       'UPDATE tracks SET title=$1,artist=$2,album=$3,genre=$4 WHERE id=$5 AND owner_id=$6 RETURNING *',
       [title, artist, album, genre, current.id, req.user.id],

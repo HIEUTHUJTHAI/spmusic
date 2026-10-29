@@ -48,12 +48,12 @@ test('YouTube import saves an owned MP3 once and hides jobs from other users', a
   let downloads = 0;
   const db = { async query(sql, values) {
     if (sql.startsWith('SELECT')) return { rows: rows.filter((row) =>
-      row.owner_id === values[0] && row.source_key === values[1]) };
+      row.owner_id === values[0] && (values.length === 1 || row.source_key === values[1])) };
     if (sql.startsWith('INSERT')) {
       const row = {
         id: values[0], owner_id: values[1], title: values[2], artist: values[3],
         duration: values[6], audio_file: values[7], audio_format: values[8],
-        source_key: values[11], source_info: values[12],
+        source_key: values[11], source_info: values[12], audio_hash: values[13],
       };
       rows.push(row);
       return { rows: [row] };

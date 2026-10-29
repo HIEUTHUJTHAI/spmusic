@@ -30,6 +30,7 @@ extraResources:
   - from: tools/vendor/node.exe
     to: tools/node.exe
 win:
+  icon: electron/resources/icon.png
   target:
     - target: nsis
       arch:
