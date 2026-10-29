@@ -26,6 +26,8 @@ MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwi
 
 **Bản 2.1.0:** Nút mở trình phát toàn màn hình ở góc dưới bên trái. Màn hình mới có ảnh bìa lớn trên nền màu lấy từ ảnh bìa, điều khiển phát nhạc, lời bài hát đồng bộ và danh sách bài tiếp theo. Bấm mũi tên xuống hoặc Esc để thu nhỏ.
 
+**Bản 2.1.1:** Sửa bố cục trình phát toàn màn hình khi mở danh sách phát dài: ảnh bìa và tiêu đề luôn nằm trong màn hình, danh sách cuộn trong vùng riêng. Nền ảnh mờ chuyển động vòng tròn chậm và dừng khi hệ thống bật giảm chuyển động.
+
 **Cập nhật lên bản 2.0.0:** Bản beta 2 sẽ tự báo khi có cập nhật; các bản cũ có thể dùng **Cài đặt → Kiểm tra cập nhật** rồi tải và khởi động lại để cài.
 
 ## Ứng dụng Windows
