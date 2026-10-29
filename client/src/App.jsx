@@ -35,6 +35,7 @@ import { api } from './lib/api';
 import { usePlayer } from './lib/usePlayer';
 import Player, { formatTime } from './components/Player';
 import ExpandedPlayer from './components/ExpandedPlayer';
+import DiscoverMusic from './components/DiscoverMusic';
 import Modal from './components/Modal';
 import AuthModal from './components/AuthModal';
 import TrackEditor from './components/TrackEditor';
@@ -979,6 +980,8 @@ export default function App() {
                       <p className="muted">{subtitle}</p>
                     </div>
                   </div>
+                  {view === 'search' && <DiscoverMusic query={query} user={user}
+                    onLogin={() => setModal({ type: 'auth' })} onImported={refresh} notify={notify} />}
                   <div className="collection-controls">
                     <button
                       className="primary-btn"
@@ -1089,7 +1092,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 2.1.1</span>
+                <span>Thư viện cá nhân • SPMusic 2.2.0</span>
               </div>
             </>
           )}

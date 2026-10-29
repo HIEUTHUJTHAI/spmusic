@@ -19,6 +19,7 @@ import { plainLyrics } from './lyrics-alignment.js';
 import { accountRoutes, safeUser } from './account.js';
 import { createYoutubeImporter, youtubeRoutes } from './youtube.js';
 import { audioHash, rejectDuplicate } from './duplicates.js';
+import { archiveSelection, discoveryRoutes } from './discovery.js';
 
 const scrypt = promisify(scryptCallback);
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -178,6 +179,7 @@ export async function createApp({
     return { email, password: body.password };
   };
   app.get('/api/health', (req, res) => res.json({ status: 'ok', database: db.engine }));
+  discoveryRoutes(app);
   app.get('/api/auth/me', (req, res) => res.json({ user: safeUser(req.user) }));
   app.post('/api/auth/register', authRate, async (req, res) => {
     const { email, password } = credentials(req.body);
@@ -410,6 +412,8 @@ export async function createApp({
     const audioInfo = await prepareAudio(audio, req.uploadDir);
     const hash = await audioHash(audio.path);
     await rejectDuplicate(db, uploadsDir, req.user.id, title, hash);
+    const archive = req.body.archiveId && req.body.archiveFile
+      ? await archiveSelection(req.body.archiveId, req.body.archiveFile) : null;
     const id = randomUUID(),
       audioFile = `${id}${audioInfo.ext}`,
       playbackFile = audioInfo.playbackPath ? `${id}.flac` : null,
@@ -432,7 +436,7 @@ export async function createApp({
       if (coverFile) await save('covers', coverFile, cover.buffer);
       if (lyricsFile) await save('lyrics', lyricsFile, lrc);
       const { rows } = await db.query(
-        'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,cover_file,lyrics_file,playback_file,audio_format,sample_rate,bit_depth,audio_hash) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *',
+        'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,cover_file,lyrics_file,playback_file,audio_format,sample_rate,bit_depth,audio_hash,source_key,source_info) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *',
         [
           id,
           req.user.id,
@@ -449,6 +453,8 @@ export async function createApp({
           audioInfo.sampleRate,
           audioInfo.bitDepth,
           hash,
+          archive?.sourceKey || null,
+          archive ? JSON.stringify(archive.sourceInfo) : null,
         ],
       );
       res.status(201).json({ track: trackView(rows[0]) });

@@ -70,7 +70,6 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
         <div className="expanded-details">
           <div className="expanded-track-heading">
             <div>
-              <span className="expanded-eyebrow">THƯ VIỆN CỦA BẠN</span>
               <h1>{p.track?.title || 'Chọn một bài hát'}</h1>
               <p>{p.track?.artist || 'SPMusic'}</p>
               {p.track?.album && <small>{p.track.album}</small>}
@@ -144,11 +143,11 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
           </div>}
           <nav className="expanded-tabs" aria-label="Chế độ trình phát">
             <button className={tab === 'lyrics' ? 'active' : ''} onClick={() => setTab('lyrics')}
-              aria-label="Lời bài hát" aria-pressed={tab === 'lyrics'}><Mic2 size={22} /><span>Lời bài hát</span></button>
+              aria-label="Lời bài hát" title="Lời bài hát" aria-pressed={tab === 'lyrics'}><Mic2 size={22} /></button>
             <button className={tab === 'player' ? 'active' : ''} onClick={() => setTab('player')}
-              aria-label="Trình phát" aria-pressed={tab === 'player'}><Music2 size={22} /><span>Trình phát</span></button>
+              aria-label="Trình phát" title="Trình phát" aria-pressed={tab === 'player'}><Music2 size={22} /></button>
             <button className={tab === 'queue' ? 'active' : ''} onClick={() => setTab('queue')}
-              aria-label="Danh sách phát" aria-pressed={tab === 'queue'}><ListMusic size={22} /><span>Danh sách phát</span></button>
+              aria-label="Danh sách phát" title="Danh sách phát" aria-pressed={tab === 'queue'}><ListMusic size={22} /></button>
           </nav>
         </div>
       </div>
