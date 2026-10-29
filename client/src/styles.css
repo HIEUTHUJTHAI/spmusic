@@ -209,8 +209,9 @@ input[type='range']::-moz-range-thumb {
   letter-spacing: -1.6px;
   font-weight: 720;
 }
-.brand-wordmark { display: flex; flex-direction: column; line-height: 1; }
+.brand-wordmark { display: block; line-height: 1; white-space: nowrap; }
 .brand-wordmark small {
+  display: block;
   margin-top: 5px;
   font-size: 8px;
   font-weight: 550;
@@ -230,7 +231,6 @@ input[type='range']::-moz-range-thumb {
 }
 .brand-symbol img { width: 100%; height: 100%; object-fit: contain; }
 .brand-period {
-  margin-left: -8px;
   color: var(--accent);
 }
 .nav-label,

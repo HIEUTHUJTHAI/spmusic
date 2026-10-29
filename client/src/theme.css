@@ -107,7 +107,7 @@
 }
 .brand-wordmark small { color: var(--muted); }
 .brand-period {
-  margin-left: -7px;
+  margin-left: 0;
 }
 .primary-btn,
 .form-primary,

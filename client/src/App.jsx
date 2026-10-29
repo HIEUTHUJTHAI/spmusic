@@ -1075,7 +1075,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 2.0.1</span>
+                <span>Thư viện cá nhân • SPMusic 2.0.2</span>
               </div>
             </>
           )}
