@@ -12,15 +12,20 @@ import {
   ListMusic,
   Heart,
   Music2,
+  Maximize2,
 } from 'lucide-react';
 export const formatTime = (n) =>
   Number.isFinite(n)
     ? `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, '0')}`
     : '0:00';
-export default function Player({ p, onLyrics, lyricsOpen, onQueue, queueOpen, liked, onLike }) {
+export default function Player({ p, onLyrics, lyricsOpen, onQueue, queueOpen, liked, onLike, onExpand }) {
   return (
     <footer className="player" aria-label="Trình phát nhạc">
       <div className="now-playing">
+        <button className="expand-player-button" onClick={onExpand} disabled={!p.track}
+          aria-label="Mở trình phát toàn màn hình" title="Mở trình phát toàn màn hình">
+          <Maximize2 size={18} />
+        </button>
         {p.track ? (
           <img src={p.track.coverUrl || '/covers/fallback.svg'} alt="" />
         ) : (

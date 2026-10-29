@@ -34,6 +34,7 @@ import {
 import { api } from './lib/api';
 import { usePlayer } from './lib/usePlayer';
 import Player, { formatTime } from './components/Player';
+import ExpandedPlayer from './components/ExpandedPlayer';
 import Modal from './components/Modal';
 import AuthModal from './components/AuthModal';
 import TrackEditor from './components/TrackEditor';
@@ -86,6 +87,7 @@ export default function App() {
     [modal, setModal] = useState(null),
     [lyricsOpen, setLyricsOpen] = useState(false),
     [queueOpen, setQueueOpen] = useState(false),
+    [expandedOpen, setExpandedOpen] = useState(false),
     [mobile, setMobile] = useState(false),
     [menu, setMenu] = useState(null),
     [draggedTrackId, setDraggedTrackId] = useState(null),
@@ -119,6 +121,18 @@ export default function App() {
     }
   };
   const p = usePlayer(tracks, record, notify);
+  const closeExpandedPlayer = () => {
+    setExpandedOpen(false);
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+  };
+  useEffect(() => {
+    if (!expandedOpen) return;
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement) setExpandedOpen(false);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, [expandedOpen]);
   async function reorderPlaylistTrack(fromId, toId) {
     if (!user || !activePlaylist || !fromId || !toId || fromId === toId || reorderBusy.current)
       return;
@@ -1075,7 +1089,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 2.0.2</span>
+                <span>Thư viện cá nhân • SPMusic 2.1.0</span>
               </div>
             </>
           )}
@@ -1161,6 +1175,12 @@ export default function App() {
       )}
       <Player
         p={p}
+        onExpand={() => {
+          setExpandedOpen(true);
+          setLyricsOpen(false);
+          setQueueOpen(false);
+          document.documentElement.requestFullscreen?.().catch(() => {});
+        }}
         onLyrics={() => {
           setLyricsOpen(!lyricsOpen);
           setQueueOpen(false);
@@ -1174,6 +1194,10 @@ export default function App() {
         liked={likes.includes(p.trackId)}
         onLike={() => like(p.trackId)}
       />
+      {expandedOpen && p.track && (
+        <ExpandedPlayer p={p} tracks={tracks} liked={likes.includes(p.trackId)}
+          onLike={() => like(p.trackId)} onClose={closeExpandedPlayer} />
+      )}
       {toast && (
         <div className="toast" role="status">
           <Check size={17} />

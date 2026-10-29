@@ -1134,6 +1134,20 @@ main {
   gap: 13px;
   min-width: 0;
 }
+.expand-player-button {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--muted);
+  background: var(--glass-soft, var(--soft));
+}
+.expand-player-button:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
 .now-playing > img,
 .empty-cover {
   width: 52px;
