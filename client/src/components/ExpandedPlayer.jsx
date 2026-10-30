@@ -7,6 +7,7 @@ import { api } from '../lib/api';
 import { activeLineIndex, parseLrc } from '../lib/lrc';
 import { formatTime } from './Player';
 import './ExpandedPlayer.css';
+import InstrumentalButton from './InstrumentalButton';
 
 export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
   const [tab, setTab] = useState('player');
@@ -95,6 +96,7 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
             </div>
           )}
 
+          {tab === 'lyrics' && <div className="expanded-instrumental"><InstrumentalButton p={p} /></div>}
           {tab === 'queue' && (
             <div className="expanded-queue">
               <div className="expanded-queue-modes">

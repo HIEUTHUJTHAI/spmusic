@@ -1,3 +1,4 @@
+import InstrumentalButton from './InstrumentalButton';
 import {
   Play,
   Pause,
@@ -22,6 +23,7 @@ export default function Player({ p, onLyrics, lyricsOpen, onQueue, queueOpen, li
   return (
     <footer className="player" aria-label="Trình phát nhạc">
       <div className="now-playing">
+        <InstrumentalButton p={p} />
         <button className="expand-player-button" onClick={onExpand} disabled={!p.track}
           aria-label="Mở trình phát toàn màn hình" title="Mở trình phát toàn màn hình">
           <Maximize2 size={18} />

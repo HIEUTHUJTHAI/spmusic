@@ -19,6 +19,7 @@ import { plainLyrics } from './lyrics-alignment.js';
 import { accountRoutes, safeUser } from './account.js';
 import { createYoutubeImporter, youtubeRoutes } from './youtube.js';
 import { audioHash, rejectDuplicate } from './duplicates.js';
+import { instrumentalRoutes } from './instrumental.js';
 import { archiveSelection, discoveryRoutes } from './discovery.js';
 
 const scrypt = promisify(scryptCallback);
@@ -298,6 +299,7 @@ export async function createApp({
     });
     res.status(202).json({ job });
   }
+  await instrumentalRoutes(app, { uploadsDir, requireAuth, ownTrack });
   app.get('/api/lyrics/align/:id', requireAuth, (req, res) => {
     res.json({ job: ai.status(req.params.id, req.user.id) });
   });
@@ -505,6 +507,7 @@ export async function createApp({
     await db.query('DELETE FROM tracks WHERE id=$1 AND owner_id=$2', [current.id, req.user.id]);
     await Promise.all([
       unlink(path.join(uploadsDir, 'audio', current.audio_file)),
+      unlink(path.join(uploadsDir, 'instrumental', `${current.id}.wav`)),
       current.playback_file && unlink(path.join(uploadsDir, 'playback', current.playback_file)),
       current.cover_file && unlink(path.join(uploadsDir, 'covers', current.cover_file)),
       current.lyrics_file && unlink(path.join(uploadsDir, 'lyrics', current.lyrics_file)),

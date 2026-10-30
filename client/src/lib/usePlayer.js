@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useInstrumental } from './useInstrumental';
 import { DEFAULT_AUDIO_SETTINGS, EQ_FREQUENCIES, EQ_PRESETS, readAudioSettings } from './audioSettings';
 
 export function usePlayer(tracks, onListen, notify) {
@@ -16,6 +17,8 @@ export function usePlayer(tracks, onListen, notify) {
   notice.current = notify;
 
   const [sources, setSources] = useState([null, null]);
+  const [alternates, setAlternates] = useState({});
+  const restore = useRef(null);
   const [trackId, setTrackId] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
@@ -26,6 +29,13 @@ export function usePlayer(tracks, onListen, notify) {
   const [queue, setQueue] = useState([]);
   const [settings, setSettings] = useState(readAudioSettings);
   const track = tracks.find((item) => item.id === trackId) || null;
+  const instrumental = useInstrumental(track, (id, url) => {
+    if (id !== trackId) return;
+    cancelFade();
+    const el = media[active.current].current;
+    restore.current = { id, time: el?.currentTime || 0, playing: Boolean(el && !el.paused) };
+    setAlternates((value) => ({ ...value, [id]: url }));
+  }, notify);
   const ids = (queue.length ? queue : tracks.map((item) => item.id))
     .filter((id) => tracks.some((item) => item.id === id));
 
@@ -113,6 +123,7 @@ export function usePlayer(tracks, onListen, notify) {
 
   function switchTo(id) {
     if (!id) return;
+    restore.current = null;
     resumeGraph();
     cancelFade();
     wantPlay.current = true;
@@ -273,7 +284,7 @@ export function usePlayer(tracks, onListen, notify) {
     const source = tracks.find((item) => item.id === sources[slot]);
     return {
       ref: media[slot],
-      src: source?.audioUrl,
+      src: alternates[source?.id] || source?.audioUrl,
       preload: slot === active.current ? 'metadata' : 'auto',
       onTimeUpdate: (event) => {
         if (slot !== active.current) return;
@@ -298,6 +309,14 @@ export function usePlayer(tracks, onListen, notify) {
         }
       },
       onLoadedMetadata: (event) => {
+        if (slot === active.current && restore.current?.id === source?.id) {
+          const pending = restore.current;
+          restore.current = null;
+          const el = event.currentTarget;
+          el.currentTime = Math.min(pending.time, Number.isFinite(el.duration) ? el.duration : pending.time);
+          setTime(el.currentTime);
+          if (pending.playing) el.play().catch(() => notice.current('Bấm phát để tiếp tục nghe nhạc nền.'));
+        }
         if (slot === active.current)
           setDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : 0);
       },
@@ -340,6 +359,7 @@ export function usePlayer(tracks, onListen, notify) {
   }
 
   return {
+    instrumental,
     track, trackId, playing, time, duration: duration || track?.duration || 0,
     volume, setVolume, shuffle, setShuffle, repeat, setRepeat,
     automix: settings.automix,

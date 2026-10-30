@@ -164,6 +164,7 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
   };
   try {
     await t.test('guest can browse only samples and must sign in for changes', async () => {
+      assert.equal((await request('/api/instrumental/model')).status, 401);
       assert.equal((await request('/api/auth/me')).body.user, null);
       const tracks = await request('/api/tracks');
       assert.equal(tracks.body.tracks.length, 1);
@@ -274,6 +275,18 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
       );
     });
     await t.test('owners can replace and remove track covers without leaving old files', async () => {
+      const stemUrl = `/api/tracks/${trackId}/instrumental`;
+      const stem = () => { const form = new FormData(); form.append('instrumental', new Blob([wav()]), 'stem.wav'); return form; };
+      assert.equal((await request(stemUrl)).status, 401);
+      assert.equal((await request(stemUrl, { cookie: bobCookie })).status, 404);
+      assert.equal((await request(stemUrl, { cookie: aliceCookie })).status, 404);
+      assert.equal((await request(stemUrl, { method: 'POST', cookie: bobCookie, body: stem() })).status, 404);
+      const bad = new FormData(); bad.append('instrumental', new Blob(['invalid']), 'bad.wav');
+      assert.equal((await request(stemUrl, { method: 'POST', cookie: aliceCookie, body: bad })).status, 400);
+      assert.equal((await request(stemUrl, { method: 'POST', cookie: aliceCookie, body: stem() })).status, 200);
+      const saved = await request(stemUrl, { cookie: aliceCookie });
+      assert.deepEqual(saved.body, wav());
+      assert.equal((await request(stemUrl, { cookie: aliceCookie, headers: { Range: 'bytes=0-11' } })).status, 206);
       const url = `/api/tracks/${trackId}/cover`;
       assert.equal((await request(url, { method: 'PUT', cookie: bobCookie, body: coverForm() })).status, 404);
       assert.equal((await request(url, { method: 'PUT', cookie: aliceCookie, body: coverForm(Buffer.from('bad')) })).status, 400);
