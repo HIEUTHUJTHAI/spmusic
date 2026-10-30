@@ -5,6 +5,14 @@ import { createApp } from './app.js';
 
 export async function startDesktopServer({ dataDir }) {
   await fs.mkdir(dataDir, { recursive: true });
+  // Keep the optional YouTube Data API key in the user's local profile, never in the app bundle.
+  if (!process.env.YOUTUBE_API_KEY) {
+    try {
+      process.env.YOUTUBE_API_KEY = (await fs.readFile(path.join(dataDir, 'youtube-api-key.txt'), 'utf8')).trim();
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+  }
   const db = await createDatabase({ dataDir });
   let app;
   let server;

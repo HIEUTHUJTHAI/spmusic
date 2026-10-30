@@ -7,6 +7,7 @@
 .discover-results { display: grid; gap: 10px; margin-top: 18px; }
 .discover-result { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 10px 18px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
 .discover-result-info { min-width: 0; }
+.youtube-thumbnail { float: left; width: 112px; aspect-ratio: 16/9; object-fit: cover; border-radius: 7px; margin: 0 12px 5px 0; }
 .discover-result-info strong, .discover-result-info span, .discover-result-info small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .discover-result-info strong { font-size: 13px; }
 .discover-result-info span { color: var(--muted); font-size: 11px; margin-top: 4px; }
@@ -15,5 +16,9 @@
 .discover-result-actions button, .discover-result-actions a { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 11px; border-radius: 8px; background: var(--soft); font-size: 11px; }
 .discover-result-actions button:nth-child(2) { background: var(--accent); color: var(--button-text, white); }
 .discover-result audio { grid-column: 1/-1; width: 100%; height: 35px; }
+.youtube-preview { grid-column: 1/-1; width: min(100%, 720px); aspect-ratio: 16/9; border: 0; border-radius: 11px; background: #000; }
+.discover-source-tabs { display: flex; gap: 8px; margin-top: 17px; }
+.discover-source-tabs button { padding: 9px 13px; border-radius: 20px; background: var(--soft); color: var(--muted); font-size: 11px; }
+.discover-source-tabs button.selected { background: var(--accent-soft); color: var(--accent); }
 .discover-license { grid-column: 1/-1; color: var(--muted); font-size: 10px; text-decoration: underline; width: fit-content; }
 @media (max-width: 700px) { .discover-result { grid-template-columns: 1fr; } .discover-result-actions { flex-wrap: wrap; } }

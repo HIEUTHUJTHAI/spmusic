@@ -224,9 +224,16 @@ export function usePlayer(tracks, onListen, notify) {
 
   useEffect(() => {
     localStorage.setItem('spmusic-audio-settings', JSON.stringify(settings));
-    if (settings.eqEnabled || settings.automix) ensureGraph();
+    if (settings.eqEnabled || settings.automix || settings.outputDeviceId) ensureGraph();
     applyEq(settings);
   }, [settings]);
+  useEffect(() => {
+    const context = graph.current?.context;
+    if (!settings.outputDeviceId || !context?.setSinkId) return;
+    context.setSinkId(settings.outputDeviceId).catch(() => {
+      notice.current('Không thể dùng đầu ra đã lưu. Hãy chọn lại thiết bị âm thanh trong Cài đặt.');
+    });
+  }, [settings.outputDeviceId]);
   useEffect(() => {
     const pending = fading.current;
     if (!pending || sources[pending.to] !== pending.id) return;
@@ -320,6 +327,18 @@ export function usePlayer(tracks, onListen, notify) {
     };
   }
 
+  async function setOutputDevice(device) {
+    const context = ensureGraph()?.context;
+    if (!context || typeof context.setSinkId !== 'function')
+      throw new Error('Thiết bị hoặc trình duyệt này chưa hỗ trợ chọn đầu ra âm thanh.');
+    await context.setSinkId(device?.deviceId || '');
+    setSettings((value) => ({
+      ...value,
+      outputDeviceId: device?.deviceId || '',
+      outputDeviceLabel: device?.label || 'Mặc định hệ thống',
+    }));
+  }
+
   return {
     track, trackId, playing, time, duration: duration || track?.duration || 0,
     volume, setVolume, shuffle, setShuffle, repeat, setRepeat,
@@ -329,6 +348,9 @@ export function usePlayer(tracks, onListen, notify) {
       if (enabled) graph.current.context.resume().catch(() => {});
       setSettings((value) => ({ ...value, automix: Boolean(enabled) }));
     },
+    outputDeviceId: settings.outputDeviceId,
+    outputDeviceLabel: settings.outputDeviceLabel,
+    setOutputDevice,
     eqEnabled: settings.eqEnabled,
     setEqEnabled: (enabled) => {
       if (enabled && !ensureGraph()) return;

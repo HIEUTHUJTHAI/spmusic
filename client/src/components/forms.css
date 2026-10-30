@@ -228,6 +228,13 @@
 .audio-toggle input:checked { background: var(--accent); }
 .audio-toggle input:checked::before { transform: translateX(18px); }
 .audio-toggle input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.audio-output-setting { display: grid; gap: 12px; margin: 17px 0 20px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel); }
+.audio-output-copy { display: grid; gap: 6px; }
+.audio-output-copy strong { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.audio-output-copy strong svg { color: var(--accent); }
+.audio-output-copy small { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.audio-output-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.audio-output-setting > .form-description { margin: 0; }
 .eq-open-button { margin-top: 14px; }
 .eq-window {
   max-width: 460px;

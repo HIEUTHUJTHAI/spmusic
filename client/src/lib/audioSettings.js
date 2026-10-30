@@ -7,19 +7,26 @@ export const EQ_PRESETS = {
 };
 
 export const DEFAULT_AUDIO_SETTINGS = {
-  automix: false, eqEnabled: false, eqBands: [0, 0, 0, 0, 0], eqPreset: 'flat',
+  automix: true, eqEnabled: false, eqBands: [0, 0, 0, 0, 0], eqPreset: 'flat',
+  outputDeviceId: '', outputDeviceLabel: 'Mặc định hệ thống', version: 1,
 };
 
 export function readAudioSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem('spmusic-audio-settings') || '{}');
     return {
-      automix: saved.automix === true,
+      // Earlier builds defaulted AutoMix off. Turn it on once after this update,
+      // then respect a user's explicit choice on later launches.
+      automix: Number(saved.version || 0) < 1 ? true : saved.automix !== false,
       eqEnabled: saved.eqEnabled === true,
       eqPreset: EQ_PRESETS[saved.eqPreset] || saved.eqPreset === 'custom' ? saved.eqPreset : 'flat',
       eqBands: Array.isArray(saved.eqBands) && saved.eqBands.length === 5
         ? saved.eqBands.map((value) => Number.isFinite(value) ? Math.max(-12, Math.min(12, value)) : 0)
         : [...DEFAULT_AUDIO_SETTINGS.eqBands],
+      outputDeviceId: typeof saved.outputDeviceId === 'string' ? saved.outputDeviceId : '',
+      outputDeviceLabel: typeof saved.outputDeviceLabel === 'string' && saved.outputDeviceLabel
+        ? saved.outputDeviceLabel : DEFAULT_AUDIO_SETTINGS.outputDeviceLabel,
+      version: 1,
     };
   } catch {
     return { ...DEFAULT_AUDIO_SETTINGS, eqBands: [...DEFAULT_AUDIO_SETTINGS.eqBands] };

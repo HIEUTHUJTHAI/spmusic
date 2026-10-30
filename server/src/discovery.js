@@ -50,6 +50,44 @@ export async function archiveSelection(identifier, filename) {
 }
 
 export function discoveryRoutes(app) {
+  app.get('/api/discover/youtube', async (req, res) => {
+    const query = clean(req.query.q).trim();
+    if (query.length < 2) return res.json({ results: [], configured: Boolean(process.env.YOUTUBE_API_KEY) });
+    if (!process.env.YOUTUBE_API_KEY)
+      return res.json({ results: [], configured: false });
+    const url = new URL('https://www.googleapis.com/youtube/v3/search');
+    url.searchParams.set('part', 'snippet');
+    url.searchParams.set('type', 'video');
+    url.searchParams.set('maxResults', '8');
+    url.searchParams.set('safeSearch', 'moderate');
+    url.searchParams.set('q', query.slice(0, 120));
+    url.searchParams.set('key', process.env.YOUTUBE_API_KEY);
+    const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const reason = data.error?.errors?.[0]?.reason;
+      const message = response.status === 403
+        ? (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded'
+          ? 'YouTube API đã hết hạn mức tìm kiếm hôm nay.'
+          : 'YouTube API từ chối yêu cầu. Kiểm tra API key và trạng thái YouTube Data API v3.')
+        : 'YouTube chưa trả kết quả. Hãy kiểm tra kết nối và thử lại.';
+      throw new ApiError(502, message);
+    }
+    res.json({ configured: true, results: (data.items || []).map((item) => {
+      const id = item.id?.videoId;
+      if (!/^[a-zA-Z0-9_-]{11}$/.test(id || '')) return null;
+      const snippet = item.snippet || {};
+      return {
+        id, title: clean(snippet.title, 'Video YouTube'),
+        artist: clean(snippet.channelTitle, 'YouTube'),
+        thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.medium?.url || '',
+        sourceUrl: `https://www.youtube.com/watch?v=${id}`,
+        embedUrl: `https://www.youtube-nocookie.com/embed/${id}`,
+        provider: 'YouTube',
+      };
+    }).filter(Boolean) });
+  });
+
   app.get('/api/discover/search', async (req, res) => {
     const query = clean(req.query.q).replace(/[^\p{L}\p{N}\s'-]/gu, ' ').replace(/\s+/g, ' ').trim();
     if (query.length < 2) return res.json({ results: [] });

@@ -30,6 +30,8 @@ MVP ứng dụng nghe nhạc chạy trên máy cá nhân, dùng **React + Tailwi
 
 **Bản 2.2.0:** Tab Tìm kiếm có thêm kết quả nhạc mở từ Internet Archive Netlabels. Có thể nghe thử, xem nguồn và giấy phép Creative Commons, rồi tải bản đã chọn vào thư viện cá nhân (giới hạn 50 MB). Trình phát toàn màn hình bỏ dòng “Thư viện của bạn” và ba tab chỉ còn biểu tượng. Tìm nhạc trực tuyến cần Internet; thư viện đã lưu vẫn dùng offline.
 
+**Bản 2.3.0:** Tab Tìm kiếm có thêm nguồn YouTube để tìm video, xem thử bằng trình phát nhúng chính thức và sao chép nhanh link. SPMusic không tải âm thanh YouTube; tải offline vẫn chỉ dùng luồng hiện có dành cho nguồn cho phép tải. Tìm kiếm YouTube cần cấu hình YouTube Data API v3 key theo mục “Tìm kiếm YouTube” trong `docs/DESKTOP-APP.md`. Cài đặt âm thanh có chọn đầu ra; AutoMix được bật mặc định sau khi nâng cấp, người dùng vẫn có thể tắt.
+
 **Cập nhật lên bản 2.0.0:** Bản beta 2 sẽ tự báo khi có cập nhật; các bản cũ có thể dùng **Cài đặt → Kiểm tra cập nhật** rồi tải và khởi động lại để cài.
 
 ## Ứng dụng Windows

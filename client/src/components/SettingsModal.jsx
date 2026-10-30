@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Download, ImagePlus, Music2, Palette, Pencil, RefreshCw, RotateCcw, SlidersHorizontal, Trash2, Waves, X } from 'lucide-react';
+import { Check, Download, ImagePlus, Music2, Palette, Pencil, RefreshCw, RotateCcw, SlidersHorizontal, Speaker, Trash2, Waves, X } from 'lucide-react';
 import Modal from './Modal';
 import { api, upload } from '../lib/api';
 import { EQ_FREQUENCIES, EQ_PRESETS } from '../lib/audioSettings';
@@ -36,7 +36,8 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
     [rollback, setRollback] = useState(null),
     [backgroundFile, setBackgroundFile] = useState(null),
     [backgroundPreview, setBackgroundPreview] = useState(''),
-    [backgroundProgress, setBackgroundProgress] = useState(null);
+    [backgroundProgress, setBackgroundProgress] = useState(null),
+    [outputBusy, setOutputBusy] = useState(false);
   const desktop = typeof window !== 'undefined' ? window.spmusicDesktop : null;
   useEffect(() => {
     setCustomTheme({ ...defaultCustomTheme, ...user.customTheme });
@@ -139,6 +140,39 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
       }
     }, 'Đã thay ảnh nền của bạn.');
   }
+  async function chooseAudioOutput() {
+    setError('');
+    setMessage('');
+    setOutputBusy(true);
+    try {
+      const device = await navigator.mediaDevices.selectAudioOutput();
+      await player.setOutputDevice({
+        deviceId: device.deviceId,
+        label: device.label || 'Thiết bị âm thanh đã chọn',
+      });
+      setMessage(`Âm thanh sẽ phát qua ${device.label || 'thiết bị đã chọn'}.`);
+    } catch (reason) {
+      if (reason.name !== 'NotAllowedError') setError(reason.message || 'Không thể đổi đầu ra âm thanh.');
+    } finally {
+      setOutputBusy(false);
+    }
+  }
+  async function useSystemAudioOutput() {
+    setError('');
+    setMessage('');
+    setOutputBusy(true);
+    try {
+      await player.setOutputDevice(null);
+      setMessage('Đã chuyển về đầu ra âm thanh mặc định của hệ thống.');
+    } catch (reason) {
+      setError(reason.message || 'Không thể đổi đầu ra âm thanh.');
+    } finally {
+      setOutputBusy(false);
+    }
+  }
+  const AudioContextType = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
+  const canSelectAudioOutput = Boolean(typeof navigator !== 'undefined' && navigator.mediaDevices?.selectAudioOutput &&
+    AudioContextType && typeof AudioContextType.prototype.setSinkId === 'function');
   return (
     <Modal title="Cài đặt" wide onClose={() => !busy && onClose()}>
       <section className="settings-section">
@@ -224,10 +258,25 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
         <h3><Waves size={18} /> Chuyển tiếp và âm thanh</h3>
         <p className="form-description">Tùy chỉnh cách chuyển bài và âm sắc. Cài đặt này được lưu trên thiết bị.</p>
         <label className="audio-toggle">
-          <span><strong>AutoMix</strong><small>Chuyển mượt khoảng 5 giây trước khi hết bài, sớm hơn nếu đoạn cuối yên lặng.</small></span>
+          <span><strong>AutoMix</strong><small>Bật sẵn khi mở app; chuyển mượt khoảng 5 giây trước khi hết bài, sớm hơn nếu đoạn cuối yên lặng.</small></span>
           <input type="checkbox" role="switch" checked={player.automix}
             onChange={(event) => player.setAutomix(event.target.checked)} />
         </label>
+        <div className="audio-output-setting">
+          <div className="audio-output-copy">
+            <strong><Speaker size={16} /> Đầu ra âm thanh</strong>
+            <small>Đang chọn: {player.outputDeviceLabel}</small>
+          </div>
+          <div className="audio-output-actions">
+            <button className="form-secondary" disabled={!canSelectAudioOutput || outputBusy}
+              onClick={chooseAudioOutput}>
+              <Speaker size={15} /> {outputBusy ? 'Đang mở bộ chọn…' : 'Chọn thiết bị'}
+            </button>
+            <button className="form-secondary" disabled={!player.outputDeviceId || outputBusy}
+              onClick={useSystemAudioOutput}>Mặc định hệ thống</button>
+          </div>
+          {!canSelectAudioOutput && <small className="form-description">Ứng dụng hoặc trình duyệt hiện tại chưa hỗ trợ chọn đầu ra riêng. Âm thanh vẫn phát theo thiết bị mặc định của Windows.</small>}
+        </div>
         <label className="audio-toggle">
           <span><strong>Bộ chỉnh EQ</strong><small>Điều chỉnh bass, giọng hát và treble theo thời gian thực.</small></span>
           <input type="checkbox" role="switch" checked={player.eqEnabled}
