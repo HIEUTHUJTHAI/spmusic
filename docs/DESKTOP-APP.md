@@ -4,8 +4,8 @@
 
 Sau khi chạy `npm run desktop:build`, thư mục `release/` có hai lựa chọn:
 
-- `SPMusic-2.3.0-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
-- `SPMusic-2.3.0-Portable.exe`: bản chạy trực tiếp, không cần cài đặt khi build tại máy.
+- `SPMusic-2.3.1-x64.exe`: bộ cài, có lựa chọn thư mục và tạo lối tắt Start Menu/desktop.
+- `SPMusic-2.3.1-Portable.exe`: bản chạy trực tiếp, không cần cài đặt khi build tại máy.
 
 Cả hai bản dành cho Windows 64-bit. Bản build hiện chưa ký số nên Windows SmartScreen có thể báo ứng dụng chưa xác định.
 
@@ -66,7 +66,7 @@ App desktop tự kiểm tra bản mới sau khi mở. Nếu có bản mới, ng�
 
 Từ 2.0.0 beta 2, khi phát hiện bản mới app hiện thông báo ngay trên màn hình chính. **Cập nhật ngay** bắt đầu tải; tải xong chọn **Khởi động lại để cập nhật**. **Để sau** chỉ ẩn thông báo trong phiên dùng hiện tại. **Không nhắc bản này** được lưu trên thiết bị và chỉ ẩn thông báo tự động của đúng phiên bản đó; bản mới hơn vẫn được báo, và nút kiểm tra thủ công trong Cài đặt vẫn hoạt động.
 
-Để chuyển từ bản cài trước sang **2.3.0**, mở **Cài đặt → Kiểm tra cập nhật → Tải bản 2.3.0 → Khởi động lại để cập nhật**. Ứng dụng sẽ không tự tải hoặc tự cài nếu bạn chưa bấm các nút này.
+Để chuyển từ bản cài trước sang **2.3.1**, mở **Cài đặt → Kiểm tra cập nhật → Tải bản 2.3.1 → Khởi động lại để cập nhật**. Ứng dụng sẽ không tự tải hoặc tự cài nếu bạn chưa bấm các nút này.
 
 Bản cập nhật lấy từ GitHub Releases của repository `HIEUTHUJTHAI/spmusic` sau khi bạn đưa mã nguồn và các bản build lên đó. Mỗi bản phát hành cần tăng `version` trong `package.json` (ví dụ `1.0.0` → `1.0.1`) và tạo lại bộ cài. Bản cập nhật dùng file cài NSIS; bản portable không tự cập nhật ổn định như bản cài.
 

@@ -329,9 +329,9 @@ export function usePlayer(tracks, onListen, notify) {
 
   async function setOutputDevice(device) {
     const context = ensureGraph()?.context;
-    if (!context || typeof context.setSinkId !== 'function')
+    if ((!context || typeof context.setSinkId !== 'function') && device?.deviceId)
       throw new Error('Thiết bị hoặc trình duyệt này chưa hỗ trợ chọn đầu ra âm thanh.');
-    await context.setSinkId(device?.deviceId || '');
+    if (context?.setSinkId) await context.setSinkId(device?.deviceId || '');
     setSettings((value) => ({
       ...value,
       outputDeviceId: device?.deviceId || '',

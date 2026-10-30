@@ -65,6 +65,17 @@ async function start() {
       preload: path.join(__dirname, 'preload.cjs'),
     },
   });
+  const appOrigin = new URL(backend.url).origin;
+  const isAppOrigin = (origin) => {
+    try { return new URL(origin).origin === appOrigin; } catch { return false; }
+  };
+  mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin) =>
+    permission === 'speaker-selection' && webContents === mainWindow?.webContents && isAppOrigin(requestingOrigin),
+  );
+  mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback, details) =>
+    callback(permission === 'speaker-selection' && webContents === mainWindow?.webContents &&
+      isAppOrigin(details?.requestingUrl || webContents.getURL())),
+  );
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://')) shell.openExternal(url);
     return { action: 'deny' };

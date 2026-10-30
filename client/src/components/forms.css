@@ -234,6 +234,8 @@
 .audio-output-copy strong svg { color: var(--accent); }
 .audio-output-copy small { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
 .audio-output-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.audio-output-select { display: grid; gap: 6px; min-width: min(100%, 260px); color: var(--muted); font-size: 11px; }
+.audio-output-select select { width: 100%; border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; color: var(--text); background: var(--soft); font: inherit; }
 .audio-output-setting > .form-description { margin: 0; }
 .eq-open-button { margin-top: 14px; }
 .eq-window {

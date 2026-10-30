@@ -37,7 +37,8 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
     [backgroundFile, setBackgroundFile] = useState(null),
     [backgroundPreview, setBackgroundPreview] = useState(''),
     [backgroundProgress, setBackgroundProgress] = useState(null),
-    [outputBusy, setOutputBusy] = useState(false);
+    [outputBusy, setOutputBusy] = useState(false),
+    [audioOutputs, setAudioOutputs] = useState([]);
   const desktop = typeof window !== 'undefined' ? window.spmusicDesktop : null;
   useEffect(() => {
     setCustomTheme({ ...defaultCustomTheme, ...user.customTheme });
@@ -70,6 +71,20 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
       unsubscribeRollback?.();
     };
   }, [desktop]);
+  useEffect(() => {
+    let active = true;
+    const mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices?.enumerateDevices) return undefined;
+    const refresh = () => mediaDevices.enumerateDevices()
+      .then((devices) => active && setAudioOutputs(devices.filter((device) => device.kind === 'audiooutput')))
+      .catch(() => {});
+    refresh();
+    mediaDevices.addEventListener?.('devicechange', refresh);
+    return () => {
+      active = false;
+      mediaDevices.removeEventListener?.('devicechange', refresh);
+    };
+  }, []);
   const own = tracks.filter((t) => !t.isDemo && t.ownerId === user.id);
   const filtered = own.filter((t) =>
     `${t.title} ${t.artist}`.toLocaleLowerCase('vi').includes(query.toLocaleLowerCase('vi')),
@@ -150,6 +165,8 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
         deviceId: device.deviceId,
         label: device.label || 'Thiết bị âm thanh đã chọn',
       });
+      await navigator.mediaDevices.enumerateDevices().then((devices) =>
+        setAudioOutputs(devices.filter((item) => item.kind === 'audiooutput')));
       setMessage(`Âm thanh sẽ phát qua ${device.label || 'thiết bị đã chọn'}.`);
     } catch (reason) {
       if (reason.name !== 'NotAllowedError') setError(reason.message || 'Không thể đổi đầu ra âm thanh.');
@@ -170,9 +187,25 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
       setOutputBusy(false);
     }
   }
+  async function selectListedOutput(deviceId) {
+    setError('');
+    setMessage('');
+    setOutputBusy(true);
+    try {
+      const device = audioOutputs.find((item) => item.deviceId === deviceId);
+      await player.setOutputDevice(device || null);
+      setMessage(device ? `Âm thanh sẽ phát qua ${device.label || 'thiết bị đã chọn'}.`
+        : 'Đã chuyển về đầu ra âm thanh mặc định của hệ thống.');
+    } catch (reason) {
+      setError(reason.message || 'Không thể đổi đầu ra âm thanh.');
+    } finally {
+      setOutputBusy(false);
+    }
+  }
   const AudioContextType = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
-  const canSelectAudioOutput = Boolean(typeof navigator !== 'undefined' && navigator.mediaDevices?.selectAudioOutput &&
+  const canRouteAudioOutput = Boolean(typeof navigator !== 'undefined' && navigator.mediaDevices?.enumerateDevices &&
     AudioContextType && typeof AudioContextType.prototype.setSinkId === 'function');
+  const hasOutputPicker = Boolean(canRouteAudioOutput && navigator.mediaDevices?.selectAudioOutput);
   return (
     <Modal title="Cài đặt" wide onClose={() => !busy && onClose()}>
       <section className="settings-section">
@@ -267,15 +300,33 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
             <strong><Speaker size={16} /> Đầu ra âm thanh</strong>
             <small>Đang chọn: {player.outputDeviceLabel}</small>
           </div>
-          <div className="audio-output-actions">
-            <button className="form-secondary" disabled={!canSelectAudioOutput || outputBusy}
-              onClick={chooseAudioOutput}>
-              <Speaker size={15} /> {outputBusy ? 'Đang mở bộ chọn…' : 'Chọn thiết bị'}
-            </button>
-            <button className="form-secondary" disabled={!player.outputDeviceId || outputBusy}
-              onClick={useSystemAudioOutput}>Mặc định hệ thống</button>
-          </div>
-          {!canSelectAudioOutput && <small className="form-description">Ứng dụng hoặc trình duyệt hiện tại chưa hỗ trợ chọn đầu ra riêng. Âm thanh vẫn phát theo thiết bị mặc định của Windows.</small>}
+          {canRouteAudioOutput ? <>
+            <div className="audio-output-actions">
+              {audioOutputs.length > 0 && <label className="audio-output-select">
+                <span>Loa hoặc tai nghe</span>
+                <select value={player.outputDeviceId} disabled={outputBusy}
+                  onChange={(event) => selectListedOutput(event.target.value)}>
+                  <option value="">Mặc định hệ thống</option>
+                  {audioOutputs.filter((device) => device.deviceId).map((device, index) =>
+                    <option key={device.deviceId} value={device.deviceId}>
+                      {device.label || `Thiết bị âm thanh ${index + 1}`}
+                    </option>)}
+                </select>
+              </label>}
+              {hasOutputPicker && <button className="form-secondary" disabled={outputBusy}
+                onClick={chooseAudioOutput}>
+                <Speaker size={15} /> {outputBusy ? 'Đang mở bộ chọn…' : 'Chọn thiết bị khác'}
+              </button>}
+              {!audioOutputs.length && !hasOutputPicker && <button className="form-secondary" disabled={outputBusy}
+                onClick={() => navigator.mediaDevices.enumerateDevices().then((devices) =>
+                  setAudioOutputs(devices.filter((device) => device.kind === 'audiooutput')))}>
+                <RefreshCw size={15} /> Làm mới danh sách
+              </button>}
+              <button className="form-secondary" disabled={(!player.outputDeviceId && !audioOutputs.length) || outputBusy}
+                onClick={useSystemAudioOutput}>Mặc định hệ thống</button>
+            </div>
+            {!audioOutputs.length && !hasOutputPicker && <small className="form-description">Chưa thấy thiết bị đầu ra riêng. Hãy bấm “Làm mới danh sách” sau khi cắm loa hoặc tai nghe.</small>}
+          </> : <small className="form-description">Ứng dụng hoặc trình duyệt hiện tại chưa hỗ trợ chuyển âm thanh sang thiết bị riêng. Âm thanh vẫn phát theo đầu ra mặc định của Windows.</small>}
         </div>
         <label className="audio-toggle">
           <span><strong>Bộ chỉnh EQ</strong><small>Điều chỉnh bass, giọng hát và treble theo thời gian thực.</small></span>
