@@ -6,6 +6,12 @@
   overflow: hidden;
   color: #fff;
   background: #343039;
+  transform-origin: bottom left;
+  animation: expanded-open 420ms cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes expanded-open {
+  from { opacity: 0; transform: translate3d(-8%, 15%, 0) scale(.84); border-radius: 28px; }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); border-radius: 0; }
 }
 .expanded-backdrop {
   position: absolute;
@@ -136,6 +142,7 @@
   .expanded-controls { padding-top: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .expanded-player { animation: none; }
   .expanded-backdrop { animation: none; will-change: auto; }
   .expanded-lyric-line { transition: none; }
 }
