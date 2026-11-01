@@ -10,6 +10,14 @@ export function useInstrumental(track, switchSource, notify) {
   const current = useRef(track);
   current.current = track;
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => {
+    if (!job) return undefined;
+    const timer = setInterval(() => {
+      if (!mounted.current || !job.startedAt) return;
+      setJob((value) => value?.id === job.id ? { ...value, elapsed: Math.floor((Date.now() - value.startedAt) / 1000) } : value);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [job?.id, Boolean(job)]);
 
   async function toggle() {
     if (!track || busy.current) return;
@@ -21,7 +29,8 @@ export function useInstrumental(track, switchSource, notify) {
       return;
     }
     busy.current = true;
-    setJob({ id: target.id, text: 'Đang kiểm tra bản nhạc nền…' });
+    const startedAt = Date.now();
+    setJob({ id: target.id, stage: 'checking', percent: 0, elapsed: 0, startedAt, text: 'Đang kiểm tra bản nhạc nền…' });
     let separator;
     let outputs = [];
     try {
@@ -30,27 +39,38 @@ export function useInstrumental(track, switchSource, notify) {
       if (!existing.ok) {
         if (!target.duration || target.duration > 15 * 60)
           throw new Error('Tách nhạc nền hỗ trợ bài hát có thời lượng tối đa 15 phút.');
-        setJob({ id: target.id, text: 'Đang tải AI… Lần đầu cần kết nối Internet.' });
+        setJob({ id: target.id, stage: 'loading-model', percent: 0, elapsed: 0, startedAt, text: 'Đang tải AI… Lần đầu cần kết nối Internet.' });
         const { createSeparator } = await import('web-audio-separation');
-        separator = createSeparator('UVR_MDXNET_KARA_2', {
+        const create = (executionProviders) => createSeparator('UVR_MDXNET_KARA_2', {
           common: {
             modelUrl: '/api/instrumental/model',
             outputSingleStem: 'instrumental', logLevel: 'error',
-            onProgress: ({ stage, fraction }) => {
+            onProgress: ({ stage, fraction, chunk, totalChunks }) => {
               if (!mounted.current) return;
               const label = stage === 'loading-model' ? 'Đang tải AI' : stage === 'demixing' ? 'Đang tách nhạc nền' : 'Đang tạo file nhạc nền';
-              setJob({ id: target.id, text: `${label} · ${Math.round(fraction * 100)}%` });
+              const percent = Math.round(fraction * 100);
+              const detail = stage === 'demixing' && totalChunks ? ` · khối ${chunk}/${totalChunks}` : ` · ${percent}%`;
+              setJob((value) => ({ ...(value || {}), id: target.id, stage, percent, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: `${label}${detail}` }));
             },
           },
-          mdx: { executionProviders: ['wasm'], batchSize: 1 },
+          mdx: { executionProviders, batchSize: 1 },
         });
-        await separator.loadModel();
+        separator = create(['webgpu', 'wasm']);
+        try {
+          await separator.loadModel();
+        } catch (webgpuError) {
+          await separator.model?.release?.().catch(() => {});
+          separator = create(['wasm']);
+          setJob({ id: target.id, stage: 'loading-model', percent: 0, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: 'Thiết bị không dùng được WebGPU, đang chuyển sang chế độ tương thích…' });
+          await separator.loadModel();
+        }
+        setJob({ id: target.id, stage: 'demixing', percent: 0, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: 'Đã tải AI · đang tách nhạc nền…' });
         outputs = await separator.separate(target.audioUrl);
         if (!outputs[0]) throw new Error('AI chưa tạo được nhạc nền.');
         const blob = await (await fetch(outputs[0])).blob();
         const data = new FormData();
         data.append('instrumental', blob, 'instrumental.wav');
-        setJob({ id: target.id, text: 'Đang lưu nhạc nền…' });
+        setJob({ id: target.id, stage: 'saving', percent: 100, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: 'Đang lưu nhạc nền…' });
         await upload(`/tracks/${target.id}/instrumental`, data);
       }
       if (mounted.current) {

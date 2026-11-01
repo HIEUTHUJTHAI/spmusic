@@ -21,7 +21,7 @@ app.whenReady().then(async () => {
     await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(account)});
     const login = await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(account)});
     if(!login.ok) throw new Error('Test login failed');
-    const separator = createSeparator('UVR_MDXNET_KARA_2', { common: { modelUrl:'/api/instrumental/model', outputSingleStem: 'instrumental', onProgress: p => console.log(JSON.stringify(p)) }, mdx: { executionProviders: ['wasm'] } });
+    const separator = createSeparator('UVR_MDXNET_KARA_2', { common: { modelUrl:'/api/instrumental/model', outputSingleStem: 'instrumental', onProgress: p => console.log(JSON.stringify(p)) }, mdx: { executionProviders: ['webgpu','wasm'] } });
     await separator.loadModel();
     const bytes = new ArrayBuffer(44 + 44100 * 4);
     const d = new DataView(bytes); const s = (o, v) => [...v].forEach((c,i) => d.setUint8(o+i,c.charCodeAt(0)));

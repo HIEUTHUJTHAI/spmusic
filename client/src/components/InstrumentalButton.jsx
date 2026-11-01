@@ -2,7 +2,8 @@ import './InstrumentalButton.css';
 
 export default function InstrumentalButton({ p }) {
   const state = p.instrumental;
-  const label = state.job?.text || (state.enabled ? 'Trở về nhạc gốc' : 'Tách nhạc nền bằng AI');
+  const elapsed = state.job?.elapsed ? ` · ${Math.floor(state.job.elapsed / 60)}:${String(state.job.elapsed % 60).padStart(2, '0')}` : '';
+  const label = state.job ? `${state.job.text}${elapsed}` : (state.enabled ? 'Trở về nhạc gốc' : 'Tách nhạc nền bằng AI');
   return <span className="instrumental-control">
     <button type="button" className={`instrumental-button ${state.enabled ? 'is-on' : ''}`}
       disabled={!p.track || Boolean(state.job)} onClick={state.toggle}
@@ -12,6 +13,9 @@ export default function InstrumentalButton({ p }) {
         <path d="m8 3 1.5 4.5L14 9l-4.5 1.5L8 15l-1.5-4.5L2 9l4.5-1.5L8 3Zm17 17 1.2 3.8L30 25l-3.8 1.2L25 30l-1.2-3.8L20 25l3.8-1.2L25 20Z" fill="currentColor" />
       </svg>
     </button>
-    {state.job && <span className="instrumental-status" role="status">{state.job.text}</span>}
+    {state.job && <span className="instrumental-status" role="status">
+      <strong>{state.job.text}</strong>
+      {state.job.stage === 'demixing' && <small>Đang xử lý trên máy của bạn; bài dài có thể mất vài phút.{elapsed}</small>}
+    </span>}
   </span>;
 }

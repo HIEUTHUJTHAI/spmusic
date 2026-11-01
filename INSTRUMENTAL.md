@@ -1,8 +1,9 @@
-# Tách nhạc nền bằng AI — SPMusic 2.4.0
+# Tách nhạc nền bằng AI — SPMusic 2.4.1
 
 - Chọn bài hát, bấm micro có ngôi sao ở góc trái thanh phát. Trong trình phát toàn màn hình, nút nằm dưới bên phải mục lyrics.
 - Lần đầu tải mô hình UVR_MDXNET_KARA_2 về máy; file âm thanh được xử lý tại máy, không gửi tới dịch vụ AI bên ngoài.
-- Tiến độ hiển thị cạnh nút. Chờ xử lý xong; có thể tiếp tục nghe hoặc chọn bài khác. Kết quả chỉ tự bật nếu vẫn đang chọn bài đó.
+- Tiến độ tải mô hình và tiến độ tách được hiển thị riêng cạnh nút, kèm số khối đang xử lý và thời gian đã chạy. Kết quả chỉ tự bật nếu vẫn đang chọn bài đó.
+- Electron ưu tiên WebGPU để giảm thời gian xử lý; nếu thiết bị không hỗ trợ, app tự chuyển sang WASM.
 - Bấm lại để chuyển về bản gốc, giữ vị trí đang nghe. Bản gốc không bị sửa.
 - Nhạc nền lưu tại thư mục dữ liệu `uploads/instrumental`, mô hình tại `uploads/models`. Những lần sử dụng sau không cần tải lại. WAV đã tạo nghe được offline.
 - Giới hạn bài nguồn 15 phút, file kết quả 320 MiB. Xử lý trên CPU có thể mất nhiều phút. Mô hình karaoke giảm giọng hát chính, có thể còn bè hoặc dư âm; không đảm bảo chất lượng phòng thu.
