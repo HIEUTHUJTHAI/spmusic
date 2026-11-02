@@ -12,7 +12,7 @@ function draw(canvas, image, zoom, position) {
   return { overflowX, overflowY };
 }
 
-export default function BackgroundCropper({ file, onApply, onCancel }) {
+export default function BackgroundCropper({ file, onApply, onCancel, square = false }) {
   const canvas = useRef(null), image = useRef(null), drag = useRef(null);
   const [ready, setReady] = useState(false), [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -42,16 +42,16 @@ export default function BackgroundCropper({ file, onApply, onCancel }) {
   }
   async function apply() {
     const output = document.createElement('canvas');
-    output.width = 1920; output.height = 1080;
+    output.width = square ? 1200 : 1920; output.height = square ? 1200 : 1080;
     draw(output, image.current, zoom, position);
     const blob = await new Promise((resolve) => output.toBlob(resolve, 'image/jpeg', 0.9));
     if (!blob) { setError('Không thể lưu ảnh đã cắt.'); return; }
-    onApply(new File([blob], 'spmusic-background.jpg', { type: 'image/jpeg' }));
+    onApply(new File([blob], square ? 'spmusic-cover.jpg' : 'spmusic-background.jpg', { type: 'image/jpeg' }));
   }
   return <div className="background-cropper">
-    <strong>Căn ảnh nền</strong>
+    <strong>{square ? 'Căn ảnh bìa' : 'Căn ảnh nền'}</strong>
     <p className="form-description">Kéo ảnh để đặt vị trí. Dùng thanh bên dưới để phóng to trước khi lưu.</p>
-    <canvas ref={canvas} width="960" height="540" aria-label="Xem trước vùng ảnh nền"
+    <canvas ref={canvas} width={square ? 540 : 960} height="540" className={square ? 'square-crop' : ''} aria-label={square ? 'Xem trước ảnh bìa' : 'Xem trước vùng ảnh nền'}
       onPointerDown={(event) => { drag.current = { x: event.clientX, y: event.clientY, position }; event.currentTarget.setPointerCapture(event.pointerId); }}
       onPointerMove={move} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }} />
     <label className="background-zoom">Phóng to <input type="range" min="1" max="3" step="0.01" value={zoom}

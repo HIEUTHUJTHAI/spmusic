@@ -12,6 +12,7 @@ import { api, upload } from '../lib/api';
 import { parseLrc } from '../lib/lrc';
 import Modal from './Modal';
 import LyricsAI from './LyricsAI';
+import BackgroundCropper from './BackgroundCropper';
 
 const MB = 1024 * 1024;
 export default function TrackEditor({ track, initialFile, onClose, onSaved }) {
@@ -26,6 +27,7 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved }) {
   const [bulkFiles, setBulkFiles] = useState([]);
   const [bulkResults, setBulkResults] = useState([]);
   const [cover, setCover] = useState(null);
+  const [coverSource, setCoverSource] = useState(null);
   const [removeCover, setRemoveCover] = useState(false);
   const [lyrics, setLyrics] = useState(null);
   const [content, setContent] = useState('');
@@ -106,8 +108,7 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved }) {
         setFields((value) => ({ ...value, title: file.name.replace(/\.[^.]+$/, '') }));
     }
     if (kind === 'cover') {
-      setCover(file);
-      setRemoveCover(false);
+      setCoverSource(file);
     }
     if (kind === 'lyrics') {
       const readId = ++lyricsRead.current;
@@ -317,6 +318,9 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved }) {
           </div>
         )}
         <div className="track-editor-grid">
+          {coverSource && <BackgroundCropper square file={coverSource}
+            onApply={(cropped) => { setCover(cropped); setRemoveCover(false); setCoverSource(null); }}
+            onCancel={() => setCoverSource(null)} />}
           <div className="cover-upload">
             {!removeCover && (coverPreview || track?.coverUrl) ? (
               <img src={coverPreview || track.coverUrl} alt="Ảnh bìa bài hát" />

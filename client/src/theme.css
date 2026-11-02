@@ -689,6 +689,8 @@ input[type='range']::-moz-range-thumb {
 .background-cropper > strong { display: block; margin-bottom: 5px; }
 .background-cropper canvas { display: block; width: 100%; aspect-ratio: 16 / 9; margin: 12px 0; border-radius: 12px; object-fit: contain; cursor: grab; touch-action: none; }
 .background-cropper canvas:active { cursor: grabbing; }
+.background-cropper canvas.square-crop { width: min(100%, 420px); aspect-ratio: 1; }
+.track-editor-grid .background-cropper { grid-column: 1 / -1; }
 .background-zoom { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 12px; }
 .background-zoom input { flex: 1; accent-color: var(--accent); }
 .background-file-button {
