@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, Copy, Download, ExternalLink, Headphones, LoaderCircle } from 'lucide-react';
+import { Check, Copy, Download, ExternalLink, FolderOpen, Headphones, LoaderCircle } from 'lucide-react';
 import { api, upload } from '../lib/api';
 import './DiscoverMusic.css';
 
@@ -71,6 +71,13 @@ export default function DiscoverMusic({ query, user, onLogin, onImported, notify
       <div><h2>Khám phá nhạc</h2><p>Tìm và nghe thử trong app; YouTube chỉ mở trình phát chính thức.</p></div>
       <Headphones size={21} />
     </div>
+    {window.spmusicDesktop?.openInbox && <div className="discover-inbox">
+      <div><strong>Nhạc bạn tải từ NhacCuaTui</strong><p>Mở trang NhacCuaTui, tải bài được phép xuống và chọn thư mục SPMusic Inbox làm nơi lưu. App sẽ mở form chỉnh tên, nghệ sĩ và ảnh bìa khi file tải xong.</p></div>
+      <div className="discover-inbox-actions">
+        <a href="https://www.nhaccuatui.com/" target="_blank" rel="noopener noreferrer"><ExternalLink size={15} /> Mở NhacCuaTui</a>
+        <button type="button" onClick={() => window.spmusicDesktop.openInbox().then((error) => { if (error) notify(`Không mở được thư mục: ${error}`); }).catch(() => notify('Không mở được SPMusic Inbox.'))}><FolderOpen size={15} /> Mở SPMusic Inbox</button>
+      </div>
+    </div>}
     <div className="discover-source-tabs">
       <button className={source === 'open' ? 'selected' : ''} onClick={() => { setSource('open'); setPreview(null); }}>Nguồn mở · tải được</button>
       <button className={source === 'youtube' ? 'selected' : ''} onClick={() => { setSource('youtube'); setPreview(null); }}>YouTube · xem thử</button>
