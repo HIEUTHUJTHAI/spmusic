@@ -47,6 +47,7 @@ import SettingsModal from './components/SettingsModal';
 import SourceCredit from './components/SourceCredit';
 import UpdateNotice from './components/UpdateNotice';
 import YoutubeModal from './components/YoutubeModal';
+import ArtistPage from './components/ArtistPage';
 
 const navs = [
   ['home', 'Khám phá', House],
@@ -124,10 +125,16 @@ export default function App() {
   const p = usePlayer(tracks, record, notify);
   const closeExpandedPlayer = () => {
     setExpandedOpen(false);
+    if (window.spmusicDesktop?.setPlayerFullscreen) {
+      window.spmusicDesktop.setPlayerFullscreen(false).catch(() => {});
+      return;
+    }
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
   };
   useEffect(() => {
     if (!expandedOpen) return;
+    if (window.spmusicDesktop?.onPlayerFullscreen)
+      return window.spmusicDesktop.onPlayerFullscreen((enabled) => { if (!enabled) setExpandedOpen(false); });
     const onFullscreenChange = () => {
       if (!document.fullscreenElement) setExpandedOpen(false);
     };
@@ -513,7 +520,7 @@ export default function App() {
               {cover(t)}
               <div>
                 <button onClick={() => p.play(t, items)}>{t.title}</button>
-                <button className="artist-link" onClick={() => navigate('collection', t.artist)}>
+                <button className="artist-link" onClick={() => navigate('artist', t.artist)}>
                   {t.artist}
                 </button>
               </div>
@@ -863,7 +870,9 @@ export default function App() {
             </div>
           ) : (
             <>
-              {view === 'home' ? (
+              {view === 'artist' ? (
+                <ArtistPage name={selection} tracks={tracks.filter((t) => t.artist === selection)} player={p} user={user} onAlbum={(name) => navigate('collection', name)} notify={notify} />
+              ) : view === 'home' ? (
                 <>
                   <div className="page-intro">
                     <div>
@@ -946,7 +955,7 @@ export default function App() {
                         <button
                           className="artist-card"
                           key={a.name}
-                          onClick={() => navigate('collection', a.name)}
+                          onClick={() => navigate('artist', a.name)}
                         >
                           {cover(a.tracks[0])}
                           <strong>{a.name}</strong>
@@ -1068,7 +1077,7 @@ export default function App() {
                         <button
                           className="artist-card"
                           key={a.name}
-                          onClick={() => navigate('collection', a.name)}
+                          onClick={() => navigate('artist', a.name)}
                         >
                           {cover(a.tracks[0])}
                           <strong>{a.name}</strong>
@@ -1092,7 +1101,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 2.4.2</span>
+                <span>Thư viện cá nhân • SPMusic 2.5.0</span>
               </div>
             </>
           )}
@@ -1182,7 +1191,9 @@ export default function App() {
           setExpandedOpen(true);
           setLyricsOpen(false);
           setQueueOpen(false);
-          document.documentElement.requestFullscreen?.().catch(() => {});
+          if (window.spmusicDesktop?.setPlayerFullscreen)
+            window.spmusicDesktop.setPlayerFullscreen(true).catch(() => {});
+          else document.documentElement.requestFullscreen?.().catch(() => {});
         }}
         onLyrics={() => {
           setLyricsOpen(!lyricsOpen);

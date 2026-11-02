@@ -1,0 +1,22 @@
+.artist-page { overflow: hidden; border-radius: 22px; background: color-mix(in srgb, var(--panel) 83%, #493640); }
+.artist-hero { height: clamp(340px, 60vh, 670px); position: relative; background: linear-gradient(0deg, rgba(30,20,31,.93), rgba(30,20,31,.08) 80%), var(--artist-image) center 35% / cover; color: white; }
+.artist-hero-title { position: absolute; bottom: 28px; left: 20px; right: 20px; text-align: center; }
+.artist-hero-title span { font-size: 10px; letter-spacing: .16em; opacity: .8; }
+.artist-hero-title h1 { font-size: clamp(34px, 5vw, 60px); margin: 8px 0 18px; font-weight: 750; }
+.artist-play { width: 64px; height: 64px; display: inline-grid; place-items: center; border-radius: 50%; background: white; color: #483641; }
+.artist-photo-button { position: absolute; right: 20px; top: 20px; display: flex; align-items: center; gap: 8px; padding: 10px 14px; color: white; border-radius: 20px; background: #25202b99; cursor: pointer; }
+.artist-photo-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.artist-page-body { padding: 30px; display: grid; gap: 38px; }
+.artist-page-body h2 { font-size: 20px; font-weight: 700; margin-bottom: 15px; }
+.artist-song-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px 25px; }
+.artist-song { display: flex; align-items: center; gap: 12px; text-align: left; padding: 9px; border-radius: 9px; min-width: 0; }
+.artist-song:hover, .artist-album:hover { background: var(--soft); }
+.artist-song img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; }
+.artist-song span { flex: 1; min-width: 0; }
+.artist-song strong,.artist-song small,.artist-album strong,.artist-album small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.artist-song small,.artist-album small { opacity: .65; margin-top: 4px; }
+.artist-album-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(145px,1fr)); gap: 20px; }
+.artist-album { text-align: left; min-width: 0; border-radius: 8px; }
+.artist-album img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+@media (max-width: 850px) { .artist-song-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 550px) { .artist-song-grid { grid-template-columns: 1fr; } .artist-page-body { padding: 20px; } .artist-hero { height: 360px; } }

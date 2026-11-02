@@ -41,7 +41,7 @@ jobs:
           $version = (Get-Content package.json | ConvertFrom-Json).version
           gh release view "v$version" --repo '${{ github.repository }}' *> $null
           if ($LASTEXITCODE -ne 0) {
-            $releaseArgs = @('--target', '${{ github.sha }}', '--title', "SPMusic $version", '--generate-notes', '--repo', '${{ github.repository }}')
+            $releaseArgs = @('--target', '${{ github.sha }}', '--title', "SPMusic $version", '--generate-notes', '--draft', '--repo', '${{ github.repository }}')
             if ($version.Contains('-')) { $releaseArgs += '--prerelease' }
             gh release create "v$version" @releaseArgs
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -62,3 +62,6 @@ jobs:
             "release/SPMusic-$version-x64.exe" `
             "release/SPMusic-$version-x64.exe.blockmap" `
             $metadata --clobber --repo "${{ github.repository }}"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          gh release edit "v$version" --draft=false --repo "${{ github.repository }}"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

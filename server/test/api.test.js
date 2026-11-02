@@ -275,6 +275,13 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
       );
     });
     await t.test('owners can replace and remove track covers without leaving old files', async () => {
+      const artistUrl = `/api/artists/image?name=${encodeURIComponent('Nghệ sĩ riêng')}`;
+      assert.equal((await request(artistUrl)).status, 401);
+      assert.equal((await request(artistUrl, { cookie: aliceCookie })).status, 404);
+      assert.equal((await request(artistUrl, { method: 'PUT', cookie: bobCookie, body: coverForm() })).status, 404);
+      assert.equal((await request(artistUrl, { method: 'PUT', cookie: aliceCookie, body: coverForm() })).status, 200);
+      assert.deepEqual((await request(artistUrl, { cookie: aliceCookie })).body, validCover);
+      assert.equal((await request(artistUrl, { cookie: bobCookie })).status, 404);
       const stemUrl = `/api/tracks/${trackId}/instrumental`;
       const stem = () => { const form = new FormData(); form.append('instrumental', new Blob([wav()]), 'stem.wav'); return form; };
       assert.equal((await request(stemUrl)).status, 401);

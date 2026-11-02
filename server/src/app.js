@@ -252,6 +252,29 @@ export async function createApp({
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 0, parts: 1 },
   }).single('cover');
+  const artistDirectory = path.join(uploadsDir, 'artists');
+  await fs.mkdir(artistDirectory, { recursive: true });
+  app.get('/api/artists/image', requireAuth, async (req, res) => {
+    const name = text(req.query.name, 'Nghệ sĩ', 200);
+    const { rows } = await db.query('SELECT filename FROM artist_images WHERE owner_id=$1 AND artist_name=$2', [req.user.id, name]);
+    if (!rows.length) throw new ApiError(404, 'Chưa có ảnh nghệ sĩ.');
+    res.sendFile(path.join(artistDirectory, rows[0].filename));
+  });
+  app.put('/api/artists/image', requireAuth, coverUpload, async (req, res) => {
+    const name = text(req.query.name, 'Nghệ sĩ', 200);
+    const { rows: tracks } = await db.query('SELECT id FROM tracks WHERE owner_id=$1 AND artist=$2 LIMIT 1', [req.user.id, name]);
+    if (!tracks.length) throw new ApiError(404, 'Không tìm thấy nghệ sĩ trong thư viện.');
+    if (!req.file) throw new ApiError(400, 'Hãy chọn ảnh nghệ sĩ.');
+    const ext = validateCover(req.file);
+    const filename = randomUUID() + ext;
+    await fs.writeFile(path.join(artistDirectory, filename), req.file.buffer, { flag: 'wx' });
+    try {
+      const { rows } = await db.query('SELECT filename FROM artist_images WHERE owner_id=$1 AND artist_name=$2', [req.user.id, name]);
+      await db.query('INSERT INTO artist_images(owner_id,artist_name,filename) VALUES($1,$2,$3) ON CONFLICT(owner_id,artist_name) DO UPDATE SET filename=excluded.filename', [req.user.id, name, filename]);
+      if (rows[0]) await fs.unlink(path.join(artistDirectory, rows[0].filename)).catch(() => {});
+    } catch (error) { await fs.unlink(path.join(artistDirectory, filename)).catch(() => {}); throw error; }
+    res.json({ ok: true });
+  });
   async function ownTrack(req) {
     const { rows } = await db.query('SELECT * FROM tracks WHERE id=$1 AND owner_id=$2', [
       req.params.id,

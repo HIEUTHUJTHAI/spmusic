@@ -2,6 +2,12 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('spmusicDesktop', {
   isDesktop: true,
+  setPlayerFullscreen: (enabled) => ipcRenderer.invoke('player:fullscreen', enabled),
+  onPlayerFullscreen: (listener) => {
+    const handler = (_event, enabled) => listener(enabled);
+    ipcRenderer.on('player:fullscreen-changed', handler);
+    return () => ipcRenderer.removeListener('player:fullscreen-changed', handler);
+  },
   version: () => ipcRenderer.invoke('app:version'),
   checkForUpdates: () => ipcRenderer.invoke('updates:check'),
   getUpdateState: () => ipcRenderer.invoke('updates:state'),

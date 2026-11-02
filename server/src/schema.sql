@@ -29,6 +29,12 @@ CREATE TABLE IF NOT EXISTS tracks (
  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS tracks_owner_idx ON tracks(owner_id);
+CREATE TABLE IF NOT EXISTS artist_images (
+ owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ artist_name TEXT NOT NULL,
+ filename TEXT NOT NULL,
+ PRIMARY KEY (owner_id, artist_name)
+);
 -- Additive migration: preserve all existing accounts, tracks and playlists.
 ALTER TABLE tracks ADD COLUMN IF NOT EXISTS playback_file TEXT;
 ALTER TABLE tracks ADD COLUMN IF NOT EXISTS audio_format TEXT NOT NULL DEFAULT '';

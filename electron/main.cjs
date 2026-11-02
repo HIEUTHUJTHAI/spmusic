@@ -65,6 +65,7 @@ async function start() {
       preload: path.join(__dirname, 'preload.cjs'),
     },
   });
+  mainWindow.on('leave-full-screen', () => mainWindow?.webContents.send('player:fullscreen-changed', false));
   const appOrigin = new URL(backend.url).origin;
   const isAppOrigin = (origin) => {
     try { return new URL(origin).origin === appOrigin; } catch { return false; }
@@ -147,6 +148,12 @@ async function checkForUpdates(interactive = true) {
 }
 
 ipcMain.handle('app:version', () => app.getVersion());
+ipcMain.handle('player:fullscreen', (event, enabled) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win || win !== mainWindow || typeof enabled !== 'boolean') return false;
+  win.setFullScreen(enabled);
+  return true;
+});
 ipcMain.handle('updates:state', () => updateState);
 ipcMain.handle('updates:dismiss', async (_event, version, mode) => {
   if (version !== updateState.version || !['later', 'never'].includes(mode))
