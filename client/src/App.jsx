@@ -100,6 +100,39 @@ export default function App() {
     [selection, setSelection] = useState(null),
     [tab, setTab] = useState('Bài hát');
   const userMenuRef = useRef(null);
+  const inboxQueue = useRef([]);
+  useEffect(() => {
+    const desktop = window.spmusicDesktop;
+    if (!desktop?.onInboxFile) return undefined;
+    return desktop.onInboxFile((entry) => {
+      inboxQueue.current.push(entry);
+      notify(`Có nhạc mới trong SPMusic Inbox: ${entry.name}`);
+      setModal((current) => current || { type: 'inbox' });
+    });
+  }, []);
+  useEffect(() => {
+    if (modal || !inboxQueue.current.length) return;
+    setModal({ type: 'inbox' });
+  }, [modal]);
+  async function prepareInboxFile(entry) {
+    try {
+      const parts = [];
+      let offset = 0;
+      while (offset < entry.size) {
+        const chunk = await window.spmusicDesktop.readInboxChunk(entry.name, offset);
+        const binary = atob(chunk.data);
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        if (!bytes.length || chunk.size !== entry.size) throw new Error('File đã thay đổi khi đang đọc.');
+        parts.push(bytes);
+        offset += bytes.length;
+      }
+      const file = new File(parts, entry.name);
+      inboxQueue.current.shift();
+      setModal({ type: 'track', initialFile: file });
+    } catch (reason) {
+      notify(reason.message || 'Không đọc được file nhạc.');
+    }
+  }
   const reorderBusy = useRef(false);
   const timer = useRef(null),
     searchRef = useRef(null);
@@ -1234,6 +1267,7 @@ export default function App() {
       {modal?.type === 'track' && (
         <TrackEditor
           track={modal.track}
+          initialFile={modal.initialFile}
           onClose={() => setModal(null)}
           onSaved={async (result) => {
             if (!result?.stayOpen) setModal(null);
@@ -1241,6 +1275,19 @@ export default function App() {
             notify(result?.count ? `Đã thêm ${result.count} bài hát vào thư viện.` : 'Đã lưu bài hát vào thư viện.');
           }}
         />
+      )}
+      {modal?.type === 'inbox' && (
+        <Modal title="Nhạc mới trong SPMusic Inbox" onClose={() => { inboxQueue.current.shift(); setModal(null); }}>
+          <div className="modal-stack">
+            <p>{inboxQueue.current[0]?.name}</p>
+            <p className="muted">Kiểm tra và chỉnh thông tin trước khi thêm vào thư viện.</p>
+            {!user && <p>Hãy đăng nhập để thêm nhạc vào thư viện của bạn.</p>}
+            <button className="form-primary" onClick={() => {
+              if (!user) { setModal({ type: 'auth' }); return; }
+              prepareInboxFile(inboxQueue.current[0]);
+            }}>{user ? 'Chỉnh thông tin bài hát' : 'Đăng nhập'}</button>
+          </div>
+        </Modal>
       )}
       {modal?.type === 'playlist' && (
         <PlaylistEditor

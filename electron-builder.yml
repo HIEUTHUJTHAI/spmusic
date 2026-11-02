@@ -6,6 +6,7 @@ directories:
 files:
   - electron/main.cjs
   - electron/preload.cjs
+  - electron/music-inbox.cjs
   - electron/rollback.cjs
   - electron/update-notice.cjs
   - server/src/**/*

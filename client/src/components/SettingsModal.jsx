@@ -39,7 +39,9 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
     [backgroundProgress, setBackgroundProgress] = useState(null),
     [outputBusy, setOutputBusy] = useState(false),
     [audioOutputs, setAudioOutputs] = useState([]);
+  const [inboxPath, setInboxPath] = useState('');
   const desktop = typeof window !== 'undefined' ? window.spmusicDesktop : null;
+  useEffect(() => { desktop?.inboxPath?.().then(setInboxPath).catch(() => {}); }, [desktop]);
   useEffect(() => {
     setCustomTheme({ ...defaultCustomTheme, ...user.customTheme });
   }, [user.customTheme]);
@@ -287,6 +289,12 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
           </>
         )}
       </section>
+      {desktop?.openInbox && <section className="settings-section">
+        <h3><Music2 size={18} /> Thư mục nhận nhạc</h3>
+        <p className="form-description">Kéo file nhạc vào thư mục này. SPMusic sẽ phát hiện file mới và mở form để bạn chỉnh thông tin.</p>
+        <p className="form-description">{inboxPath}</p>
+        <button className="form-secondary" onClick={() => desktop.openInbox()}>Mở thư mục SPMusic Inbox</button>
+      </section>}
       <section className="settings-section">
         <h3><Waves size={18} /> Chuyển tiếp và âm thanh</h3>
         <p className="form-description">Tùy chỉnh cách chuyển bài và âm sắc. Cài đặt này được lưu trên thiết bị.</p>

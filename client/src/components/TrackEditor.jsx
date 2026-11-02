@@ -14,7 +14,7 @@ import Modal from './Modal';
 import LyricsAI from './LyricsAI';
 
 const MB = 1024 * 1024;
-export default function TrackEditor({ track, onClose, onSaved }) {
+export default function TrackEditor({ track, initialFile, onClose, onSaved }) {
   const editing = !!track;
   const [fields, setFields] = useState({
     title: track?.title || '',
@@ -40,6 +40,9 @@ export default function TrackEditor({ track, onClose, onSaved }) {
   const [aligning, setAligning] = useState(false);
   const lyricsRead = useRef(0);
   const bulk = bulkFiles.length > 1;
+  useEffect(() => {
+    if (initialFile) chooseFile(initialFile, 'audio');
+  }, [initialFile]);
   useEffect(() => {
     if (!track?.hasLyrics) return;
     let cancelled = false;

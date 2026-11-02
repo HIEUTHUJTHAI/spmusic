@@ -2,6 +2,14 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('spmusicDesktop', {
   isDesktop: true,
+  inboxPath: () => ipcRenderer.invoke('inbox:path'),
+  openInbox: () => ipcRenderer.invoke('inbox:open'),
+  readInboxChunk: (name, offset) => ipcRenderer.invoke('inbox:read', name, offset),
+  onInboxFile: (listener) => {
+    const handler = (_event, entry) => listener(entry);
+    ipcRenderer.on('inbox:new', handler);
+    return () => ipcRenderer.removeListener('inbox:new', handler);
+  },
   setPlayerFullscreen: (enabled) => ipcRenderer.invoke('player:fullscreen', enabled),
   onPlayerFullscreen: (listener) => {
     const handler = (_event, enabled) => listener(enabled);

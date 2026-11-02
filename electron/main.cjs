@@ -4,6 +4,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { listOlderVersions, prepareOlderVersion } = require('./rollback.cjs');
 const { readIgnoredVersion, saveIgnoredVersion, shouldShowNotice } = require('./update-notice.cjs');
+const musicInbox = require('./music-inbox.cjs');
 
 let backend;
 let mainWindow;
@@ -82,6 +83,8 @@ async function start() {
     return { action: 'deny' };
   });
   await mainWindow.loadURL(backend.url);
+  const stopInbox = musicInbox.startInbox((entry) => mainWindow?.webContents.send('inbox:new', entry));
+  mainWindow.on('closed', stopInbox);
   configureUpdates();
   setTimeout(() => checkForUpdates(false), 2500);
   mainWindow.on('closed', () => {
@@ -148,6 +151,9 @@ async function checkForUpdates(interactive = true) {
 }
 
 ipcMain.handle('app:version', () => app.getVersion());
+ipcMain.handle('inbox:path', () => musicInbox.inbox);
+ipcMain.handle('inbox:open', () => musicInbox.openInbox());
+ipcMain.handle('inbox:read', (_event, name, offset) => musicInbox.readInboxChunk(name, offset));
 ipcMain.handle('player:fullscreen', (event, enabled) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win || win !== mainWindow || typeof enabled !== 'boolean') return false;
