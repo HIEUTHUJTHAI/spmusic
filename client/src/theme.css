@@ -685,6 +685,12 @@ input[type='range']::-moz-range-thumb {
   gap: 9px;
   margin-bottom: 9px;
 }
+.background-cropper { margin: 16px 0; padding: 16px; border: 1px solid var(--glass-border); border-radius: 16px; background: var(--glass-soft); }
+.background-cropper > strong { display: block; margin-bottom: 5px; }
+.background-cropper canvas { display: block; width: 100%; aspect-ratio: 16 / 9; margin: 12px 0; border-radius: 12px; object-fit: contain; cursor: grab; touch-action: none; }
+.background-cropper canvas:active { cursor: grabbing; }
+.background-zoom { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 12px; }
+.background-zoom input { flex: 1; accent-color: var(--accent); }
 .background-file-button {
   position: relative;
   overflow: hidden;

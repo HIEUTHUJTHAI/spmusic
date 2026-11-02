@@ -3,6 +3,7 @@ import { Check, Download, ImagePlus, Music2, Palette, Pencil, RefreshCw, RotateC
 import Modal from './Modal';
 import { api, upload } from '../lib/api';
 import { EQ_FREQUENCIES, EQ_PRESETS } from '../lib/audioSettings';
+import BackgroundCropper from './BackgroundCropper';
 
 const themes = [
   ['pink', 'Trắng hồng', '#c83776'],
@@ -35,6 +36,7 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
     [selectedVersion, setSelectedVersion] = useState(''),
     [rollback, setRollback] = useState(null),
     [backgroundFile, setBackgroundFile] = useState(null),
+    [backgroundSource, setBackgroundSource] = useState(null),
     [backgroundPreview, setBackgroundPreview] = useState(''),
     [backgroundProgress, setBackgroundProgress] = useState(null),
     [outputBusy, setOutputBusy] = useState(false),
@@ -141,7 +143,7 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
       setError('Ảnh nền không được vượt quá 10 MB.');
       return;
     }
-    setBackgroundFile(file);
+    setBackgroundSource(file);
   }
   async function saveBackground() {
     if (!backgroundFile) return;
@@ -443,6 +445,9 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
       <section className="settings-section">
         <h3><ImagePlus size={18} /> Ảnh nền ứng dụng</h3>
         <p className="form-description">Chọn ảnh riêng để đặt sau giao diện kính mờ. Ảnh được lưu theo tài khoản và hiển thị cả khi dùng app offline trên máy này.</p>
+        {backgroundSource && <BackgroundCropper file={backgroundSource}
+          onApply={(cropped) => { setBackgroundFile(cropped); setBackgroundSource(null); }}
+          onCancel={() => setBackgroundSource(null)} />}
         <div className="background-preview" style={backgroundPreview || user.backgroundUrl ? {
           backgroundImage: `url("${backgroundPreview || user.backgroundUrl}")`,
         } : undefined}>
@@ -453,7 +458,7 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
           <label className="form-secondary background-file-button">
             <ImagePlus size={15} /> Chọn ảnh JPG, PNG hoặc WebP
             <input type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-              disabled={busy} onChange={(event) => chooseBackground(event.target.files?.[0])} />
+              disabled={busy} onChange={(event) => { chooseBackground(event.target.files?.[0]); event.target.value = ''; }} />
           </label>
           {backgroundFile && (
             <button className="form-primary" disabled={busy} onClick={saveBackground}>
@@ -469,7 +474,7 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
             </button>
           )}
         </div>
-        {backgroundFile && <p className="field-hint">Ảnh đã chọn: {backgroundFile.name} · tối đa 10 MB</p>}
+        {backgroundFile && <p className="field-hint">Ảnh đã căn: sẵn sàng lưu làm ảnh nền.</p>}
         {backgroundProgress !== null && <p className="form-description" role="status">Đang tải ảnh nền… {backgroundProgress}%</p>}
       </section>
       <section className="settings-section">
