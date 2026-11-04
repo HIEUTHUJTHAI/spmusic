@@ -5,6 +5,9 @@ const { pathToFileURL } = require('node:url');
 const { listOlderVersions, prepareOlderVersion } = require('./rollback.cjs');
 const { readIgnoredVersion, saveIgnoredVersion, shouldShowNotice } = require('./update-notice.cjs');
 const musicInbox = require('./music-inbox.cjs');
+const { readGlassPreference, writeGlassPreference, validOpacity } = require('./glass-preferences.cjs');
+let glassOpacity = null;
+let glassPreferenceWrite = Promise.resolve();
 
 let backend;
 let mainWindow;
@@ -40,6 +43,7 @@ else {
 
 async function start() {
   const dataDir = path.join(app.getPath('userData'), 'data');
+  glassOpacity = await readGlassPreference(path.join(app.getPath('userData'), 'glass-preferences.json'));
   updatePreferencesFile = path.join(app.getPath('userData'), 'update-notice.json');
   try {
     ignoredUpdateVersion = await readIgnoredVersion(updatePreferencesFile);
@@ -151,6 +155,14 @@ async function checkForUpdates(interactive = true) {
 }
 
 ipcMain.handle('app:version', () => app.getVersion());
+ipcMain.handle('glass:get', () => glassOpacity);
+ipcMain.handle('glass:set', (event, opacity) => {
+  if (event.sender !== mainWindow?.webContents || !validOpacity(opacity)) return false;
+  glassOpacity = opacity;
+  glassPreferenceWrite = glassPreferenceWrite.catch(() => {}).then(() =>
+    writeGlassPreference(path.join(app.getPath('userData'), 'glass-preferences.json'), opacity));
+  return glassPreferenceWrite.then(() => true).catch(() => false);
+});
 ipcMain.handle('inbox:path', () => musicInbox.inbox);
 ipcMain.handle('inbox:open', () => musicInbox.openInbox());
 ipcMain.handle('inbox:read', (_event, name, offset) => musicInbox.readInboxChunk(name, offset));
@@ -233,6 +245,7 @@ async function stop() {
   if (stopping) return;
   stopping = true;
   try {
+    await glassPreferenceWrite.catch(() => {});
     await backend?.close();
   } finally {
     backend = null;

@@ -508,14 +508,17 @@ input[type='range']::-moz-range-thumb {
   opacity: 0.25;
 }
 
-/* Translucent surfaces keep the user's wallpaper visible without sacrificing text contrast. */
+/* One shared tint keeps the main glass surfaces and floating tools consistent. */
 :root {
-  --glass: color-mix(in srgb, var(--panel) 76%, transparent);
-  --glass-strong: color-mix(in srgb, var(--panel) 88%, transparent);
-  --glass-soft: color-mix(in srgb, var(--panel) 72%, transparent);
-  --glass-border: color-mix(in srgb, var(--panel) 66%, var(--line));
-  --glass-shadow: 0 14px 44px color-mix(in srgb, var(--text) 12%, transparent), inset 0 1px 0 color-mix(in srgb, var(--panel) 90%, transparent);
+  --glass: color-mix(in srgb, var(--panel) calc(var(--glass-opacity, .62) * 100%), transparent);
+  --glass-strong: color-mix(in srgb, var(--panel) min(97%, calc((var(--glass-opacity, .62) + .12) * 100%)), transparent);
+  --glass-soft: color-mix(in srgb, var(--panel) max(22%, calc((var(--glass-opacity, .62) - .08) * 100%)), transparent);
+  --glass-border: color-mix(in srgb, var(--panel) 48%, transparent);
+  --glass-edge: color-mix(in srgb, #fff 44%, transparent);
+  --glass-sheen: linear-gradient(132deg, #ffffff24 0%, #ffffff08 38%, transparent 60%, #ffffff0a 100%);
+  --glass-shadow: 0 8px 28px color-mix(in srgb, var(--text) 8%, transparent), inset 0 1px 0 var(--glass-edge), inset 0 -1px 0 #00000008;
 }
+:root[data-theme='dark'] { --glass-edge: #ffffff26; --glass-border: #ffffff22; }
 .app-shell {
   isolation: isolate;
 }
@@ -551,9 +554,9 @@ input[type='range']::-moz-range-thumb {
 .sidebar,
 .topbar,
 .player {
-  background: var(--glass-strong);
-  backdrop-filter: blur(18px) saturate(125%);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  background: var(--glass-sheen), var(--glass);
+  backdrop-filter: blur(20px) saturate(155%);
+  -webkit-backdrop-filter: blur(20px) saturate(155%);
   border-color: var(--glass-border);
   box-shadow: var(--glass-shadow);
 }
@@ -564,8 +567,9 @@ input[type='range']::-moz-range-thumb {
   border-radius: 0 20px 20px 0;
 }
 .player {
-  box-shadow: 0 -12px 42px color-mix(in srgb, var(--text) 11%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--panel) 90%, transparent);
+  border-top: 1px solid var(--glass-border);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -6px 26px color-mix(in srgb, var(--text) 9%, transparent), inset 0 1px 0 var(--glass-edge);
 }
 .home-section,
 .album-card,
@@ -573,7 +577,7 @@ input[type='range']::-moz-range-thumb {
 .collection-heading,
 .track-table,
 .filter-empty {
-  background: var(--glass-soft);
+  background: var(--glass-sheen), var(--glass-soft);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }
@@ -610,7 +614,7 @@ input[type='range']::-moz-range-thumb {
   border-radius: 20px;
 }
 .track-row:hover:not(.table-head) {
-  background: var(--glass-strong);
+  background: color-mix(in srgb, var(--panel) 42%, transparent);
 }
 .collection-heading {
   margin-bottom: 22px;
@@ -634,11 +638,57 @@ input[type='range']::-moz-range-thumb {
 .eq-window,
 .custom-theme-editor,
 .toast {
-  background: var(--glass-strong) !important;
+  background: var(--glass-sheen), var(--glass-strong) !important;
   border-color: var(--glass-border) !important;
   box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(20px) saturate(125%);
-  -webkit-backdrop-filter: blur(20px) saturate(125%);
+  backdrop-filter: blur(22px) saturate(155%);
+  -webkit-backdrop-filter: blur(22px) saturate(155%);
+}
+.sidebar-upload,
+.discover-music,
+.discover-inbox,
+.discover-result,
+.theme-choice,
+.audio-output-setting {
+  background: var(--glass-sheen), var(--glass-soft);
+  border-color: var(--glass-border);
+}
+.nav-item { border-radius: 13px; }
+.nav-item.active,
+.genre-tabs button.selected {
+  background: linear-gradient(130deg, #ffffff30, transparent), color-mix(in srgb, var(--accent-soft) 74%, transparent);
+  box-shadow: inset 0 1px 0 var(--glass-edge), 0 3px 12px color-mix(in srgb, var(--text) 5%, transparent);
+}
+.nav-tile,
+.history-button,
+.search-box,
+.sidebar-upload button {
+  background: color-mix(in srgb, var(--panel) 34%, transparent);
+  box-shadow: inset 0 1px 0 var(--glass-edge);
+  border-color: var(--glass-border);
+}
+.playback-buttons,
+.player-tools { position: relative; }
+.player .icon-btn,
+.history-button { border-radius: 50%; }
+.player .icon-btn:hover:not(:disabled),
+.history-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--panel) 52%, transparent);
+  box-shadow: inset 0 1px 0 var(--glass-edge), 0 4px 12px color-mix(in srgb, var(--text) 9%, transparent);
+}
+.glass-proximity {
+  scale: var(--proximity-scale, 1);
+  translate: 0 var(--proximity-lift, 0px);
+  transform-origin: center;
+  transition: scale .18s ease-out, translate .18s ease-out, background-color .18s, color .18s;
+}
+.glass-proximity:disabled { scale: 1; translate: none; }
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .glass-proximity { scale: 1 !important; translate: none !important; }
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .sidebar, .topbar, .player, .user-dropdown, .track-menu, .queue-panel, .lyrics-panel,
+  .modal-shade .aural-modal, .eq-window, .toast { background: var(--panel) !important; }
 }
 .modal-shade {
   backdrop-filter: blur(6px);
@@ -661,6 +711,16 @@ input[type='range']::-moz-range-thumb {
   font-size: 12px;
   color: var(--text);
 }
+.glass-opacity-label { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 12px 0; font-size: 12px; }
+.glass-opacity-label output { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+.glass-opacity-label small { font-size: 10px; color: var(--muted); }
+.glass-opacity-range { display: block; width: 100%; margin: 18px 0; }
+input.glass-opacity-range[type='range']::-webkit-slider-thumb { opacity: 1; }
+input.glass-opacity-range[type='range']::-moz-range-thumb { opacity: 1; }
+.glass-setting-preview { display: flex; align-items: center; gap: 13px; padding: 16px; margin: 16px 0; border-radius: 18px; border: 1px solid var(--glass-border); background: var(--glass-sheen), var(--glass); box-shadow: var(--glass-shadow); }
+.glass-setting-preview > span { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.glass-setting-preview strong { font-size: 13px; }
+.glass-setting-preview p { margin-top: 4px; font-size: 11px; color: var(--muted); }
 .background-preview > span:first-child:not(:last-child) {
   max-width: 190px;
   padding: 8px;
@@ -708,12 +768,11 @@ input[type='range']::-moz-range-thumb {
   cursor: pointer;
 }
 @keyframes glass-surface-in {
-  from { opacity: .72; transform: translate3d(0, 8px, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  from { opacity: .4; }
+  to { opacity: 1; }
 }
 @media (hover: hover) {
-  .nav-item { transition: background-color .2s, color .2s, transform .22s cubic-bezier(.2,.8,.2,1); }
-  .nav-item:hover { transform: translate3d(2px, 0, 0); }
+  .nav-item.glass-proximity { transition: scale .18s ease-out, translate .18s ease-out, background-color .18s, color .18s; }
 }
 @media (prefers-reduced-motion: reduce) {
   .album-card,

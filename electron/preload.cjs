@@ -2,6 +2,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('spmusicDesktop', {
   isDesktop: true,
+  getGlassOpacity: () => ipcRenderer.invoke('glass:get'),
+  setGlassOpacity: (value) => ipcRenderer.invoke('glass:set', value),
   inboxPath: () => ipcRenderer.invoke('inbox:path'),
   openInbox: () => ipcRenderer.invoke('inbox:open'),
   readInboxChunk: (name, offset) => ipcRenderer.invoke('inbox:read', name, offset),

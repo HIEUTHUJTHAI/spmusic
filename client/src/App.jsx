@@ -48,6 +48,8 @@ import SourceCredit from './components/SourceCredit';
 import UpdateNotice from './components/UpdateNotice';
 import YoutubeModal from './components/YoutubeModal';
 import ArtistPage from './components/ArtistPage';
+import { applyGlassOpacity, readGlassOpacity } from './lib/glassPreferences';
+import { useGlassProximity } from './lib/useGlassProximity';
 
 const navs = [
   ['home', 'Khám phá', House],
@@ -100,6 +102,29 @@ export default function App() {
     [selection, setSelection] = useState(null),
     [tab, setTab] = useState('Bài hát');
   const userMenuRef = useRef(null);
+  const pageRef = useRef(null), pageAnimation = useRef(null), navigationId = useRef(0);
+  const navigationPending = useRef(false);
+  function cancelPageNavigation() {
+    navigationId.current += 1;
+    if (navigationPending.current) pageAnimation.current?.cancel();
+    navigationPending.current = false;
+  }
+  useGlassProximity();
+  useEffect(() => {
+    let active = true;
+    applyGlassOpacity(readGlassOpacity(), false);
+    window.spmusicDesktop?.getGlassOpacity?.().then((value) => {
+      if (active && typeof value === 'number') applyGlassOpacity(value, false);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+  useEffect(() => {
+    pageAnimation.current?.cancel();
+    if (pageRef.current && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      pageAnimation.current = pageRef.current.animate([{ opacity: 0.15 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+    }
+    return () => pageAnimation.current?.cancel();
+  }, [view, selection]);
   const inboxQueue = useRef([]);
   useEffect(() => {
     const desktop = window.spmusicDesktop;
@@ -316,6 +341,7 @@ export default function App() {
       if (e.isComposing) return;
       if (e.key === '/' && !editing && !modal) {
         e.preventDefault();
+        cancelPageNavigation();
         setView('search');
         setGenre('Tất cả');
         searchRef.current?.focus();
@@ -347,7 +373,18 @@ export default function App() {
     }
     callback();
   };
-  const navigate = (v, s = null) => {
+  const navigate = async (v, s = null) => {
+    const request = ++navigationId.current;
+    pageAnimation.current?.cancel();
+    navigationPending.current = false;
+    if ((view !== v || selection !== s) && pageRef.current && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      navigationPending.current = true;
+      pageAnimation.current = pageRef.current.animate([{ opacity: 1 }, { opacity: 0.15 }], { duration: 90, easing: 'ease-in', fill: 'forwards' });
+      await pageAnimation.current.finished.catch(() => {});
+    }
+    if (request !== navigationId.current) return;
+    navigationPending.current = false;
+    pageAnimation.current?.cancel();
     setView(v);
     setSelection(s);
     setTab('Bài hát');
@@ -814,6 +851,7 @@ export default function App() {
               placeholder="Tìm bài hát, nghệ sĩ, album..."
               aria-label="Tìm bài hát, nghệ sĩ, album"
               onFocus={() => {
+                cancelPageNavigation();
                 if (view !== 'search') {
                   setView('search');
                   setGenre('Tất cả');
@@ -887,7 +925,7 @@ export default function App() {
             )}
           </div>
         </header>
-        <main>
+        <main ref={pageRef} className="page-transition">
           {error ? (
             <div className="connection-error">
               <h2>Chưa thể mở thư viện</h2>
@@ -1077,7 +1115,7 @@ export default function App() {
                       {tab === 'Bài hát' && view === 'library' && (
                         <button
                           className={selection === 'own' ? 'selected' : ''}
-                          onClick={() => setSelection(selection === 'own' ? null : 'own')}
+                          onClick={() => { cancelPageNavigation(); setSelection(selection === 'own' ? null : 'own'); }}
                         >
                           Nhạc tải lên
                         </button>
@@ -1134,7 +1172,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 2.5.0</span>
+                <span>Thư viện cá nhân • SPMusic 2.7.0</span>
               </div>
             </>
           )}

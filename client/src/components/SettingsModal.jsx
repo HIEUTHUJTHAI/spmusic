@@ -4,6 +4,7 @@ import Modal from './Modal';
 import { api, upload } from '../lib/api';
 import { EQ_FREQUENCIES, EQ_PRESETS } from '../lib/audioSettings';
 import BackgroundCropper from './BackgroundCropper';
+import { applyGlassOpacity, readGlassOpacity, DEFAULT_GLASS_OPACITY } from '../lib/glassPreferences';
 
 const themes = [
   ['pink', 'Trắng hồng', '#c83776'],
@@ -42,6 +43,15 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
     [outputBusy, setOutputBusy] = useState(false),
     [audioOutputs, setAudioOutputs] = useState([]);
   const [inboxPath, setInboxPath] = useState('');
+  const [glassOpacity, setGlassOpacity] = useState(readGlassOpacity);
+  useEffect(() => {
+    const update = (event) => setGlassOpacity(event.detail);
+    window.addEventListener('spmusic-glass-change', update);
+    return () => window.removeEventListener('spmusic-glass-change', update);
+  }, []);
+  function changeGlassOpacity(value) {
+    setGlassOpacity(applyGlassOpacity(value));
+  }
   const desktop = typeof window !== 'undefined' ? window.spmusicDesktop : null;
   useEffect(() => { desktop?.inboxPath?.().then(setInboxPath).catch(() => {}); }, [desktop]);
   useEffect(() => {
@@ -380,6 +390,21 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
             </button>
           </div>
         )}
+      </section>
+      <section className="settings-section glass-preferences">
+        <h3><SlidersHorizontal size={18} /> Liquid Glass</h3>
+        <p className="form-description">Điều chỉnh lớp kính và xem thay đổi ngay trên giao diện. Lựa chọn được nhớ trên máy này.</p>
+        <label className="glass-opacity-label" htmlFor="glass-transparency">
+          Độ trong suốt <output htmlFor="glass-transparency">{Math.round((1 - glassOpacity) * 100)}%</output>
+        </label>
+        <input id="glass-transparency" className="glass-opacity-range" type="range" min="5" max="85" step="1"
+          value={Math.round((1 - glassOpacity) * 100)} aria-label="Độ trong suốt Liquid Glass"
+          aria-valuetext={`${Math.round((1 - glassOpacity) * 100)} phần trăm trong suốt`}
+          style={{ '--range': `${((1 - glassOpacity) * 100 - 5) / 80 * 100}%` }}
+          onChange={(event) => changeGlassOpacity(1 - Number(event.target.value) / 100)} />
+        <div className="glass-opacity-label"><small>Kính đậm · dễ đọc</small><small>Trong hơn · thấy rõ ảnh nền</small></div>
+        <div className="glass-setting-preview"><span>SP</span><div><strong>Không gian của bạn</strong><p>Kéo để thấy lớp kính thay đổi</p></div></div>
+        <button className="form-secondary" type="button" onClick={() => changeGlassOpacity(DEFAULT_GLASS_OPACITY)}><RotateCcw size={15} /> Đặt lại lớp kính</button>
       </section>
       <section className="settings-section">
         <h3>

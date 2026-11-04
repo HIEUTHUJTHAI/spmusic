@@ -1,5 +1,7 @@
 # SPMusic — không gian nghe nhạc của bạn
 
+**Bản 2.7.0:** Liquid Glass có lớp kính trong, viền sáng và phản chiếu nhẹ trên điều hướng, trình phát và cửa sổ tác vụ. Các nút gần con trỏ phóng nhẹ theo khoảng cách; chuyển trang bằng fade ngắn. Vào **Cài đặt → Liquid Glass** để chỉnh độ trong suốt từ 5–85%, xem ngay và đặt lại. Lựa chọn được nhớ trên thiết bị. Hiệu ứng phóng tự tắt trên màn hình cảm ứng và khi hệ thống bật giảm chuyển động. Kiểm tra giao diện bằng `npx electron tools/test-glass.cjs` sau khi build (hồ sơ thử nghiệm riêng trong `.runtime/`).
+
 Bản cập nhật: giao diện **trắng–hồng**, menu avatar có **Tài khoản / Cài đặt / Đăng xuất**, đổi ảnh đại diện và mật khẩu, chọn màu và xóa nhạc cá nhân. Mở **`start-spmusic.cmd`** để chạy (trình khởi chạy cũ vẫn dùng được). Xem [hướng dẫn tài khoản và cài đặt](docs/ACCOUNT-SETTINGS.md).
 
 **Bàn giao MVP:** [biên bản kiểm tra](docs/VERIFICATION.md) · [kiến trúc và file quan trọng](docs/ARCHITECTURE.md) · [kiểm thử](docs/TESTING.md) · [tài nguyên nguyên bản](docs/ASSETS.md).
