@@ -1,6 +1,7 @@
 const { app, BrowserWindow, dialog, shell, ipcMain, net } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('node:path');
+const fs = require('node:fs/promises');
 const { pathToFileURL } = require('node:url');
 const { listOlderVersions, prepareOlderVersion } = require('./rollback.cjs');
 const { readIgnoredVersion, saveIgnoredVersion, shouldShowNotice } = require('./update-notice.cjs');
@@ -18,6 +19,7 @@ let delayedUpdateVersion = null;
 let updatePreferencesFile;
 let rollbackBusy = false;
 let rollbackReady = null;
+let youtubeApiKeyFile;
 
 app.setName('SPMusic');
 const gotLock = app.requestSingleInstanceLock();
@@ -43,6 +45,7 @@ else {
 
 async function start() {
   const dataDir = path.join(app.getPath('userData'), 'data');
+  youtubeApiKeyFile = path.join(dataDir, 'youtube-api-key.txt');
   glassOpacity = await readGlassPreference(path.join(app.getPath('userData'), 'glass-preferences.json'));
   updatePreferencesFile = path.join(app.getPath('userData'), 'update-notice.json');
   try {
@@ -156,6 +159,20 @@ async function checkForUpdates(interactive = true) {
 
 ipcMain.handle('app:version', () => app.getVersion());
 ipcMain.handle('glass:get', () => glassOpacity);
+ipcMain.handle('youtube-key:get', async () => {
+  try { return Boolean((await fs.readFile(youtubeApiKeyFile, 'utf8')).trim()); } catch { return false; }
+});
+ipcMain.handle('youtube-key:set', async (event, value) => {
+  if (event.sender !== mainWindow?.webContents) return { error: 'Yêu cầu không hợp lệ.' };
+  const key = String(value || '').trim();
+  if (key && !/^AIza[\w-]{20,}$/.test(key)) return { error: 'API key YouTube không đúng định dạng.' };
+  await fs.mkdir(path.dirname(youtubeApiKeyFile), { recursive: true });
+  if (key) await fs.writeFile(youtubeApiKeyFile, `${key}\n`, 'utf8');
+  else await fs.rm(youtubeApiKeyFile, { force: true });
+  if (key) process.env.YOUTUBE_API_KEY = key;
+  else delete process.env.YOUTUBE_API_KEY;
+  return { configured: Boolean(key) };
+});
 ipcMain.handle('glass:set', (event, opacity) => {
   if (event.sender !== mainWindow?.webContents || !validOpacity(opacity)) return false;
   glassOpacity = opacity;

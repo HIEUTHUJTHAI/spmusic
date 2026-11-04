@@ -43,6 +43,9 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
     [outputBusy, setOutputBusy] = useState(false),
     [audioOutputs, setAudioOutputs] = useState([]);
   const [inboxPath, setInboxPath] = useState('');
+  const [youtubeKey, setYoutubeKey] = useState('');
+  const [youtubeConfigured, setYoutubeConfigured] = useState(false);
+  const [youtubeKeyBusy, setYoutubeKeyBusy] = useState(false);
   const [glassOpacity, setGlassOpacity] = useState(readGlassOpacity);
   useEffect(() => {
     const update = (event) => setGlassOpacity(event.detail);
@@ -54,6 +57,16 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
   }
   const desktop = typeof window !== 'undefined' ? window.spmusicDesktop : null;
   useEffect(() => { desktop?.inboxPath?.().then(setInboxPath).catch(() => {}); }, [desktop]);
+  useEffect(() => { desktop?.getYoutubeKeyConfigured?.().then(setYoutubeConfigured).catch(() => {}); }, [desktop]);
+  async function saveYoutubeKey(value = youtubeKey) {
+    setYoutubeKeyBusy(true); setError(''); setMessage('');
+    try {
+      const result = await desktop.setYoutubeKey(value);
+      if (result.error) throw new Error(result.error);
+      setYoutubeConfigured(result.configured); setYoutubeKey('');
+      setMessage(result.configured ? 'Đã lưu YouTube API key trên máy này.' : 'Đã xóa YouTube API key.');
+    } catch (reason) { setError(reason.message); } finally { setYoutubeKeyBusy(false); }
+  }
   useEffect(() => {
     setCustomTheme({ ...defaultCustomTheme, ...user.customTheme });
   }, [user.customTheme]);
@@ -306,6 +319,17 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
         <p className="form-description">Kéo file nhạc vào thư mục này. SPMusic sẽ phát hiện file mới và mở form để bạn chỉnh thông tin.</p>
         <p className="form-description">{inboxPath}</p>
         <button className="form-secondary" onClick={() => desktop.openInbox()}>Mở thư mục SPMusic Inbox</button>
+      </section>}
+      {desktop?.setYoutubeKey && <section className="settings-section">
+        <h3><Music2 size={18} /> YouTube API</h3>
+        <p className="form-description">Dán YouTube Data API key để tìm video trong tab Tìm kiếm. Key được lưu riêng trên máy này và không được tải lên GitHub.</p>
+        <label className="settings-search" htmlFor="youtube-api-key"><span>API key {youtubeConfigured && '· đã cấu hình'}</span>
+          <input id="youtube-api-key" type="password" autoComplete="off" value={youtubeKey} placeholder={youtubeConfigured ? 'Đã có key · dán key mới để thay' : 'AIza...'} onChange={(event) => setYoutubeKey(event.target.value)} />
+        </label>
+        <div className="update-controls">
+          <button className="form-primary" disabled={youtubeKeyBusy || !youtubeKey.trim()} onClick={saveYoutubeKey}>Lưu API key</button>
+          <button className="form-secondary" disabled={youtubeKeyBusy || !youtubeConfigured} onClick={() => { setYoutubeKey(''); saveYoutubeKey(''); }}>Xóa key</button>
+        </div>
       </section>}
       <section className="settings-section">
         <h3><Waves size={18} /> Chuyển tiếp và âm thanh</h3>
