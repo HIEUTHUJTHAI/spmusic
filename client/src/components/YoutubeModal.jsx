@@ -6,7 +6,7 @@ import './forms.css';
 
 const finished = (status) => ['completed', 'failed', 'cancelled'].includes(status);
 
-export default function YoutubeModal({ open, onClose, onImported }) {
+export default function YoutubeModal({ open, onClose, onImported, initialUrl }) {
   const [url, setUrl] = useState('');
   const [licensed, setLicensed] = useState(false);
   const [job, setJob] = useState(null);
@@ -18,6 +18,10 @@ export default function YoutubeModal({ open, onClose, onImported }) {
   const onImportedRef = useRef(onImported);
   onImportedRef.current = onImported;
   const working = job && !finished(job.status);
+
+  useEffect(() => {
+    if (open && initialUrl) { setUrl(initialUrl); setLicensed(false); setError(''); }
+  }, [open, initialUrl]);
 
   useEffect(() => {
     const controller = new AbortController();

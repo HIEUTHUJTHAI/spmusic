@@ -1061,7 +1061,8 @@ export default function App() {
                     </div>
                   </div>
                   {view === 'search' && <DiscoverMusic query={query} user={user}
-                    onLogin={() => setModal({ type: 'auth' })} onImported={refresh} notify={notify} />}
+                    onLogin={() => setModal({ type: 'auth' })} onImported={refresh} notify={notify}
+                    onYoutubeImport={(url) => requireUser(() => setModal({ type: 'youtube', url }))} />}
                   <div className="collection-controls">
                     <button
                       className="primary-btn"
@@ -1445,6 +1446,7 @@ export default function App() {
         <YoutubeModal
           key={user.id}
           open={modal?.type === 'youtube'}
+          initialUrl={modal?.type === 'youtube' ? modal.url : ''}
           onClose={() => setModal(null)}
           onImported={(track, existing) => {
             if (track)

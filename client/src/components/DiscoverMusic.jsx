@@ -3,7 +3,7 @@ import { Check, Copy, Download, ExternalLink, FolderOpen, Headphones, LoaderCirc
 import { api, upload } from '../lib/api';
 import './DiscoverMusic.css';
 
-export default function DiscoverMusic({ query, user, onLogin, onImported, notify }) {
+export default function DiscoverMusic({ query, user, onLogin, onImported, notify, onYoutubeImport }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -103,6 +103,7 @@ export default function DiscoverMusic({ query, user, onLogin, onImported, notify
             </button>}
             {source === 'youtube' && <button onClick={() => setPreview(preview === result.id ? null : result.id)}>{preview === result.id ? 'Đóng xem thử' : 'Xem thử'}</button>}
             {source === 'youtube' && <button onClick={() => copyLink(result)}>{copied === result.id ? <Check size={15} /> : <Copy size={15} />}{copied === result.id ? 'Đã sao chép' : 'Sao chép link'}</button>}
+            {source === 'youtube' && <button onClick={() => onYoutubeImport(result.sourceUrl)}><Download size={15} /> Thêm vào thư viện</button>}
             <a href={result.sourceUrl} target="_blank" rel="noopener noreferrer" title="Xem trang nguồn" aria-label="Xem trang nguồn"><ExternalLink size={16} /></a>
           </div>
           {preview === result.id && (source === 'youtube'
