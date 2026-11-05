@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   AudioLines,
   House,
@@ -56,6 +56,49 @@ const navs = [
   ['search', 'Tìm kiếm', Search],
   ['library', 'Thư viện của bạn', Library],
 ];
+function PrimaryNavigation({ view, navigate }) {
+  const navRef = useRef(null), markerRef = useRef(null), animationRef = useRef(null), previous = useRef(null);
+  useLayoutEffect(() => {
+    const nav = navRef.current, marker = markerRef.current;
+    const target = nav?.querySelector('[aria-current="page"]');
+    if (!nav || !marker || !target) { if (marker) marker.hidden = true; previous.current = null; return undefined; }
+    const update = (animate) => {
+      const top = target.offsetTop, height = target.offsetHeight;
+      const oldTop = !marker.hidden ? marker.getBoundingClientRect().top - nav.getBoundingClientRect().top : null;
+      animationRef.current?.cancel();
+      marker.hidden = false;
+      marker.style.top = `${top}px`;
+      marker.style.height = `${height}px`;
+      if (animate && oldTop !== null && previous.current !== null && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const delta = oldTop - top;
+        if (Math.abs(delta) > 1) {
+          const direction = delta < 0 ? -1 : 1;
+          animationRef.current = marker.animate([
+            { transform: `translateY(${delta}px) scaleY(1) scaleX(1)` },
+            { transform: `translateY(${delta * 0.46}px) scaleY(1.32) scaleX(.96)`, offset: .43 },
+            { transform: `translateY(${direction * 5}px) scaleY(.90) scaleX(1.015)`, offset: .76 },
+            { transform: 'translateY(0) scaleY(1) scaleX(1)' },
+          ], { duration: 480, easing: 'cubic-bezier(.22,.75,.3,1)' });
+        }
+      }
+      previous.current = top;
+    };
+    update(true);
+    const observer = new ResizeObserver(() => {
+      if (marker.offsetTop !== target.offsetTop || marker.offsetHeight !== target.offsetHeight) update(false);
+    });
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, [view]);
+  useEffect(() => () => animationRef.current?.cancel(), []);
+  return <nav className="sidebar-primary-nav" ref={navRef} aria-label="Điều hướng chính">
+    <span className="nav-liquid-marker" ref={markerRef} hidden aria-hidden="true" />
+    {navs.map(([id, label, Icon]) => <button className={`nav-item ${view === id ? 'active' : ''}`} key={id}
+      aria-current={view === id ? 'page' : undefined} onClick={() => navigate(id)}>
+      <Icon size={20} />{label}{view === id && <span className="active-dot" />}
+    </button>)}
+  </nav>;
+}
 const readLocal = (key, fallback) => {
   try {
     return JSON.parse(localStorage.getItem(key)) || fallback;
@@ -723,19 +766,7 @@ export default function App() {
           <span className="brand-wordmark">SPMusic<span className="brand-period">.</span><small>by HIEUTHUJTHAI</small></span>
         </button>
         <div className="nav-label">KHÔNG GIAN CỦA BẠN</div>
-        <nav>
-          {navs.map(([id, label, Icon]) => (
-            <button
-              className={`nav-item ${view === id ? 'active' : ''}`}
-              key={id}
-              onClick={() => navigate(id)}
-            >
-              <Icon size={20} />
-              {label}
-              {view === id && <span className="active-dot" />}
-            </button>
-          ))}
-        </nav>
+        <PrimaryNavigation view={view} navigate={navigate} />
         <button
           className="nav-item"
           onClick={() => {

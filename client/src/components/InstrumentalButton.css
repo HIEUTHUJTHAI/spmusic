@@ -1,7 +1,8 @@
 .instrumental-control { position: relative; display: inline-flex; flex: 0 0 auto; }
-.instrumental-control.is-expanded::before { content: ''; position: absolute; z-index: 0; left: 0; bottom: 0; width: 38px; height: 76px; border-radius: 20px; background: var(--glass-strong, var(--panel)); border: 1px solid rgba(255,255,255,.35); box-shadow: 0 8px 22px #0003; backdrop-filter: blur(20px); pointer-events: none; animation: vocals-rise .2s ease-out both; }
+.instrumental-control.is-expanded::before { content: ''; position: absolute; z-index: 0; left: 0; bottom: 0; width: 38px; height: 76px; box-sizing: border-box; border-radius: 20px; background: var(--glass-strong, var(--panel)); border: 1px solid rgba(255,255,255,.35); box-shadow: 0 8px 22px #0003; backdrop-filter: blur(20px); pointer-events: none; animation: vocals-rise .2s ease-out both; }
 .vocals-popup { position: absolute; bottom: 100%; left: 0; z-index: 5; animation: vocals-rise .2s ease-out both; }
 .vocals-button { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%; color: inherit; background: transparent; }
+.instrumental-control .vocals-button, .instrumental-control .instrumental-button { scale: 1; translate: none; }
 .vocals-button:hover, .instrumental-control.is-expanded .instrumental-button:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
 .vocals-button.is-on { background: #f29fc4; color: #302131; }
 .expanded-instrumental .vocals-popup { left: auto; right: 0; }

@@ -67,6 +67,17 @@ app.whenReady().then(async () => {
   await reload();
   await waitFor(() => document.querySelector('[aria-label="Menu người dùng"]'), 'logged-in app');
   await waitFor(() => document.querySelector('.app-shell.has-wallpaper'), 'wallpaper shell');
+  await evaluate(() => document.querySelector('.player .instrumental-control').dispatchEvent(new MouseEvent('mouseover', { bubbles: true })));
+  await delay(3200);
+  const controls = await evaluate(() => {
+    const control = document.querySelector('.player .instrumental-control');
+    const top = control.querySelector('.vocals-button').getBoundingClientRect();
+    const bottom = control.querySelector('.instrumental-button').getBoundingClientRect();
+    return { overlap: top.bottom - bottom.top, width: top.width, leftDiff: top.left - bottom.left, text: control.querySelector('.vocals-button').textContent.trim() };
+  });
+  assert.ok(controls.overlap <= 1 && Math.abs(controls.leftDiff) < 1 && controls.width === 38 && !controls.text, `Unexpected stem controls ${JSON.stringify(controls)}`);
+  await screenshot('stem-controls');
+  await evaluate(() => document.querySelector('.player .instrumental-control').dispatchEvent(new MouseEvent('mouseout', { bubbles: true })));
   console.log('WALLPAPER_STYLE', JSON.stringify(await evaluate(() => ({ inline: document.querySelector('.app-wallpaper').style.backgroundImage, computed: getComputedStyle(document.querySelector('.app-wallpaper')).backgroundImage }))));
   console.log('WALLPAPER_STATE', JSON.stringify(await evaluate(async () => {
     const wall = document.querySelector('.app-wallpaper');
@@ -102,6 +113,13 @@ app.whenReady().then(async () => {
 
   await evaluate(() => [...document.querySelectorAll('.sidebar nav button')].find((item) => item.textContent.includes('Tìm kiếm')).click());
   await waitFor(() => document.querySelector('.sidebar nav button.active')?.textContent.includes('Tìm kiếm'), 'search navigation');
+  assert.ok(await evaluate(() => document.querySelector('.nav-liquid-marker').getAnimations().some((animation) => animation.playState === 'running')), 'Liquid marker animates during navigation');
+  assert.ok(await evaluate(() => {
+    const nav = document.querySelector('.sidebar-primary-nav');
+    const marker = nav.querySelector('.nav-liquid-marker');
+    const active = nav.querySelector('[aria-current="page"]');
+    return !marker.hidden && marker.offsetTop === active.offsetTop && marker.offsetHeight === active.offsetHeight;
+  }), 'Liquid marker follows selected tab');
   await delay(320);
   assert.ok(await evaluate(() => Boolean(document.querySelector('.discover-music'))), 'Search page renders');
   await evaluate(() => {

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const selector = '.sidebar .nav-item, .topbar .history-button, .topbar .user-avatar, .topbar .upload-top, .player button, .expanded-tabs button';
+const selector = '.sidebar .nav-item, .topbar .history-button, .topbar .user-avatar, .topbar .upload-top, .player button:not(.instrumental-button):not(.vocals-button), .expanded-tabs button';
 
 // Pointer events schedule one frame; there is no animation loop while the mouse is idle.
 export function useGlassProximity() {

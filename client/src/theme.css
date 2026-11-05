@@ -654,6 +654,11 @@ input[type='range']::-moz-range-thumb {
   border-color: var(--glass-border);
 }
 .nav-item { border-radius: 13px; }
+.sidebar-primary-nav { position: relative; isolation: isolate; }
+.sidebar-primary-nav .nav-liquid-marker { position: absolute; left: 0; width: 100%; border-radius: 13px; pointer-events: none; background: linear-gradient(130deg, #ffffff40, transparent), color-mix(in srgb, var(--accent-soft) 74%, transparent); box-shadow: inset 0 1px 0 var(--glass-edge), 0 3px 12px color-mix(in srgb, var(--text) 5%, transparent); will-change: transform; }
+.sidebar-primary-nav .nav-liquid-marker[hidden] { display: none; }
+.sidebar-primary-nav .nav-item { z-index: 1; }
+.sidebar-primary-nav .nav-item.active { background: transparent; box-shadow: none; }
 .nav-item.active,
 .genre-tabs button.selected {
   background: linear-gradient(130deg, #ffffff30, transparent), color-mix(in srgb, var(--accent-soft) 74%, transparent);
