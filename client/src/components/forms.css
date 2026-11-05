@@ -862,6 +862,10 @@
   color: var(--text);
   box-sizing: border-box;
 }
+.ai-review-lines input[aria-label^="Lời câu"],
+.ai-review-lines input[type="range"] { width: 100%; }
+.lyrics-ai audio { width: 100%; max-width: 100%; }
+.ai-review-line button[aria-pressed="true"] { outline: 2px solid var(--accent); }
 .ai-review-lines span {
   font-size: 12px;
   line-height: 1.5;

@@ -333,12 +333,13 @@ export async function createApp({
     const track = await ownTrack(req);
     if (Number(track.duration) > 900)
       throw new ApiError(400, 'AI hiện hỗ trợ bài hát tối đa 15 phút.');
-    plainLyrics(req.body.content);
+    if (req.body.mode !== 'transcribe') plainLyrics(req.body.content);
     const workingDir = await fs.mkdtemp(path.join(uploadsDir, 'temp', 'ai-'));
     try {
       const job = await ai.start({
         ownerId: req.user.id,
         content: req.body.content,
+        mode: req.body.mode || 'align',
         language: req.body.language,
         audioPath: path.join(uploadsDir, 'audio', track.audio_file),
         workingDir,

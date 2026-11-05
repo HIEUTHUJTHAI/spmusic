@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
 import Modal from './Modal';
 import LyricsAI from './LyricsAI';
+import LyricsTimeline from './LyricsTimeline';
 
 export default function LyricsEditor({ track, onClose, onSaved }) {
   const [content, setContent] = useState('');
@@ -103,6 +104,7 @@ export default function LyricsEditor({ track, onClose, onSaved }) {
           onChange={setContent}
           onBusyChange={setAligning}
         />
+        <LyricsTimeline track={track} content={content} onChange={setContent} disabled={loading || busy || aligning} />
         {error && (
           <p className="form-error" role="alert">
             {error}

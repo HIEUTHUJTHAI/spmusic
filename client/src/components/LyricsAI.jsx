@@ -11,7 +11,7 @@ const timeValue = (value) => {
   const match = value.match(/^(\d{1,3}):([0-5]\d)(?:\.(\d{1,2}))?$/);
   return match
     ? Number(match[1]) * 60 + Number(match[2]) + Number((match[3] || '').padEnd(2, '0')) / 100
-    : NaN;
+      : NaN;
 };
 
 export default function LyricsAI({
@@ -50,13 +50,13 @@ export default function LyricsAI({
       await api(`/lyrics/align/${jobId.current}`, { method: 'DELETE' }).catch(() => {});
   }
 
-  async function start() {
+  async function start(mode = 'align') {
     setError('');
     if (!licensed) {
       setError('Hãy đánh dấu xác nhận quyền sử dụng nội dung trước khi chạy AI.');
       return;
     }
-    if (!content.trim()) {
+    if (mode === 'align' && !content.trim()) {
       setError('Dán lời bài hát trước, mỗi câu hát một dòng.');
       return;
     }
@@ -82,7 +82,7 @@ export default function LyricsAI({
       if (trackId) {
         data = await api(`/tracks/${trackId}/lyrics/align`, {
           method: 'POST',
-          body: { content, language },
+          body: { content, language, mode },
           signal: controller.signal,
         });
       } else {
@@ -146,6 +146,7 @@ export default function LyricsAI({
   const canApply =
     Boolean(result) &&
     rows.length > 0 &&
+    rows.every((row) => row.text.trim()) &&
     times.every(
       (time, index) =>
         Number.isFinite(time) &&
@@ -185,11 +186,12 @@ export default function LyricsAI({
           type="button"
           className="form-secondary"
           disabled={disabled || busy || !content.trim()}
-          onClick={start}
+          onClick={() => start('align')}
         >
           {busy ? <LoaderCircle size={16} className="spinning" /> : <Sparkles size={16} />}
           {busy ? 'AI đang căn lời…' : 'AI căn thời gian'}
         </button>
+        {trackId && <button type="button" className="form-secondary" disabled={disabled || busy} onClick={() => start('transcribe')}><Sparkles size={16} /> AI nghe và viết lời</button>}
         {busy && (
           <button type="button" className="form-text-button" onClick={cancel}>
             <X size={15} />
@@ -251,14 +253,7 @@ export default function LyricsAI({
                     )
                   }
                 />
-                <span>
-                  {row.text}
-                  {row.start === null
-                    ? ' · Chưa ghép được'
-                    : row.confidence < 75
-                      ? ' · Cần nghe lại'
-                      : ''}
-                </span>
+                <input aria-label={`Lời câu ${index + 1}`} value={row.text} onChange={(e) => setRows((previous) => previous.map((item, i) => i === index ? { ...item, text: e.target.value } : item))} />
               </div>
             ))}
           </div>

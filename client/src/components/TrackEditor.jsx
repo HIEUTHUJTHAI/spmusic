@@ -12,6 +12,7 @@ import { api, upload } from '../lib/api';
 import { parseLrc } from '../lib/lrc';
 import Modal from './Modal';
 import LyricsAI from './LyricsAI';
+import LyricsTimeline from './LyricsTimeline';
 import BackgroundCropper from './BackgroundCropper';
 
 const MB = 1024 * 1024;
@@ -408,6 +409,7 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved }) {
             setLyrics(null);
           }}
         />
+        {editing && <LyricsTimeline track={track} content={content} disabled={busy || lyricsLoading || removeLyrics || aligning} onChange={(value) => { setContent(value); setLyrics(null); }} />}
         <div className="lyrics-editor-footer">
           <span className="field-hint">
             {lyricsLoading ? 'Đang tải lyrics…' : 'LRC có mốc thời gian · UTF-8 · Tối đa 256 KB'}

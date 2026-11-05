@@ -4,6 +4,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import ffmpeg from 'ffmpeg-static';
 import { alignLyrics } from './lyrics-alignment.js';
+import { transcriptionLines } from './lyrics-transcription.js';
 
 const execute = promisify(execFile);
 let started = false;
@@ -108,20 +109,24 @@ process.on('message', async (job) => {
         for (const chunk of output.chunks || [])
           chunks.push({
             text: chunk.text,
-            timestamp: chunk.timestamp.map((time) =>
+            timestamp: (chunk.timestamp || [null, null]).map((time) =>
               time === null ? null : time + offset / 16000,
             ),
           });
       }
-      send({ stage: 'aligning', progress: 100, message: 'Đang ghép từng câu với mốc thời gian…' });
-      send({ result: alignLyrics(job.lines, chunks, duration) });
+      if (job.mode === 'transcribe') {
+        send({ result: transcriptionLines(chunks, duration) });
+      } else {
+        send({ stage: 'aligning', progress: 100, message: 'Đang ghép từng câu với mốc thời gian…' });
+        send({ result: alignLyrics(job.lines, chunks, duration) });
+      }
     }
   } catch (error) {
     // Internal paths, transcripts and model errors are kept out of API output.
     send({
       error: error.status
         ? error.message
-        : /15 phút|im lặng/.test(error.message)
+        : /15 phút|im lặng|chưa nhận ra giọng hát/.test(error.message)
           ? error.message
           : 'Không chạy được AI. Lần đầu cần Internet để tải mô hình; hãy kiểm tra kết nối và bộ nhớ rồi thử lại.',
     });

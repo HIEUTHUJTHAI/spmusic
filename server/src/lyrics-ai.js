@@ -42,8 +42,9 @@ export function createLyricsAI({
   }
   return {
     status: (id, ownerId) => view(get(id, ownerId)),
-    async start({ ownerId, audioPath, content, language = 'auto', workingDir }) {
-      const lines = plainLyrics(content);
+    async start({ ownerId, audioPath, content, language = 'auto', workingDir, mode = 'align' }) {
+      if (!['align', 'transcribe'].includes(mode)) throw new ApiError(400, 'Chế độ AI không hợp lệ.');
+      const lines = mode === 'align' ? plainLyrics(content) : [];
       if (!AI_LANGUAGES.has(language)) throw new ApiError(400, 'Ngôn ngữ AI không hợp lệ.');
       if (active)
         throw new ApiError(409, 'AI đang xử lý một bài hát. Hãy chờ xong hoặc hủy lượt hiện tại.');
@@ -105,6 +106,7 @@ export function createLyricsAI({
         audioPath,
         pcmPath: path.join(workingDir, 'recognition.f32'),
         lines,
+        mode,
         language: language === 'auto' ? null : language,
         model: AI_MODEL,
         cacheDir: path.resolve(process.env.LYRICS_AI_CACHE || path.join(dataDir, 'ai-models')),

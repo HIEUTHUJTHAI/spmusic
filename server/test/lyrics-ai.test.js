@@ -5,6 +5,15 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { plainLyrics, alignLyrics, lrcTime } from '../src/lyrics-alignment.js';
 import { createLyricsAI } from '../src/lyrics-ai.js';
+import { transcriptionLines } from '../src/lyrics-transcription.js';
+
+test('transcription builds editable timed lines and rejects empty recognition', () => {
+  const result = transcriptionLines(chunks('mot hai ba bon nam sau bay tam chin', 3), 30);
+  assert.equal(result.lines.length, 2);
+  assert.equal(result.lines[0].start, 3);
+  assert.equal(result.lines[1].start, 11);
+  assert.throws(() => transcriptionLines([{ text: 'test', timestamp: [null, null] }], 30), /chưa nhận ra/);
+});
 
 const chunks = (words, start = 0) =>
   words.split(' ').map((text, i) => ({ text, timestamp: [start + i, start + i + 0.8] }));
