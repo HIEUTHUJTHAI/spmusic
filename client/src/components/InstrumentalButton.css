@@ -1,11 +1,14 @@
 .instrumental-control { position: relative; display: inline-flex; flex: 0 0 auto; }
-.vocals-popup { position: absolute; bottom: 100%; left: 0; z-index: 5; padding-bottom: 8px; animation: vocals-rise .2s ease-out both; }
-.vocals-button { display: flex; align-items: center; gap: 8px; white-space: nowrap; padding: 10px 14px; border: 1px solid rgba(255,255,255,.35); border-radius: 15px; color: var(--text); background: var(--glass-strong, var(--panel)); box-shadow: 0 10px 28px #0004; backdrop-filter: blur(20px); }
+.instrumental-control.is-expanded::before { content: ''; position: absolute; z-index: 0; left: 0; bottom: 0; width: 38px; height: 76px; border-radius: 20px; background: var(--glass-strong, var(--panel)); border: 1px solid rgba(255,255,255,.35); box-shadow: 0 8px 22px #0003; backdrop-filter: blur(20px); pointer-events: none; animation: vocals-rise .2s ease-out both; }
+.vocals-popup { position: absolute; bottom: 100%; left: 0; z-index: 5; animation: vocals-rise .2s ease-out both; }
+.vocals-button { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%; color: inherit; background: transparent; }
+.vocals-button:hover, .instrumental-control.is-expanded .instrumental-button:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
 .vocals-button.is-on { background: #f29fc4; color: #302131; }
 .expanded-instrumental .vocals-popup { left: auto; right: 0; }
 @keyframes vocals-rise { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@media (prefers-reduced-motion: reduce) { .vocals-popup { animation: none; } }
-.instrumental-button { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; color: inherit; background: color-mix(in srgb, currentColor 12%, transparent); }
+@media (prefers-reduced-motion: reduce) { .vocals-popup, .instrumental-control.is-expanded::before { animation: none; } }
+.instrumental-button { position: relative; z-index: 1; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; color: inherit; background: color-mix(in srgb, currentColor 12%, transparent); }
+.instrumental-control.is-expanded .instrumental-button:not(.is-on) { background: transparent; }
 .instrumental-button.is-on { background: #f29fc4; color: #302131; }
 .instrumental-button:disabled { opacity: .45; cursor: wait; }
 .instrumental-status { position: absolute; bottom: 46px; left: 0; width: 280px; display: grid; gap: 5px; padding: 12px; border-radius: 12px; color: #fff; background: #302735; font-size: 12px; line-height: 1.35; z-index: 3; box-shadow: 0 4px 22px #0004; }
