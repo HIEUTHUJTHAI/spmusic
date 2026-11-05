@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, shell, ipcMain, net } = require('electron');
+const { app, BrowserWindow, dialog, shell, ipcMain, net, clipboard } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('node:path');
 const fs = require('node:fs/promises');
@@ -153,6 +153,11 @@ async function checkForUpdates(interactive = true) {
 }
 
 ipcMain.handle('app:version', () => app.getVersion());
+ipcMain.handle('youtube:copy-link', (event, url) => {
+  if (event.sender !== mainWindow?.webContents || typeof url !== 'string' || !/^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/.test(url)) return false;
+  clipboard.writeText(url);
+  return true;
+});
 ipcMain.handle('glass:get', () => glassOpacity);
 ipcMain.handle('youtube-key:get', async () => {
   try { return Boolean((await fs.readFile(youtubeApiKeyFile, 'utf8')).trim()); } catch { return false; }

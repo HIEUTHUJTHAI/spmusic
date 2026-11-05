@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('spmusicDesktop', {
   isDesktop: true,
+  copyYoutubeLink: (url) => ipcRenderer.invoke('youtube:copy-link', url),
   getGlassOpacity: () => ipcRenderer.invoke('glass:get'),
   setGlassOpacity: (value) => ipcRenderer.invoke('glass:set', value),
   getYoutubeKeyConfigured: () => ipcRenderer.invoke('youtube-key:get'),

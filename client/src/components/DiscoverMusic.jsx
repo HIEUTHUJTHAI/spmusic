@@ -36,7 +36,9 @@ export default function DiscoverMusic({ query, user, onLogin, onImported, notify
 
   async function copyLink(result) {
     try {
-      await navigator.clipboard.writeText(result.sourceUrl);
+      if (window.spmusicDesktop?.copyYoutubeLink) {
+        if (!await window.spmusicDesktop.copyYoutubeLink(result.sourceUrl)) throw new Error('Không thể sao chép');
+      } else await navigator.clipboard.writeText(result.sourceUrl);
       setCopied(result.id);
       setTimeout(() => setCopied(null), 1800);
     } catch { notify('Không thể sao chép link. Hãy mở video rồi sao chép link trên thanh địa chỉ.'); }

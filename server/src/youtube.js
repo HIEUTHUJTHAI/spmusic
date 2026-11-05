@@ -126,7 +126,7 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
   });
 
   async function run(job, video) {
-    let directory, savedFile;
+    let directory, savedFile, savedCover;
     const signal = AbortSignal.any([job.controller.signal, AbortSignal.timeout(16 * 60 * 1000)]);
     try {
       const metadata = await inspectVideo(video.url, signal);
@@ -162,6 +162,18 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
       await rejectDuplicate(db, uploadsDir, job.ownerId, title, hash);
       signal.throwIfAborted();
       const id = randomUUID(), audioFile = `${id}${info.ext}`;
+      let coverFile = null;
+      try {
+        const response = await fetch(`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`, { signal: AbortSignal.timeout(8000), redirect: 'error' });
+        if (!response.ok || !response.headers.get('content-type')?.startsWith('image/jpeg')) throw new Error('thumbnail unavailable');
+        const chunks = []; let bytes = 0;
+        for await (const chunk of response.body) { bytes += chunk.length; if (bytes > 5 * 1024 * 1024) throw new Error('thumbnail too large'); chunks.push(chunk); }
+        const image = Buffer.concat(chunks);
+        if (image.length < 3 || image[0] !== 0xff || image[1] !== 0xd8 || image[2] !== 0xff) throw new Error('invalid image');
+        coverFile = `${id}.jpg`;
+        savedCover = path.join(uploadsDir, 'covers', coverFile);
+        await fs.writeFile(savedCover, image);
+      } catch { if (savedCover) await fs.unlink(savedCover).catch(() => {}); savedCover = null; coverFile = null; }
       const provenance = {
         provider: 'youtube', providerName: 'YouTube', itemId: video.id,
         title,
@@ -173,11 +185,12 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
       savedFile = path.join(uploadsDir, 'audio', audioFile);
       await fs.rename(file, savedFile);
       const { rows } = await db.query(
-        'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,audio_format,sample_rate,bit_depth,source_key,source_info,audio_hash) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *',
+        'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,audio_format,sample_rate,bit_depth,source_key,source_info,audio_hash,cover_file) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *',
         [id, job.ownerId, provenance.title, provenance.artist, '', '', info.duration, audioFile,
-          info.format, info.sampleRate, info.bitDepth, sourceKey, JSON.stringify(provenance), hash],
+          info.format, info.sampleRate, info.bitDepth, sourceKey, JSON.stringify(provenance), hash, coverFile],
       );
       savedFile = null;
+      savedCover = null;
       job.track = trackView(rows[0]);
       job.status = 'completed'; job.progress = 100;
       job.message = 'Đã thêm MP3 vào thư viện.';
@@ -187,6 +200,7 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
         error.status ? error.message : 'Không thể tải video. Hãy kiểm tra kết nối và thử lại.';
     } finally {
       if (savedFile) await fs.unlink(savedFile).catch(() => {});
+      if (savedCover) await fs.unlink(savedCover).catch(() => {});
       if (directory) await fs.rm(directory, { recursive: true, force: true, maxRetries: 3 }).catch(() => {});
       job.finishedAt = Date.now();
       if (active === job) active = null;
