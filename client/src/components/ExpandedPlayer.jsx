@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { activeLineIndex, parseLrc } from '../lib/lrc';
+import { lyricsScrollTop } from '../lib/lyricsScroll';
 import { formatTime } from './Player';
 import './ExpandedPlayer.css';
 import InstrumentalButton from './InstrumentalButton';
@@ -21,6 +22,13 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
   const active = activeLineIndex(lines, p.time);
   const nextTracks = p.queue.slice(Math.max(0, p.queue.indexOf(p.trackId) + 1))
     .map((id) => tracks.find((item) => item.id === id)).filter(Boolean);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const previous = root.style.overflow;
+    root.style.overflow = 'hidden';
+    return () => { root.style.overflow = previous; };
+  }, []);
 
   useEffect(() => {
     const closeOnEscape = (event) => {
@@ -48,11 +56,11 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
 
   useEffect(() => {
     if (tab !== 'lyrics' || !activeRef.current || !scrollRef.current) return;
-    activeRef.current.scrollIntoView({
-      block: 'center',
+    scrollRef.current.scrollTo({
+      top: lyricsScrollTop(scrollRef.current, activeRef.current),
       behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
     });
-  }, [active, tab]);
+  }, [active, tab, lyricsLoading, lines]);
 
   return (
     <section className="expanded-player" role="dialog" aria-modal="true" aria-label="Trình phát toàn màn hình">
