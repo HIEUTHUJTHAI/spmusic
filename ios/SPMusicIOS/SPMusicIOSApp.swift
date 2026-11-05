@@ -8,6 +8,7 @@ struct SPMusicIOSApp: App {
 }
 
 struct MusicView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var files: [URL] = []
     @State private var selected: URL?
     @State private var player: AVAudioPlayer?
@@ -17,6 +18,7 @@ struct MusicView: View {
     @State private var current: Double = 0
     @State private var duration: Double = 0
     @State private var search = ""
+    private let supportedExtensions = ["mp3", "wav", "m4a", "aac", "aiff", "aif", "flac"]
     private let timer = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
     private var library: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Music", isDirectory: true)
@@ -24,7 +26,7 @@ struct MusicView: View {
     private func refresh() {
         do {
             try FileManager.default.createDirectory(at: library, withIntermediateDirectories: true)
-            files = try FileManager.default.contentsOfDirectory(at: library, includingPropertiesForKeys: nil).filter { ["mp3", "wav", "m4a", "aac", "aiff"].contains($0.pathExtension.lowercased()) }.sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
+            files = try FileManager.default.contentsOfDirectory(at: library, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]).filter { supportedExtensions.contains($0.pathExtension.lowercased()) }.sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
         } catch { self.error = "Không thể mở thư viện nhạc." }
     }
     private func play(_ url: URL) {
@@ -92,18 +94,38 @@ struct MusicView: View {
             }.padding(.horizontal, 22).padding(.top, 10).padding(.bottom, 8).background(.ultraThinMaterial)
         }
         .preferredColorScheme(.light).onAppear(perform: refresh)
+                .onChange(of: scenePhase) { phase in if phase == .active { refresh() } }
                 .onReceive(timer) { _ in if let p = player { current = p.currentTime; if playing && !p.isPlaying { playing = false } } }
-                .fileImporter(isPresented: $importing, allowedContentTypes: [.audio], allowsMultipleSelection: true) { result in
+                .fileImporter(isPresented: $importing, allowedContentTypes: [.item], allowsMultipleSelection: true) { result in
                     do {
                         let urls = try result.get()
                         try FileManager.default.createDirectory(at: library, withIntermediateDirectories: true)
+                        var added = 0
+                        var duplicates = 0
+                        var failures: [String] = []
                         for url in urls {
                             let access = url.startAccessingSecurityScopedResource()
                             defer { if access { url.stopAccessingSecurityScopedResource() } }
+                            guard supportedExtensions.contains(url.pathExtension.lowercased()) else {
+                                failures.append("\(url.lastPathComponent): định dạng chưa hỗ trợ")
+                                continue
+                            }
                             let destination = library.appendingPathComponent(url.lastPathComponent)
-                            if !FileManager.default.fileExists(atPath: destination.path) { try FileManager.default.copyItem(at: url, to: destination) }
+                            if FileManager.default.fileExists(atPath: destination.path) { duplicates += 1; continue }
+                            var coordinationError: NSError?
+                            var copyError: Error?
+                            NSFileCoordinator().coordinate(readingItemAt: url, options: [], error: &coordinationError) { readableURL in
+                                do { try FileManager.default.copyItem(at: readableURL, to: destination) }
+                                catch { copyError = error }
+                            }
+                            if coordinationError != nil || copyError != nil { failures.append("\(url.lastPathComponent): không đọc được file") }
+                            else { added += 1 }
                         }
                         refresh()
+                        var summary = "Đã thêm \(added) bài hát."
+                        if duplicates > 0 { summary += " \(duplicates) file đã có trong thư viện." }
+                        if !failures.isEmpty { summary += "\n" + failures.prefix(4).joined(separator: "\n") + "\nNếu file nằm trên iCloud, hãy tải file về máy rồi thử lại." }
+                        self.error = summary
                     } catch { self.error = "Không thể thêm file. Hãy thử lại trong ứng dụng Tệp." }
                 }
                 .alert("SPMusic", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) { Button("OK", role: .cancel) { error = nil } } message: { Text(error ?? "") }
