@@ -294,6 +294,13 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
       const saved = await request(stemUrl, { cookie: aliceCookie });
       assert.deepEqual(saved.body, wav());
       assert.equal((await request(stemUrl, { cookie: aliceCookie, headers: { Range: 'bytes=0-11' } })).status, 206);
+      const vocalUrl = `/api/tracks/${trackId}/vocals`;
+      assert.equal((await request(vocalUrl)).status, 401);
+      assert.equal((await request(vocalUrl, { cookie: bobCookie })).status, 404);
+      assert.equal((await request(vocalUrl, { method: 'POST', cookie: bobCookie, body: stem() })).status, 404);
+      assert.equal((await request(vocalUrl, { method: 'POST', cookie: aliceCookie, body: stem() })).status, 200);
+      assert.deepEqual((await request(vocalUrl, { cookie: aliceCookie })).body, wav());
+      assert.equal((await request(vocalUrl, { cookie: aliceCookie, headers: { Range: 'bytes=0-11' } })).status, 206);
       const url = `/api/tracks/${trackId}/cover`;
       assert.equal((await request(url, { method: 'PUT', cookie: bobCookie, body: coverForm() })).status, 404);
       assert.equal((await request(url, { method: 'PUT', cookie: aliceCookie, body: coverForm(Buffer.from('bad')) })).status, 400);

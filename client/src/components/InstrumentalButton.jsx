@@ -1,10 +1,23 @@
+import { useEffect, useRef, useState } from 'react';
 import './InstrumentalButton.css';
 
 export default function InstrumentalButton({ p }) {
   const state = p.instrumental;
+  const [open, setOpen] = useState(false);
+  const timer = useRef(null);
+  const begin = () => { clearTimeout(timer.current); timer.current = setTimeout(() => setOpen(true), 3000); };
+  const close = () => { clearTimeout(timer.current); setOpen(false); };
+  useEffect(() => () => clearTimeout(timer.current), []);
   const elapsed = state.job?.elapsed ? ` · ${Math.floor(state.job.elapsed / 60)}:${String(state.job.elapsed % 60).padStart(2, '0')}` : '';
   const label = state.job ? `${state.job.text}${elapsed}` : (state.enabled ? 'Trở về nhạc gốc' : 'Tách nhạc nền bằng AI');
-  return <span className="instrumental-control">
+  return <span className="instrumental-control" onMouseEnter={begin} onMouseLeave={close}
+    onFocus={begin} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) close(); }}
+    onKeyDown={(event) => { if (event.key === 'Escape') close(); if (event.key === 'ArrowUp') { event.preventDefault(); setOpen(true); } }}>
+    {open && <span className="vocals-popup"><button type="button" className={`vocals-button ${state.mode === 'vocals' ? 'is-on' : ''}`}
+      disabled={!p.track || Boolean(state.job)} onClick={() => { state.toggleVocals(); setOpen(false); }}
+      aria-label={state.mode === 'vocals' ? 'Trở về bản gốc' : 'Chỉ nghe giọng hát'} aria-pressed={state.mode === 'vocals'}>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="2" width="8" height="13" rx="4" stroke="currentColor" strokeWidth="2"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-3 0h6M2 8v5m20-5v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+      <span>{state.mode === 'vocals' ? 'Bản gốc' : 'Chỉ giọng hát'}</span></button></span>}
     <button type="button" className={`instrumental-button ${state.enabled ? 'is-on' : ''}`}
       disabled={!p.track || Boolean(state.job)} onClick={state.toggle}
       aria-label={label} title={label} aria-pressed={state.enabled} aria-busy={Boolean(state.job)}>

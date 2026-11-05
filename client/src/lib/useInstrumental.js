@@ -19,18 +19,19 @@ export function useInstrumental(track, switchSource, notify) {
     return () => clearInterval(timer);
   }, [job?.id, Boolean(job)]);
 
-  async function toggle() {
+  async function toggle(mode = 'instrumental') {
     if (!track || busy.current) return;
     const target = track;
-    const url = `/api/tracks/${target.id}/instrumental`;
-    if (enabled[target.id]) {
+    const url = `/api/tracks/${target.id}/${mode}`;
+    const name = mode === 'vocals' ? 'giọng hát' : 'nhạc nền';
+    if (enabled[target.id] === mode) {
       switchSource(target.id, null);
-      setEnabled((value) => ({ ...value, [target.id]: false }));
+      setEnabled((value) => ({ ...value, [target.id]: null }));
       return;
     }
     busy.current = true;
     const startedAt = Date.now();
-    setJob({ id: target.id, stage: 'checking', percent: 0, elapsed: 0, startedAt, text: 'Đang kiểm tra bản nhạc nền…' });
+    setJob({ id: target.id, stage: 'checking', percent: 0, elapsed: 0, startedAt, text: `Đang kiểm tra bản ${name}…` });
     let separator;
     let outputs = [];
     try {
@@ -44,10 +45,10 @@ export function useInstrumental(track, switchSource, notify) {
         const create = (executionProviders) => createSeparator('UVR_MDXNET_KARA_2', {
           common: {
             modelUrl: '/api/instrumental/model',
-            outputSingleStem: 'instrumental', logLevel: 'error',
+            outputSingleStem: mode, logLevel: 'error',
             onProgress: ({ stage, fraction, chunk, totalChunks }) => {
               if (!mounted.current) return;
-              const label = stage === 'loading-model' ? 'Đang tải AI' : stage === 'demixing' ? 'Đang tách nhạc nền' : 'Đang tạo file nhạc nền';
+              const label = stage === 'loading-model' ? 'Đang tải AI' : stage === 'demixing' ? `Đang tách ${name}` : `Đang tạo file ${name}`;
               const percent = Math.round(fraction * 100);
               const detail = stage === 'demixing' && totalChunks ? ` · khối ${chunk}/${totalChunks}` : ` · ${percent}%`;
               setJob((value) => ({ ...(value || {}), id: target.id, stage, percent, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: `${label}${detail}` }));
@@ -64,24 +65,24 @@ export function useInstrumental(track, switchSource, notify) {
           setJob({ id: target.id, stage: 'loading-model', percent: 0, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: 'Thiết bị không dùng được WebGPU, đang chuyển sang chế độ tương thích…' });
           await separator.loadModel();
         }
-        setJob({ id: target.id, stage: 'demixing', percent: 0, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: 'Đã tải AI · đang tách nhạc nền…' });
+        setJob({ id: target.id, stage: 'demixing', percent: 0, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: `Đã tải AI · đang tách ${name}…` });
         outputs = await separator.separate(target.audioUrl);
-        if (!outputs[0]) throw new Error('AI chưa tạo được nhạc nền.');
+        if (!outputs[0]) throw new Error(`AI chưa tạo được ${name}.`);
         const blob = await (await fetch(outputs[0])).blob();
         const data = new FormData();
         data.append('instrumental', blob, 'instrumental.wav');
-        setJob({ id: target.id, stage: 'saving', percent: 100, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: 'Đang lưu nhạc nền…' });
-        await upload(`/tracks/${target.id}/instrumental`, data);
+        setJob({ id: target.id, stage: 'saving', percent: 100, elapsed: Math.floor((Date.now() - startedAt) / 1000), startedAt, text: `Đang lưu ${name}…` });
+        await upload(`/tracks/${target.id}/${mode}`, data);
       }
       if (mounted.current) {
         if (current.current?.id === target.id) {
           switchSource(target.id, url);
-          setEnabled((value) => ({ ...value, [target.id]: true }));
+          setEnabled((value) => ({ ...value, [target.id]: mode }));
         }
-        notify(`Nhạc nền đã sẵn sàng: ${target.title}`);
+        notify(`Bản ${name} đã sẵn sàng: ${target.title}`);
       }
     } catch (error) {
-      if (mounted.current) notify(`Không thể tách nhạc nền. ${error.message}`);
+      if (mounted.current) notify(`Không thể tách ${name}. ${error.message}`);
     } finally {
       outputs.forEach((url) => URL.revokeObjectURL(url));
       // The package has no dispose API; release its ONNX session explicitly.
@@ -91,5 +92,5 @@ export function useInstrumental(track, switchSource, notify) {
       if (mounted.current) setJob(null);
     }
   }
-  return { toggle, job, enabled: Boolean(enabled[track?.id]) };
+  return { toggle: () => toggle('instrumental'), toggleVocals: () => toggle('vocals'), job, mode: enabled[track?.id] || 'original', enabled: enabled[track?.id] === 'instrumental' };
 }

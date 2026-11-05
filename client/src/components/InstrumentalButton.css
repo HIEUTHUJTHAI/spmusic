@@ -1,4 +1,10 @@
 .instrumental-control { position: relative; display: inline-flex; flex: 0 0 auto; }
+.vocals-popup { position: absolute; bottom: 100%; left: 0; z-index: 5; padding-bottom: 8px; animation: vocals-rise .2s ease-out both; }
+.vocals-button { display: flex; align-items: center; gap: 8px; white-space: nowrap; padding: 10px 14px; border: 1px solid rgba(255,255,255,.35); border-radius: 15px; color: var(--text); background: var(--glass-strong, var(--panel)); box-shadow: 0 10px 28px #0004; backdrop-filter: blur(20px); }
+.vocals-button.is-on { background: #f29fc4; color: #302131; }
+.expanded-instrumental .vocals-popup { left: auto; right: 0; }
+@keyframes vocals-rise { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .vocals-popup { animation: none; } }
 .instrumental-button { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; color: inherit; background: color-mix(in srgb, currentColor 12%, transparent); }
 .instrumental-button.is-on { background: #f29fc4; color: #302131; }
 .instrumental-button:disabled { opacity: .45; cursor: wait; }

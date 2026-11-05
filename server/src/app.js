@@ -532,6 +532,7 @@ export async function createApp({
     await Promise.all([
       unlink(path.join(uploadsDir, 'audio', current.audio_file)),
       unlink(path.join(uploadsDir, 'instrumental', `${current.id}.wav`)),
+      unlink(path.join(uploadsDir, 'vocals', `${current.id}.wav`)),
       current.playback_file && unlink(path.join(uploadsDir, 'playback', current.playback_file)),
       current.cover_file && unlink(path.join(uploadsDir, 'covers', current.cover_file)),
       current.lyrics_file && unlink(path.join(uploadsDir, 'lyrics', current.lyrics_file)),

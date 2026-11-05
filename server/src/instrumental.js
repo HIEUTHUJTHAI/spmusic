@@ -6,7 +6,9 @@ import { ApiError } from './validation.js';
 
 export async function instrumentalRoutes(app, { uploadsDir, requireAuth, ownTrack }) {
   const directory = path.join(uploadsDir, 'instrumental');
+  const vocalsDirectory = path.join(uploadsDir, 'vocals');
   await fs.mkdir(directory, { recursive: true });
+  await fs.mkdir(vocalsDirectory, { recursive: true });
   const models = path.join(uploadsDir, 'models');
   await fs.mkdir(models, { recursive: true });
   const modelPath = path.join(models, 'UVR_MDXNET_KARA_2.onnx');
@@ -27,11 +29,13 @@ export async function instrumentalRoutes(app, { uploadsDir, requireAuth, ownTrac
     res.type('application/octet-stream').sendFile(modelPath);
   });
   const upload = multer({ dest: path.join(uploadsDir, 'temp'), limits: { fileSize: 320 * 1024 * 1024, files: 1, fields: 0 } }).single('instrumental');
-  app.get('/api/tracks/:id/instrumental', requireAuth, async (req, res) => {
+  const stemDirectory = (req) => req.path.endsWith('/vocals') ? vocalsDirectory : directory;
+  const stemPaths = ['/api/tracks/:id/instrumental', '/api/tracks/:id/vocals'];
+  app.get(stemPaths, requireAuth, async (req, res) => {
     const track = await ownTrack(req);
-    res.type('audio/wav').sendFile(path.join(directory, `${track.id}.wav`));
+    res.type('audio/wav').sendFile(path.join(stemDirectory(req), `${track.id}.wav`));
   });
-  app.post('/api/tracks/:id/instrumental', requireAuth, async (req, res, next) => {
+  app.post(stemPaths, requireAuth, async (req, res, next) => {
     const track = await ownTrack(req);
     upload(req, res, async (error) => {
       let staging;
@@ -45,9 +49,9 @@ export async function instrumentalRoutes(app, { uploadsDir, requireAuth, ownTrac
           throw new ApiError(400, 'Nhạc nền phải là file WAV hợp lệ.');
         // Verify ownership again in case the song was removed while uploading.
         await ownTrack(req);
-        staging = path.join(directory, `${randomUUID()}.tmp`);
+        staging = path.join(stemDirectory(req), `${randomUUID()}.tmp`);
         await fs.rename(req.file.path, staging);
-        await fs.rename(staging, path.join(directory, `${track.id}.wav`));
+        await fs.rename(staging, path.join(stemDirectory(req), `${track.id}.wav`));
         res.json({ ok: true });
       } catch (failure) { next(failure); }
       finally {
