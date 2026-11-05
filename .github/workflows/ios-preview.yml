@@ -1,0 +1,28 @@
+name: iOS preview
+on:
+  workflow_dispatch:
+  push:
+    branches: [ios-preview]
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate iOS project
+        working-directory: ios
+        run: xcodegen generate
+      - name: Build unsigned iPhone app
+        working-directory: ios
+        run: xcodebuild -project SPMusicIOS.xcodeproj -scheme SPMusicIOS -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Create unsigned IPA
+        working-directory: ios
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/SPMusic.app Payload/
+          zip -qr SPMusic-iOS-preview-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SPMusic-iOS-preview-unsigned
+          path: ios/SPMusic-iOS-preview-unsigned.ipa
