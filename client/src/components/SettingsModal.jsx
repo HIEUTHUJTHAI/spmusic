@@ -327,7 +327,7 @@ export default function SettingsModal({ user, tracks, player, onUser, onDeleted,
           <input id="youtube-api-key" type="password" autoComplete="off" value={youtubeKey} placeholder={youtubeConfigured ? 'Đã có key · dán key mới để thay' : 'AIza...'} onChange={(event) => setYoutubeKey(event.target.value)} />
         </label>
         <div className="update-controls">
-          <button className="form-primary" disabled={youtubeKeyBusy || !youtubeKey.trim()} onClick={saveYoutubeKey}>Lưu API key</button>
+          <button className="form-primary" disabled={youtubeKeyBusy || !youtubeKey.trim()} onClick={() => saveYoutubeKey()}>Lưu API key</button>
           <button className="form-secondary" disabled={youtubeKeyBusy || !youtubeConfigured} onClick={() => { setYoutubeKey(''); saveYoutubeKey(''); }}>Xóa key</button>
         </div>
       </section>}

@@ -143,12 +143,7 @@ async function checkForUpdates(interactive = true) {
     return result;
   }
   try {
-    const result = await autoUpdater.checkForUpdates();
-    if (result?.isUpdateAvailable && updateState.status !== 'available')
-      publishUpdate({ status: 'available', version: result.updateInfo.version,
-        message: `Có phiên bản SPMusic ${result.updateInfo.version} mới.` });
-    if (!result?.isUpdateAvailable && updateState.status !== 'latest')
-      publishUpdate({ status: 'latest', version: null, message: 'Bạn đang dùng phiên bản mới nhất.' });
+    await autoUpdater.checkForUpdates();
     return updateState;
   } catch {
     const result = { status: 'error', message: 'Chưa thể kiểm tra cập nhật lúc này.' };
