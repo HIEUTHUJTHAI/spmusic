@@ -22,6 +22,13 @@ test('YouTube charts validate regions, handle missing key and use music chart fo
     assert.equal(requested.searchParams.get('regionCode'), 'VN');
     assert.equal(data.results[0].title, 'Demo');
     assert.equal(JSON.stringify(data).includes('test-key'), false);
+    let calls = 0;
+    globalThis.fetch = async () => { calls++; return { ok: true, json: async () => ({ items: [{ id: 'AbCdEfGh123', snippet: { title: 'Demo' } }] }) }; };
+    const combined = await (await originalFetch(`${base}/api/discover/youtube-chart?region=INTL`)).json();
+    assert.equal(calls, 6);
+    assert.equal(combined.results.length, 1);
+    assert.equal(combined.results[0].appearances, 6);
+    assert.equal(combined.sourceCountries.length, 6);
   } finally {
     globalThis.fetch = originalFetch;
     if (previous === undefined) delete process.env.YOUTUBE_API_KEY; else process.env.YOUTUBE_API_KEY = previous;

@@ -68,7 +68,8 @@ app.whenReady().then(async () => {
   await waitFor(() => document.querySelector('[aria-label="Menu người dùng"]'), 'logged-in app');
   await waitFor(() => document.querySelector('.app-shell.has-wallpaper'), 'wallpaper shell');
   await evaluate(() => [...document.querySelectorAll('.sidebar-primary-nav button')].find((b) => b.textContent.trim() === 'New').click());
-  await waitFor(() => document.querySelectorAll('.new-chart-card').length === 6, 'New charts');
+  await waitFor(() => document.querySelectorAll('.new-chart-card').length === 7, 'New charts');
+  await screenshot('new-charts');
   await evaluate(() => document.querySelector('.new-chart-card').click());
   await waitFor(() => document.querySelector('.new-chart-back'), 'chart details');
   await evaluate(() => [...document.querySelectorAll('.sidebar-primary-nav button')].find((b) => b.textContent.includes('Khám phá')).click());
