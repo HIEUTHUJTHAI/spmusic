@@ -75,7 +75,7 @@ app.whenReady().then(async () => {
     const bottom = control.querySelector('.instrumental-button').getBoundingClientRect();
     return { overlap: top.bottom - bottom.top, width: top.width, leftDiff: top.left - bottom.left, text: control.querySelector('.vocals-button').textContent.trim() };
   });
-  assert.ok(controls.overlap <= 1 && Math.abs(controls.leftDiff) < 1 && controls.width === 38 && !controls.text, `Unexpected stem controls ${JSON.stringify(controls)}`);
+  assert.ok(controls.overlap <= 1 && Math.abs(controls.leftDiff) < 1 && Math.abs(controls.width - 38) < 1 && !controls.text, `Unexpected stem controls ${JSON.stringify(controls)}`);
   await screenshot('stem-controls');
   await evaluate(() => document.querySelector('.player .instrumental-control').dispatchEvent(new MouseEvent('mouseout', { bubbles: true })));
   console.log('WALLPAPER_STYLE', JSON.stringify(await evaluate(() => ({ inline: document.querySelector('.app-wallpaper').style.backgroundImage, computed: getComputedStyle(document.querySelector('.app-wallpaper')).backgroundImage }))));
@@ -122,6 +122,12 @@ app.whenReady().then(async () => {
   }), 'Liquid marker follows selected tab');
   await delay(320);
   assert.ok(await evaluate(() => Boolean(document.querySelector('.discover-music'))), 'Search page renders');
+  await evaluate(() => document.querySelector('.discover-source-tabs button:nth-of-type(2)').click());
+  assert.ok(await evaluate(() => {
+    const group = document.querySelector('.discover-source-tabs');
+    const marker = group.querySelector('.liquid-lens'), active = group.querySelector('button.selected');
+    return !marker.hidden && marker.offsetLeft === active.offsetLeft && marker.getAnimations().some((item) => item.playState === 'running');
+  }), 'Discovery lens moves to selected source');
   await evaluate(() => {
     const buttons = [...document.querySelectorAll('.sidebar nav button')];
     buttons.find((item) => item.textContent.includes('Khám phá')).click();

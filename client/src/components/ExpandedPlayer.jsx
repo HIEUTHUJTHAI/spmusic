@@ -9,6 +9,7 @@ import { lyricsScrollTop } from '../lib/lyricsScroll';
 import { formatTime } from './Player';
 import './ExpandedPlayer.css';
 import InstrumentalButton from './InstrumentalButton';
+import LiquidTabs from './LiquidTabs';
 
 export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
   const [tab, setTab] = useState('player');
@@ -151,14 +152,14 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
                 style={{ '--range': `${p.volume * 100}%` }} />
             </div>
           </div>}
-          <nav className="expanded-tabs" aria-label="Chế độ trình phát">
+          <LiquidTabs as="nav" className="expanded-tabs" aria-label="Chế độ trình phát">
             <button className={tab === 'lyrics' ? 'active' : ''} onClick={() => setTab('lyrics')}
               aria-label="Lời bài hát" title="Lời bài hát" aria-pressed={tab === 'lyrics'}><Mic2 size={22} /></button>
             <button className={tab === 'player' ? 'active' : ''} onClick={() => setTab('player')}
               aria-label="Trình phát" title="Trình phát" aria-pressed={tab === 'player'}><Music2 size={22} /></button>
             <button className={tab === 'queue' ? 'active' : ''} onClick={() => setTab('queue')}
               aria-label="Danh sách phát" title="Danh sách phát" aria-pressed={tab === 'queue'}><ListMusic size={22} /></button>
-          </nav>
+          </LiquidTabs>
         </div>
       </div>
     </section>

@@ -50,6 +50,7 @@ import YoutubeModal from './components/YoutubeModal';
 import ArtistPage from './components/ArtistPage';
 import { applyGlassOpacity, readGlassOpacity } from './lib/glassPreferences';
 import { useGlassProximity } from './lib/useGlassProximity';
+import LiquidTabs from './components/LiquidTabs';
 
 const navs = [
   ['home', 'Khám phá', House],
@@ -805,7 +806,7 @@ export default function App() {
           </span>
           Nghe gần đây
         </button>
-        <div className="playlist-nav">
+        <LiquidTabs className="playlist-nav">
           {playlists.map((pl, i) => (
             <button
               key={pl.id}
@@ -827,7 +828,7 @@ export default function App() {
               Tạo playlist đầu tiên
             </button>
           )}
-        </div>
+        </LiquidTabs>
         <div className="sidebar-upload">
           <span className="upload-orbit">
             <ArrowUpFromLine size={21} />
@@ -991,7 +992,7 @@ export default function App() {
                       Bật nhạc. Chạm cảm xúc.
                     </span>
                   </div>
-                  <div className="genre-tabs" aria-label="Lọc thể loại">
+                  <LiquidTabs className="genre-tabs" aria-label="Lọc thể loại">
                     {['Tất cả', 'Thư giãn', 'Tập trung', 'Điện tử', 'Acoustic'].map((g) => (
                       <button
                         className={genre === g ? 'selected' : ''}
@@ -1001,7 +1002,7 @@ export default function App() {
                         {g}
                       </button>
                     ))}
-                  </div>
+                  </LiquidTabs>
                   <section className="home-section">
                     <div className="section-heading">
                       <div>
@@ -1134,7 +1135,7 @@ export default function App() {
                     <span className="collection-count">{list.length} bài hát</span>
                   </div>
                   {['search', 'library'].includes(view) && (
-                    <div className="genre-tabs collection-tabs">
+                    <LiquidTabs className="genre-tabs collection-tabs">
                       {['Bài hát', 'Album', 'Nghệ sĩ'].map((t) => (
                         <button
                           key={t}
@@ -1152,7 +1153,7 @@ export default function App() {
                           Nhạc tải lên
                         </button>
                       )}
-                    </div>
+                    </LiquidTabs>
                   )}
                   {tab === 'Album' && ['search', 'library'].includes(view) ? (
                     <div className="album-grid library-albums">

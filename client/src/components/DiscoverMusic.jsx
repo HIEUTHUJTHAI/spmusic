@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Check, Copy, Download, ExternalLink, FolderOpen, Headphones, LoaderCircle } from 'lucide-react';
 import { api, upload } from '../lib/api';
 import './DiscoverMusic.css';
+import LiquidTabs from './LiquidTabs';
 
 export default function DiscoverMusic({ query, user, onLogin, onImported, notify, onYoutubeImport }) {
   const [results, setResults] = useState([]);
@@ -80,10 +81,10 @@ export default function DiscoverMusic({ query, user, onLogin, onImported, notify
         <button type="button" onClick={() => window.spmusicDesktop.openInbox().then((error) => { if (error) notify(`Không mở được thư mục: ${error}`); }).catch(() => notify('Không mở được SPMusic Inbox.'))}><FolderOpen size={15} /> Mở SPMusic Inbox</button>
       </div>
     </div>}
-    <div className="discover-source-tabs">
+    <LiquidTabs className="discover-source-tabs">
       <button className={source === 'open' ? 'selected' : ''} onClick={() => { setSource('open'); setPreview(null); }}>Nguồn mở · tải được</button>
       <button className={source === 'youtube' ? 'selected' : ''} onClick={() => { setSource('youtube'); setPreview(null); }}>YouTube · xem thử</button>
-    </div>
+    </LiquidTabs>
     {query.trim().length < 2 ? <p className="discover-message">Nhập ít nhất hai ký tự vào ô tìm kiếm phía trên.</p>
       : loading ? <p className="discover-message"><LoaderCircle size={16} className="spin" /> Đang tìm các bản có giấy phép rõ ràng…</p>
       : error ? <p className="discover-message" role="alert">{error}</p>
