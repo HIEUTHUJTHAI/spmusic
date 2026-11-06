@@ -50,6 +50,20 @@ export async function archiveSelection(identifier, filename) {
 }
 
 export function discoveryRoutes(app) {
+  app.get('/api/discover/youtube-chart', async (req, res) => {
+    const region = String(req.query.region || '').toUpperCase();
+    if (!['VN', 'US', 'GB', 'KR', 'JP', 'CA'].includes(region)) throw new ApiError(400, 'Khu vực không được hỗ trợ.');
+    if (!process.env.YOUTUBE_API_KEY) return res.json({ configured: false, results: [] });
+    const url = new URL('https://www.googleapis.com/youtube/v3/videos');
+    for (const [name, value] of Object.entries({ part: 'snippet,statistics', chart: 'mostPopular', regionCode: region, videoCategoryId: '10', maxResults: '50', key: process.env.YOUTUBE_API_KEY })) url.searchParams.set(name, value);
+    const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new ApiError(502, response.status === 403 ? 'YouTube từ chối yêu cầu hoặc đã hết hạn mức API. Hãy kiểm tra API key.' : 'Không tải được danh sách YouTube. Hãy kiểm tra kết nối và thử lại.');
+    res.json({ configured: true, results: (data.items || []).filter((item) => /^[a-zA-Z0-9_-]{11}$/.test(item.id || '')).map((item) => ({
+      id: item.id, title: clean(item.snippet?.title, 'Video YouTube'), artist: clean(item.snippet?.channelTitle, 'YouTube'),
+      thumbnail: item.snippet?.thumbnails?.medium?.url || '', views: item.statistics?.viewCount || null,
+    })) });
+  });
   app.get('/api/discover/youtube', async (req, res) => {
     const query = clean(req.query.q).trim();
     if (query.length < 2) return res.json({ results: [], configured: Boolean(process.env.YOUTUBE_API_KEY) });

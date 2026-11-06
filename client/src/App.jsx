@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   AudioLines,
   House,
+  LayoutGrid,
   Search,
   Library,
   Clock3,
@@ -51,9 +52,11 @@ import ArtistPage from './components/ArtistPage';
 import { applyGlassOpacity, readGlassOpacity } from './lib/glassPreferences';
 import { useGlassProximity } from './lib/useGlassProximity';
 import LiquidTabs from './components/LiquidTabs';
+import NewCharts from './components/NewCharts';
 
 const navs = [
   ['home', 'Khám phá', House],
+  ['new', 'New', LayoutGrid],
   ['search', 'Tìm kiếm', Search],
   ['library', 'Thư viện của bạn', Library],
 ];
@@ -975,6 +978,8 @@ export default function App() {
             <>
               {view === 'artist' ? (
                 <ArtistPage name={selection} tracks={tracks.filter((t) => t.artist === selection)} player={p} user={user} onAlbum={(name) => navigate('collection', name)} notify={notify} />
+              ) : view === 'new' ? (
+                <NewCharts onImport={(url) => requireUser(() => setModal({ type: 'youtube', url }))} />
               ) : view === 'home' ? (
                 <>
                   <div className="page-intro">

@@ -67,6 +67,12 @@ app.whenReady().then(async () => {
   await reload();
   await waitFor(() => document.querySelector('[aria-label="Menu người dùng"]'), 'logged-in app');
   await waitFor(() => document.querySelector('.app-shell.has-wallpaper'), 'wallpaper shell');
+  await evaluate(() => [...document.querySelectorAll('.sidebar-primary-nav button')].find((b) => b.textContent.trim() === 'New').click());
+  await waitFor(() => document.querySelectorAll('.new-chart-card').length === 6, 'New charts');
+  await evaluate(() => document.querySelector('.new-chart-card').click());
+  await waitFor(() => document.querySelector('.new-chart-back'), 'chart details');
+  await evaluate(() => [...document.querySelectorAll('.sidebar-primary-nav button')].find((b) => b.textContent.includes('Khám phá')).click());
+  await waitFor(() => document.querySelector('.page-intro'), 'home after New');
   await evaluate(() => document.querySelector('.player .instrumental-control').dispatchEvent(new MouseEvent('mouseover', { bubbles: true })));
   await delay(3200);
   const controls = await evaluate(() => {
