@@ -6,6 +6,14 @@ import path from 'node:path';
 import { plainLyrics, alignLyrics, lrcTime } from '../src/lyrics-alignment.js';
 import { createLyricsAI } from '../src/lyrics-ai.js';
 import { transcriptionLines } from '../src/lyrics-transcription.js';
+import { windowWords } from '../src/lyrics-windows.js';
+
+test('overlapping audio windows keep boundary words once and retain absolute times', () => {
+  const first = windowWords([{ text: 'trước', timestamp: [22, 22.4] }, { text: 'sau', timestamp: [22.5, 23] }], 0, 25, 40);
+  const second = windowWords([{ text: 'trước', timestamp: [2, 2.4] }, { text: 'sau', timestamp: [2.5, 3] }], 20, 40, 40);
+  assert.deepEqual([...first, ...second].map((w) => w.text), ['trước', 'sau']);
+  assert.equal(second[0].timestamp[0], 22.5);
+});
 
 test('transcription builds editable timed lines and rejects empty recognition', () => {
   const result = transcriptionLines(chunks('mot hai ba bon nam sau bay tam chin', 3), 30);

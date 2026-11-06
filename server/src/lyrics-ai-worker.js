@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 import ffmpeg from 'ffmpeg-static';
 import { alignLyrics } from './lyrics-alignment.js';
 import { transcriptionLines } from './lyrics-transcription.js';
+import { windowWords } from './lyrics-windows.js';
 
 const execute = promisify(execFile);
 let started = false;
@@ -90,10 +91,9 @@ process.on('message', async (job) => {
       if (energy / audio.length < 1e-9)
         throw new Error('File gần như im lặng, AI không nhận ra giọng hát.');
       const chunks = [];
-      // Non-overlapping windows bound memory and provide honest processing
-      // progress. Boundary words may need manual review after recognition.
       const window = 25 * 16000;
-      for (let offset = 0; offset < audio.length; offset += window) {
+      const stride = 20 * 16000;
+      for (let offset = 0; offset < audio.length; offset += stride) {
         const percent = Math.floor((offset / audio.length) * 100);
         send({
           stage: 'transcribing',
@@ -106,13 +106,9 @@ process.on('message', async (job) => {
           task: 'transcribe',
           max_new_tokens: 224,
         });
-        for (const chunk of output.chunks || [])
-          chunks.push({
-            text: chunk.text,
-            timestamp: (chunk.timestamp || [null, null]).map((time) =>
-              time === null ? null : time + offset / 16000,
-            ),
-          });
+        const end = Math.min(offset + window, audio.length);
+        chunks.push(...windowWords(output.chunks || [], offset / 16000, end / 16000, duration));
+        if (end === audio.length) break;
       }
       if (job.mode === 'transcribe') {
         send({ result: transcriptionLines(chunks, duration) });

@@ -2,11 +2,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fork } from 'node:child_process';
 import dotenv from 'dotenv';
-import { AI_MODEL } from '../server/src/lyrics-ai.js';
+import { AI_MODELS } from '../server/src/lyrics-ai.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 dotenv.config({ path: path.join(root, 'server/.env') });
 const dataDir = path.resolve(root, 'server', process.env.DATA_DIR || 'data');
+const selectedModel = process.argv.find((argument) => argument.startsWith('--model='))?.slice(8) || 'base';
+if (!Object.hasOwn(AI_MODELS, selectedModel)) throw new Error('Chỉ hỗ trợ --model=base hoặc --model=small.');
 console.log('Chuẩn bị Whisper cục bộ. Chỉ tải mô hình; không gửi nhạc hoặc lyrics.');
 const child = fork(path.join(root, 'server/src/lyrics-ai-worker.js'), [], {
   execArgv: [],
@@ -28,7 +30,7 @@ child.once('exit', () => {
 });
 child.send({
   setupOnly: true,
-  model: AI_MODEL,
+  model: AI_MODELS[selectedModel],
   cacheDir: path.resolve(process.env.LYRICS_AI_CACHE || path.join(dataDir, 'ai-models')),
   offline: process.argv.includes('--offline'),
 });

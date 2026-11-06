@@ -331,6 +331,12 @@ export async function createApp({
   });
   app.post('/api/tracks/:id/lyrics/align', requireAuth, async (req, res) => {
     const track = await ownTrack(req);
+    const source = req.body.source || 'original';
+    if (!['original', 'vocals'].includes(source)) throw new ApiError(400, 'Nguồn âm thanh không hợp lệ.');
+    const audioPath = source === 'vocals' ? path.join(uploadsDir, 'vocals', `${track.id}.wav`) : path.join(uploadsDir, 'audio', track.audio_file);
+    if (source === 'vocals') {
+      try { await fs.access(audioPath); } catch (error) { if (error.code === 'ENOENT') throw new ApiError(400, 'Chưa có bản giọng hát. Hãy dùng nút Chỉ giọng hát để tách trước, rồi thử lại.'); throw error; }
+    }
     if (Number(track.duration) > 900)
       throw new ApiError(400, 'AI hiện hỗ trợ bài hát tối đa 15 phút.');
     if (req.body.mode !== 'transcribe') plainLyrics(req.body.content);
@@ -340,8 +346,9 @@ export async function createApp({
         ownerId: req.user.id,
         content: req.body.content,
         mode: req.body.mode || 'align',
+        model: req.body.model || 'base',
         language: req.body.language,
-        audioPath: path.join(uploadsDir, 'audio', track.audio_file),
+        audioPath,
         workingDir,
       });
       sendAIJob(req, res, job);
@@ -368,6 +375,7 @@ export async function createApp({
         ownerId: req.user.id,
         content: req.body.content,
         language: req.body.language,
+        model: req.body.model || 'base',
         audioPath: req.file.path,
         workingDir: req.uploadDir,
       });

@@ -333,9 +333,12 @@ test('API integration: auth, ownership, uploads, media range, playlists, history
         const started = await request(`/api/tracks/${trackId}/lyrics/align`, {
           method: 'POST',
           cookie: aliceCookie,
-          body: { content: 'Hello my friend', language: 'en' },
+          body: { content: 'Hello my friend', language: 'en', source: 'vocals', model: 'small' },
         });
         assert.equal(started.status, 202, JSON.stringify(started.body));
+        assert.ok(aiWorker.input.audioPath.endsWith(`${trackId}.wav`));
+        assert.ok(aiWorker.input.audioPath.includes('vocals'));
+        assert.equal(aiWorker.input.model, 'Xenova/whisper-small');
         const id = started.body.job.id;
         assert.equal((await request(`/api/lyrics/align/${id}`, { cookie: bobCookie })).status, 404);
         assert.equal(

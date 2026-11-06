@@ -27,6 +27,8 @@ export default function LyricsAI({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [language, setLanguage] = useState('vi');
+  const [model, setModel] = useState('small');
+  const [source, setSource] = useState('original');
   const [result, setResult] = useState(null);
   const [rows, setRows] = useState([]);
   const [original, setOriginal] = useState(null);
@@ -82,7 +84,7 @@ export default function LyricsAI({
       if (trackId) {
         data = await api(`/tracks/${trackId}/lyrics/align`, {
           method: 'POST',
-          body: { content, language, mode },
+          body: { content, language, mode, model, source },
           signal: controller.signal,
         });
       } else {
@@ -90,6 +92,7 @@ export default function LyricsAI({
         form.append('audio', audio);
         form.append('content', content);
         form.append('language', language);
+        form.append('model', model);
         const response = await fetch('/api/lyrics/align', {
           method: 'POST',
           body: form,
@@ -163,6 +166,12 @@ export default function LyricsAI({
   return (
     <section className="lyrics-ai" aria-label="AI căn thời gian lời bài hát">
       <div className="lyrics-ai-toolbar">
+        <label><span>Chất lượng AI</span><select aria-label="Chất lượng AI" value={model} onChange={(e) => setModel(e.target.value)} disabled={disabled || busy}>
+          <option value="small">Tốt hơn · Whisper Small</option><option value="base">Nhanh hơn · Whisper Base</option>
+        </select></label>
+        {trackId && <label><span>Nguồn âm thanh</span><select aria-label="Nguồn âm thanh AI" value={source} onChange={(e) => setSource(e.target.value)} disabled={disabled || busy}>
+          <option value="original">Bản gốc</option><option value="vocals">Giọng hát đã tách</option>
+        </select></label>}
         <label>
           <span>Ngôn ngữ giọng hát</span>
           <select
@@ -215,8 +224,7 @@ export default function LyricsAI({
         )}
       </div>
       <p className="field-hint">
-        Dán lời chưa có thời gian, mỗi câu một dòng. AI chạy trên máy của bạn; lần đầu tải mô hình.
-        Bài tối đa 15 phút.
+        AI chạy bằng CPU trên máy; chế độ tốt hơn cần tải mô hình lớn hơn và xử lý chậm hơn. Muốn dùng giọng hát, hãy tách bằng nút Chỉ giọng hát trước. Bài tối đa 15 phút; kết quả cần nghe và sửa lại.
       </p>
       {message && (
         <p className="ai-status" role="status">

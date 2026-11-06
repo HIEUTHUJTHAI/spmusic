@@ -7,6 +7,7 @@ import { ApiError } from './validation.js';
 import { plainLyrics } from './lyrics-alignment.js';
 
 export const AI_MODEL = 'Xenova/whisper-base';
+export const AI_MODELS = { base: AI_MODEL, small: 'Xenova/whisper-small' };
 export const AI_LANGUAGES = new Set(['auto', 'vi', 'en', 'ja', 'ko', 'zh', 'fr', 'de', 'es']);
 const workerPath = fileURLToPath(new URL('./lyrics-ai-worker.js', import.meta.url));
 
@@ -42,8 +43,9 @@ export function createLyricsAI({
   }
   return {
     status: (id, ownerId) => view(get(id, ownerId)),
-    async start({ ownerId, audioPath, content, language = 'auto', workingDir, mode = 'align' }) {
+    async start({ ownerId, audioPath, content, language = 'auto', workingDir, mode = 'align', model = 'base' }) {
       if (!['align', 'transcribe'].includes(mode)) throw new ApiError(400, 'Chế độ AI không hợp lệ.');
+      if (!Object.hasOwn(AI_MODELS, model)) throw new ApiError(400, 'Mô hình AI không hợp lệ.');
       const lines = mode === 'align' ? plainLyrics(content) : [];
       if (!AI_LANGUAGES.has(language)) throw new ApiError(400, 'Ngôn ngữ AI không hợp lệ.');
       if (active)
@@ -108,7 +110,7 @@ export function createLyricsAI({
         lines,
         mode,
         language: language === 'auto' ? null : language,
-        model: AI_MODEL,
+        model: AI_MODELS[model],
         cacheDir: path.resolve(process.env.LYRICS_AI_CACHE || path.join(dataDir, 'ai-models')),
         offline: process.env.LYRICS_AI_OFFLINE === 'true',
       });
