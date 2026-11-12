@@ -20,6 +20,11 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
   const activeRef = useRef(null);
   const scrollRef = useRef(null);
   const cover = p.track?.coverUrl || '/covers/fallback.svg';
+  // Capture the initial offset once; changing animation-delay on each timeupdate speeds up the fade.
+  const mixBackdrop = useMemo(() => p.mix ? {
+    backgroundImage: `url("${p.mix.from?.coverUrl || '/covers/fallback.svg'}")`,
+    '--mix-duration': `${p.mix.duration}s`, '--mix-offset': `${-p.mix.progress() * p.mix.duration}s`,
+  } : null, [p.mix]);
   const lines = useMemo(() => parseLrc(lyrics), [lyrics]);
   const active = activeLineIndex(lines, p.time);
   const nextTracks = p.queue.slice(Math.max(0, p.queue.indexOf(p.trackId) + 1))
@@ -68,8 +73,7 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
     <section className="expanded-player" role="dialog" aria-modal="true" aria-label="Trình phát toàn màn hình">
       <div className="expanded-backdrop" style={{ backgroundImage: `url("${cover}")` }} aria-hidden="true" />
       {p.mix && <div className="expanded-backdrop expanded-backdrop-outgoing" key={p.mix.from?.id}
-        style={{ backgroundImage: `url("${p.mix.from?.coverUrl || '/covers/fallback.svg'}")`,
-          '--mix-duration': `${p.mix.duration}s`, '--mix-offset': `${-p.mix.progress() * p.mix.duration}s` }} aria-hidden="true" />}
+        style={mixBackdrop} aria-hidden="true" />}
       <header className="expanded-header">
         <button className="expanded-dismiss" onClick={onClose} aria-label="Thu nhỏ trình phát" title="Thu nhỏ (Esc)" autoFocus>
           <ChevronDown size={26} />

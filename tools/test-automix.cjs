@@ -89,6 +89,7 @@ app.whenReady().then(async () => {
   // Natural five-second AutoMix: use the real media clock, not a simulated mix object.
   await seek(25.2); await waitFor(mixing, 'automatic crossfade'); await delay(1200);
   await shot('04-auto');
+  const backdropOffset = await evaluate(() => document.querySelector('.expanded-backdrop-outgoing').style.getPropertyValue('--mix-offset'));
   console.log('FRAME_TIMING', await evaluate(() => new Promise((resolve) => {
     const samples = []; let last = performance.now();
     const tick = (now) => { samples.push(now - last); last = now;
@@ -96,6 +97,7 @@ app.whenReady().then(async () => {
       else resolve({ averageMs: samples.reduce((a, b) => a + b, 0) / samples.length, longestMs: Math.max(...samples) });
     }; requestAnimationFrame(tick);
   })));
+  assert.equal(await evaluate(() => document.querySelector('.expanded-backdrop-outgoing').style.getPropertyValue('--mix-offset')), backdropOffset, 'Playback updates do not restart or accelerate backdrop fade');
   await click('.expanded-tabs [aria-label="Lời bài hát"]'); await delay(250); await shot('05-lyrics');
   await click('.expanded-tabs [aria-label="Danh sách phát"]'); await delay(250); await shot('06-queue');
   await click('.expanded-tabs [aria-label="Trình phát"]');
