@@ -12,8 +12,27 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 const evaluate = (fn, arg) => win.webContents.executeJavaScript(`(${fn.toString()})(${JSON.stringify(arg)})`);
 async function waitFor(fn, label, timeout = 15000) {
   const start = Date.now();
-  while (Date.now() - start < timeout) { if (await win.webContents.executeJavaScript(`Boolean((${fn.toString()})())`)) return; await delay(50); }
+  while (Date.now() - start < timeout) {
+    if (await win.webContents.executeJavaScript(`Boolean((${fn.toString()})())`)) {
+      if (fn === idle) await assertCoverVisible(label);
+      return;
+    }
+    await delay(50);
+  }
   throw new Error(`Timeout: ${label}`);
+}
+async function assertCoverVisible(label) {
+  const state = await evaluate(async () => {
+    const image = document.querySelector('[data-mixing="false"] .mix-cover');
+    if (!image) return null;
+    await image.decode();
+    const style = getComputedStyle(image), rect = image.getBoundingClientRect();
+    return { opacity: style.opacity, transform: style.transform, width: rect.width,
+      height: rect.height, loaded: image.naturalWidth > 0,
+      correctTrack: image.alt === `Ảnh bìa ${document.querySelector('.expanded-track-heading h1').textContent}` };
+  });
+  assert.ok(state?.loaded && state.correctTrack && state.opacity === '1' && state.transform === 'none' &&
+    state.width > 100 && state.height > 100, `${label}: full-size artwork must remain visible: ${JSON.stringify(state)}`);
 }
 const click = (selector) => evaluate((s) => { const el = document.querySelector(s); if (!el) throw new Error(s); el.click(); }, selector);
 const shot = async (name) => fs.writeFile(path.join(output, `${name}.png`), (await win.webContents.capturePage()).toPNG());
@@ -118,8 +137,16 @@ app.whenReady().then(async () => {
   await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
   await next(); await delay(700);
   assert.equal(await evaluate(() => Boolean(document.querySelector('.mix-dust'))), false, 'Reduced motion disables particles');
+  await assertCoverVisible('reduced motion during crossfade');
   await delay(2300);
   await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', { features: [] });
+  await next(); await waitFor(mixing, 'changing reduced motion during mix');
+  await delay(200);
+  await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+  await waitFor(idle, 'reduced motion retains visible cover');
+  await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', { features: [] });
+  await waitFor(mixing, 'restoring motion resumes active mix');
+  await waitFor(idle, 'restoring motion retains visible cover');
   await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride', { width: 900, height: 620, deviceScaleFactor: 1, mobile: false });
   await delay(100);
   await next(); await waitFor(mixing, 'compact layout'); await delay(550); await shot('07-compact');

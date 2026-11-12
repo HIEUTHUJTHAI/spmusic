@@ -1,5 +1,7 @@
 # SPMusic — không gian nghe nhạc của bạn
 
+**Bản vá 2.15.1:** Sửa ảnh bìa biến mất hoặc còn thu nhỏ sau AutoMix trong trình phát toàn màn hình. Ảnh hiển thị bình thường được tách khỏi các ảnh dùng cho hiệu ứng để không giữ lại độ trong suốt và vị trí của ảnh cũ. Bổ sung kiểm tra ảnh đã tải, đúng bài, hiện rõ và không còn biến đổi sau khi chuyển bài, tạm dừng, tua hoặc thay đổi chế độ giảm chuyển động.
+
 **Bản 2.15.0:** AutoMix trong trình phát toàn màn hình có hai ảnh bìa thu nhỏ, bụi sáng mịn trôi từ bài cũ sang bài mới và ảnh mới phóng lớn sau khi hòa âm kết thúc. Hiệu ứng bám theo đồng hồ âm thanh, hoạt động ở cả tab trình phát, lyrics và danh sách phát. Tạm dừng, tua hoặc chuyển bài khác sẽ kết thúc hiệu ứng phù hợp. Tự tắt chuyển động khi Windows bật giảm chuyển động. Chi tiết: [AutoMix Dust](docs/AUTOMIX-DUST.md).
 
 **Bản 2.7.0:** Liquid Glass có lớp kính trong, viền sáng và phản chiếu nhẹ trên điều hướng, trình phát và cửa sổ tác vụ. Các nút gần con trỏ phóng nhẹ theo khoảng cách; chuyển trang bằng fade ngắn. Vào **Cài đặt → Liquid Glass** để chỉnh độ trong suốt từ 5–85%, xem ngay và đặt lại. Lựa chọn được nhớ trên thiết bị. Hiệu ứng phóng tự tắt trên màn hình cảm ứng và khi hệ thống bật giảm chuyển động. Kiểm tra giao diện bằng `npx electron tools/test-glass.cjs` sau khi build (hồ sơ thử nghiệm riêng trong `.runtime/`).

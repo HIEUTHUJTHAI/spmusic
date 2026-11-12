@@ -103,17 +103,19 @@ export default function MixArtwork({ track, mix }) {
   }, [scene, mix, reduced]);
 
   const animated = scene && !reduced && (mix || track?.id === scene.to.id);
+  // Keep the steady image distinct from the imperative animation nodes: React must not
+  // reuse the faded-out outgoing image with its remaining inline opacity/transform.
   return <div className={`expanded-artwork mix-artwork ${animated ? 'is-mixing' : ''}`} ref={stage}
     data-mixing={animated ? 'true' : 'false'} aria-label={animated ? `Đang chuyển từ ${scene.from.title} sang ${scene.to.title}` : undefined}>
     {animated ? <>
-      <img className="mix-cover mix-cover-old" ref={oldCover} src={scene.from.coverUrl || fallback} onError={coverError} alt={`Ảnh bìa ${scene.from.title}`} />
-      <img className="mix-cover mix-cover-new" ref={newCover} src={scene.to.coverUrl || fallback} onError={coverError} alt={`Ảnh bìa ${scene.to.title}`} />
+      <img key={`outgoing-${scene.from.id}`} className="mix-cover mix-cover-old" ref={oldCover} src={scene.from.coverUrl || fallback} onError={coverError} alt={`Ảnh bìa ${scene.from.title}`} />
+      <img key={`incoming-${scene.to.id}`} className="mix-cover mix-cover-new" ref={newCover} src={scene.to.coverUrl || fallback} onError={coverError} alt={`Ảnh bìa ${scene.to.title}`} />
       <canvas className="mix-dust" ref={canvas} aria-hidden="true" />
       <div className="mix-caption" ref={badge} aria-hidden="true">
         <span className="mix-caption-label">AUTOMIX</span>
         <span className="mix-caption-title">{scene.to.title}</span>
         <span className="mix-caption-line"><i /></span>
       </div>
-    </> : <img className="mix-cover" src={track?.coverUrl || fallback} onError={coverError} alt={`Ảnh bìa ${track?.title || ''}`} />}
+    </> : <img key="steady-cover" className="mix-cover" src={track?.coverUrl || fallback} onError={coverError} alt={`Ảnh bìa ${track?.title || ''}`} />}
   </div>;
 }

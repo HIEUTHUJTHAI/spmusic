@@ -1,5 +1,9 @@
 # AutoMix Dust — SPMusic 2.15.0
 
+## Bản vá 2.15.1
+
+React đã tái sử dụng phần tử ảnh cũ cho ảnh hiển thị sau hiệu ứng, giữ lại `opacity: 0` và `transform` do vòng vẽ đặt trực tiếp. Đặt key riêng cho ảnh cũ, ảnh mới và ảnh tĩnh để bàn giao không mang theo trạng thái chuyển động. Kiểm thử hồi quy đã tái hiện lỗi trên 2.15.0: ảnh tải được, đúng bài nhưng độ rõ bằng 0. Bộ kiểm tra nay xác nhận ảnh tải thành công, đúng bài, opacity bằng 1, transform bằng none và kích thước đầy đủ sau từng tình huống kết thúc/hủy chuyển.
+
 Bật AutoMix trong Cài đặt, phát ít nhất hai bài trong hàng đợi và mở trình phát toàn màn hình. Hiệu ứng xuất hiện khi AutoMix thực sự bắt đầu, kể cả chuyển tự động cuối bài hoặc bấm bài tiếp theo khi đang phát.
 
 - Ảnh cũ thu nhỏ sang trái, ảnh mới hiện bên phải. Các hạt bụi có độ sáng, kích thước và đường trôi khác nhau, quầng sáng mềm.
