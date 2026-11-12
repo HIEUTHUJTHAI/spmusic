@@ -10,6 +10,7 @@ import { formatTime } from './Player';
 import './ExpandedPlayer.css';
 import InstrumentalButton from './InstrumentalButton';
 import LiquidTabs from './LiquidTabs';
+import MixArtwork from './MixArtwork';
 
 export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
   const [tab, setTab] = useState('player');
@@ -66,6 +67,9 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
   return (
     <section className="expanded-player" role="dialog" aria-modal="true" aria-label="Trình phát toàn màn hình">
       <div className="expanded-backdrop" style={{ backgroundImage: `url("${cover}")` }} aria-hidden="true" />
+      {p.mix && <div className="expanded-backdrop expanded-backdrop-outgoing" key={p.mix.from?.id}
+        style={{ backgroundImage: `url("${p.mix.from?.coverUrl || '/covers/fallback.svg'}")`,
+          '--mix-duration': `${p.mix.duration}s`, '--mix-offset': `${-p.mix.progress() * p.mix.duration}s` }} aria-hidden="true" />}
       <header className="expanded-header">
         <button className="expanded-dismiss" onClick={onClose} aria-label="Thu nhỏ trình phát" title="Thu nhỏ (Esc)" autoFocus>
           <ChevronDown size={26} />
@@ -74,9 +78,7 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
         <div aria-hidden="true" />
       </header>
       <div className="expanded-content">
-        <div className="expanded-artwork">
-          <img src={cover} alt={`Ảnh bìa ${p.track?.title || ''}`} />
-        </div>
+        <MixArtwork track={p.track} mix={p.mix} />
         <div className="expanded-details">
           <div className="expanded-track-heading">
             <div>

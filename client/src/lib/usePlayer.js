@@ -21,6 +21,7 @@ export function usePlayer(tracks, onListen, notify) {
   const restore = useRef(null);
   const [trackId, setTrackId] = useState(null);
   const [playing, setPlaying] = useState(false);
+  const [mix, setMix] = useState(null);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.75);
@@ -98,6 +99,7 @@ export function usePlayer(tracks, onListen, notify) {
     if (!state) return;
     clearTimeout(state.timer);
     fading.current = null;
+    setMix(null);
     const discard = state.started ? state.from : state.to;
     media[discard].current?.pause();
     if (graph.current) {
@@ -149,7 +151,7 @@ export function usePlayer(tracks, onListen, notify) {
     current.context.resume().catch(() => {});
     const from = active.current;
     const to = 1 - from;
-    fading.current = { from, to, id, seconds, started: false, timer: null };
+    fading.current = { from, to, id, seconds, fromTrack: track, started: false, timer: null };
     current.gains[to].gain.value = 0;
     setSources((value) => value.map((source, slot) => slot === to ? id : source));
     return true;
@@ -161,6 +163,7 @@ export function usePlayer(tracks, onListen, notify) {
     graph.current.gains[state.from].gain.value = 0;
     graph.current.gains[state.to].gain.value = 1;
     fading.current = null;
+    setMix(null);
     setSources((value) => value.map((source, slot) => slot === state.from ? null : source));
   }
 
@@ -182,6 +185,12 @@ export function usePlayer(tracks, onListen, notify) {
     gains[state.to].gain.cancelScheduledValues(now);
     gains[state.from].gain.setValueCurveAtTime(outgoing, now, state.seconds);
     gains[state.to].gain.setValueCurveAtTime(incoming, now, state.seconds);
+    // Read the audio clock directly: visuals never drive playback or rerender the app per frame.
+    setMix({
+      from: state.fromTrack, to: tracks.find((item) => item.id === state.id),
+      duration: state.seconds,
+      progress: () => Math.min(1, Math.max(0, (context.currentTime - now) / state.seconds)),
+    });
     active.current = state.to;
     setTrackId(state.id);
     setTime(0);
@@ -322,6 +331,8 @@ export function usePlayer(tracks, onListen, notify) {
       },
       onPlay: () => {
         resumeGraph();
+      },
+      onPlaying: () => {
         if (fading.current?.to === slot) beginFade(fading.current);
         if (slot !== active.current) return;
         setPlaying(true);
@@ -339,6 +350,7 @@ export function usePlayer(tracks, onListen, notify) {
           return;
         }
         if (slot === active.current && source) {
+          cancelFade();
           setPlaying(false);
           notice.current('Không thể đọc file nhạc. File có thể bị lỗi hoặc không còn tồn tại.');
         }
@@ -360,10 +372,12 @@ export function usePlayer(tracks, onListen, notify) {
 
   return {
     instrumental,
+    mix,
     track, trackId, playing, time, duration: duration || track?.duration || 0,
     volume, setVolume, shuffle, setShuffle, repeat, setRepeat,
     automix: settings.automix,
     setAutomix: (enabled) => {
+      if (!enabled) cancelFade();
       if (enabled && !ensureGraph()) return;
       if (enabled) graph.current.context.resume().catch(() => {});
       setSettings((value) => ({ ...value, automix: Boolean(enabled) }));

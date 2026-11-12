@@ -31,6 +31,11 @@
   50% { transform: translate3d(0, 2%, 0) scale(1.14); }
   75% { transform: translate3d(-2%, 0, 0) scale(1.14); }
 }
+.expanded-backdrop-outgoing {
+  animation: expanded-backdrop-orbit 56s linear infinite,
+    mix-backdrop-fade var(--mix-duration) linear var(--mix-offset) both;
+}
+@keyframes mix-backdrop-fade { from { opacity: 1; } to { opacity: 0; } }
 .expanded-player::before {
   content: '';
   position: absolute;
@@ -146,5 +151,6 @@
 @media (prefers-reduced-motion: reduce) {
   .expanded-player { animation: none; }
   .expanded-backdrop { animation: none; will-change: auto; }
+  .expanded-backdrop-outgoing { display: none; }
   .expanded-lyric-line { transition: none; }
 }
