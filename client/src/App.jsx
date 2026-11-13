@@ -765,20 +765,18 @@ export default function App() {
           <span className="brand-symbol"><img src="/spmusic-icon.png" alt="" width="32" height="32" /></span>
           <span className="brand-wordmark">SPMusic<span className="brand-period">.</span><small>by HIEUTHUJTHAI</small></span>
         </button>
-        <div className="nav-label">KHÔNG GIAN CỦA BẠN</div>
-        <PrimaryNavigation view={view} navigate={navigate} />
-        <button
-          className="nav-item"
-          onClick={() => {
+        <div className="sidebar-actions">
+          <button className="sidebar-add" onClick={() => requireUser(() => setModal({ type: 'track' }))}>
+            <Plus size={17} /> Thêm nhạc
+          </button>
+          <button className="sidebar-link" title="Nhạc từ link YouTube" aria-label="Nhạc từ link YouTube" onClick={() => {
             setMobile(false);
             requireUser(() => setModal({ type: 'youtube' }));
-          }}
-        >
-          <Link2 size={20} />
-          Nhạc từ link YouTube
-        </button>
+          }}><Link2 size={18} /></button>
+        </div>
+        <PrimaryNavigation view={view} navigate={navigate} />
         <div className="library-heading">
-          <span>BỘ SƯU TẬP</span>
+          <span>PLAYLIST <small>{playlists.length}</small></span>
           <button
             className="icon-btn"
             aria-label="Tạo playlist"
@@ -815,7 +813,7 @@ export default function App() {
               <span className={`nav-tile playlist-tile tile-${i % 3}`}>
                 {pl.coverUrl ? <img src={pl.coverUrl} alt="" /> : <Music2 size={16} />}
               </span>
-              <span className="truncate">{pl.name}</span>
+              <span className="playlist-caption"><strong className="truncate">{pl.name}</strong><small>Playlist cá nhân</small></span>
             </button>
           ))}
           {!playlists.length && (
@@ -828,25 +826,11 @@ export default function App() {
             </button>
           )}
         </LiquidTabs>
-        <div className="sidebar-upload">
-          <span className="upload-orbit">
-            <ArrowUpFromLine size={21} />
-          </span>
-          <strong>Mang âm nhạc đến đây</strong>
-          <p>
-            Giai điệu của bạn.
-            <br />
-            Câu chuyện của bạn.
-          </p>
-          <button onClick={() => requireUser(() => setModal({ type: 'track' }))}>
-            <Plus size={15} />
-            Tải nhạc lên
-          </button>
-        </div>
-        <div className="sidebar-foot">
-          <span className="status-dot" />
-          Không gian nghe nhạc cá nhân
-        </div>
+        <button className="sidebar-library-summary" onClick={() => navigate('library')} title="Mở thư viện">
+          <AudioLines size={18} />
+          <span><strong>Âm nhạc của bạn</strong><small>{tracks.length} bài hát · {new Set(tracks.map(t => t.artist).filter(Boolean)).size} nghệ sĩ</small></span>
+          <ArrowUpRight size={15} />
+        </button>
       </aside>
       <div className="content-shell">
         <header className="topbar">
@@ -1206,7 +1190,7 @@ export default function App() {
                   SPMusic.
                 </span>
                 <span>Âm nhạc của bạn, theo cách của bạn.</span>
-                <span>Thư viện cá nhân • SPMusic 2.7.0</span>
+            <span>Thư viện cá nhân • SPMusic</span>
               </div>
             </>
           )}
