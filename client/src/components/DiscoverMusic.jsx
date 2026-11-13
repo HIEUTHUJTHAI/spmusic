@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Plus, Play, Download, Headphones, LoaderCircle } from 'lucide-react';
+import { Check, Plus, Play, Eye, X, Download, Headphones, LoaderCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import './DiscoverMusic.css';
 
@@ -50,10 +50,10 @@ export default function DiscoverMusic({ query, user, onLogin, onImported, notify
           <strong>{result.title}</strong><span>{result.artist}</span><small>YouTube · Online</small>
         </div>
         <div className="discover-result-actions">
-          <button onClick={() => setPreview(preview === result.id ? null : result.id)}>{preview === result.id ? 'Đóng xem thử' : 'Xem thử'}</button>
-          <button disabled={!!saving} onClick={() => add(result, false)}>{saving === result.id ? <LoaderCircle size={15} className="spin" /> : saved[result.id] ? <Check size={15} /> : <Plus size={15} />}{saved[result.id] ? 'Đã thêm' : 'Thêm thư viện'}</button>
-          <button disabled={!!saving} onClick={() => add(result, true)}><Play size={15} /> Nghe ngay</button>
-          <button className="discover-offline" onClick={() => user ? onYoutubeImport(result.sourceUrl) : onLogin()} title="Tải về để nghe khi không có mạng"><Download size={16} /><span>Tải offline</span></button>
+          <button title={preview === result.id ? 'Đóng xem thử' : 'Xem thử'} aria-label={preview === result.id ? 'Đóng xem thử' : 'Xem thử'} aria-pressed={preview === result.id} onClick={() => setPreview(preview === result.id ? null : result.id)}>{preview === result.id ? <X size={17} /> : <Eye size={17} />}</button>
+          <button title={saved[result.id] ? 'Đã thêm thư viện' : 'Thêm thư viện'} aria-label="Thêm thư viện" disabled={!!saving} onClick={() => add(result, false)}>{saving === result.id ? <LoaderCircle size={15} className="spin" /> : saved[result.id] ? <Check size={15} /> : <Plus size={15} />}</button>
+          <button title="Nghe ngay" aria-label="Nghe ngay" disabled={!!saving} onClick={() => add(result, true)}><Play size={17} /></button>
+          <button className="discover-offline" onClick={() => user ? onYoutubeImport(result.sourceUrl) : onLogin()} title="Tải offline" aria-label="Tải offline"><Download size={17} /></button>
         </div>
         {preview === result.id && <iframe className="youtube-preview" src={result.embedUrl} title={result.title} allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />}
       </article>)}</div>}

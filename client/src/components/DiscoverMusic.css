@@ -35,3 +35,7 @@
 .discover-result-actions .discover-offline { background: transparent; border: 1px solid var(--glass-border, var(--line)); color: var(--text); }
 .discover-result-actions .discover-offline:hover { background: var(--accent-soft); color: var(--accent); }
 @media (max-width: 1200px) { .discover-result { grid-template-columns: minmax(0,1fr); } .discover-result-actions { justify-content: flex-start; } }
+
+.discover-result-actions button { width:36px; height:36px; padding:0; border-radius:10px; flex:none; }
+.discover-result-actions button:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+@media (min-width:701px) { .discover-result { grid-template-columns:minmax(0,1fr) auto; } }

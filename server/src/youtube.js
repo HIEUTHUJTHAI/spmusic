@@ -127,7 +127,7 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
     try { return JSON.parse(output.trim()); }
     catch { throw new ApiError(502, 'Không đọc được thông tin video YouTube.'); }
   });
-  const downloadAudio = download || (async (url, directory, signal, onProgress) => {
+  const directAudio = async (url, directory, signal, onProgress) => {
     const metadata = await resolveYoutubeAudio(url, signal);
     const source = new URL(metadata.url);
     if (source.protocol !== 'https:' || !source.hostname.endsWith('.googlevideo.com') || source.port || source.username || source.password)
@@ -150,6 +150,25 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
       '-vn', '-codec:a', 'libmp3lame', '-q:a', '0', output], { windowsHide: true, signal, timeout: 15 * 60000, maxBuffer: 1024 * 1024 });
     onProgress?.(100);
     return output;
+  };
+  const downloadAudio = download || (async (url, directory, signal, onProgress) => {
+    try {
+      await runDownloader([...baseArgs(), '--newline', '--format', 'bestaudio', '--extract-audio',
+        '--audio-format', 'mp3', '--audio-quality', '0', '--max-filesize', '250M',
+        '--ffmpeg-location', youtubeFfmpegPath(), '--output', path.join(directory, 'primary.%(ext)s'), url],
+        signal, 12 * 60000, onProgress);
+      const file = path.join(directory, 'primary.mp3');
+      await fs.access(file);
+      return file;
+    } catch (primaryError) {
+      signal.throwIfAborted();
+      try { return await directAudio(url, directory, signal, onProgress); }
+      catch (fallbackError) {
+        signal.throwIfAborted();
+        if (fallbackError.status === 413) throw fallbackError;
+        throw new ApiError(502, 'Không tải được âm thanh sau khi thử hai cách. Nguồn có thể tạm lỗi hoặc bị giới hạn. Hãy thử lại sau.');
+      }
+    }
   });
 
   async function run(job, video) {

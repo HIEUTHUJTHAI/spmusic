@@ -18,14 +18,14 @@ app.whenReady().then(async()=>{
     const post=async(p,b)=>{const r=await fetch('/api'+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json()};
     const credentials={name:'Online QA',email:'online'+Date.now()+'@example.test',password:'OnlineTest123!'};
     await post('/auth/register',credentials);await post('/auth/login',credentials);
-    const data=await post('/tracks/online',{url:'https://youtu.be/jNQXAC9IVRw',title:'Online playback verification',artist:'Jawed'});
-    const again=await post('/tracks/online',{url:'https://youtu.be/jNQXAC9IVRw',title:'Online playback verification',artist:'Jawed'});
+    const data=await post('/tracks/online',{url:'https://youtu.be/${process.env.SPMUSIC_QA_VIDEO || 'jNQXAC9IVRw'}',title:'Online playback verification',artist:'Jawed'});
+    const again=await post('/tracks/online',{url:'https://youtu.be/${process.env.SPMUSIC_QA_VIDEO || 'jNQXAC9IVRw'}',title:'Online playback verification',artist:'Jawed'});
     const p=await post('/playlists',{name:'Online QA',trackIds:[data.track.id]});
     return {id:data.track.id,duplicate:again.track.id===data.track.id,playlist:p.playlist.trackIds.includes(data.track.id)};
   })()`);
   step('saved');
   const offline=await win.webContents.executeJavaScript(`(async()=>{
-    const r=await fetch('/api/youtube/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:'https://youtu.be/jNQXAC9IVRw',licensed:true})});const data=await r.json();if(!r.ok)throw Error(JSON.stringify(data));
+    const r=await fetch('/api/youtube/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:'https://youtu.be/${process.env.SPMUSIC_QA_VIDEO || 'jNQXAC9IVRw'}',licensed:true})});const data=await r.json();if(!r.ok)throw Error(JSON.stringify(data));
     for(let i=0;i<120;i++){await new Promise(r=>setTimeout(r,1000));const j=(await (await fetch('/api/youtube/jobs/'+data.job.id)).json()).job;if(j.status==='failed')throw Error(j.message);if(j.status==='completed')return {id:j.track.id,online:j.track.isOnline};}throw Error('download timeout');
   })()`);
   assert.equal(offline.id,result.id);assert.equal(offline.online,false);
@@ -52,7 +52,7 @@ app.whenReady().then(async()=>{
   win.webContents.session.webRequest.onBeforeRequest(null);
   await win.webContents.executeJavaScript(`[...document.querySelectorAll('.sidebar button')].find(b=>b.textContent.trim()==='Tìm kiếm').click()`);await delay(600);
   await win.webContents.executeJavaScript(`(()=>{
-    const original=window.fetch.bind(window);window.fetch=(url,options)=>String(url).includes('/api/discover/youtube')?Promise.resolve(new Response(JSON.stringify({configured:true,results:[{id:'jNQXAC9IVRw',title:'Online playback verification',artist:'Jawed',sourceUrl:'https://youtu.be/jNQXAC9IVRw',thumbnail:'https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg'}]}),{headers:{'Content-Type':'application/json'}})):original(url,options);
+    const original=window.fetch.bind(window);window.fetch=(url,options)=>String(url).includes('/api/discover/youtube')?Promise.resolve(new Response(JSON.stringify({configured:true,results:[{id:'${process.env.SPMUSIC_QA_VIDEO || 'jNQXAC9IVRw'}',title:'Online playback verification',artist:'Jawed',sourceUrl:'https://youtu.be/${process.env.SPMUSIC_QA_VIDEO || 'jNQXAC9IVRw'}',thumbnail:'https://i.ytimg.com/vi/${process.env.SPMUSIC_QA_VIDEO || 'jNQXAC9IVRw'}/hqdefault.jpg'}]}),{headers:{'Content-Type':'application/json'}})):original(url,options);
     const input=document.querySelector('input[placeholder*="Tìm bài"]');input.focus();Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'verification');input.dispatchEvent(new Event('input',{bubbles:true}));
   })()`);await delay(1500);
   await fs.writeFile(path.join(out,'search.png'),(await win.webContents.capturePage()).toPNG());
