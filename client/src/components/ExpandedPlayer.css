@@ -190,3 +190,14 @@
 .now-playing-lyric-preview strong { display:block; font-size:20px; letter-spacing:-.03em; line-height:1.35; }
 .now-playing-lyric-preview small { display:block; opacity:.45; font-size:16px; margin-top:8px; }
 .now-playing-next > span { font-size:9px; letter-spacing:.18em; opacity:.6; margin-left:9px; }
+
+/* Keep intrinsic text/grid widths from creating a horizontally scrollable dock. */
+.now-playing-panel .expanded-content { overflow-x:hidden; align-items:stretch; overscroll-behavior:contain; }
+.now-playing-panel .expanded-content > * { min-width:0; max-width:100%; }
+.now-playing-panel .expanded-artwork { margin:0; }
+.now-playing-panel .expanded-details { flex:none; }
+.now-playing-panel .now-playing-discovery { min-width:0; grid-template-columns:minmax(0,1fr); }
+.now-playing-panel .now-playing-lyric-preview,
+.now-playing-panel .now-playing-next { min-width:0; max-width:100%; overflow-wrap:anywhere; }
+.now-playing-panel .expanded-volume input { min-width:0; flex:1; }
+.now-playing-panel .expanded-content::-webkit-scrollbar { display:none; }
