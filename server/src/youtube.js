@@ -95,6 +95,15 @@ const baseArgs = () => [
   '--socket-timeout', '20', '--retries', '2', '--extractor-retries', '2',
   '--js-runtimes', `node:${tool(process.platform === 'win32' ? 'node.exe' : 'node')}`,
 ];
+export async function resolveYoutubeAudio(url, signal) {
+  const video = youtubeVideoUrl(url);
+  const output = await runDownloader([...baseArgs(), '--dump-single-json', '--skip-download', '--quiet',
+    '--format', 'bestaudio[protocol=https]', video.url], signal, 90000);
+  const metadata = JSON.parse(output.trim());
+  if (metadata.id !== video.id || metadata.is_live || !metadata.url)
+    throw new ApiError(422, 'Không có nguồn phát trực tuyến phù hợp cho video này.');
+  return metadata;
+}
 const clean = (value, max, fallback) =>
   String(value || fallback).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max) || fallback;
 

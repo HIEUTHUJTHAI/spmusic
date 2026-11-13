@@ -632,7 +632,7 @@ export default function App() {
             <div className="track-identity">
               {cover(t)}
               <div>
-                <button onClick={() => p.play(t, items)}>{t.title}</button>
+                <button onClick={() => p.play(t, items)}>{t.title}{t.isOnline && <small className="online-badge">Online</small>}</button>
                 <button className="artist-link" onClick={() => navigate('artist', t.artist)}>
                   {t.artist}
                 </button>
@@ -1079,6 +1079,7 @@ export default function App() {
                   </div>
                   {view === 'search' && <DiscoverMusic query={query} user={user}
                     onLogin={() => setModal({ type: 'auth' })} onImported={refresh} notify={notify}
+                    onPlayOnline={(track) => p.play(track, [track])}
                     onYoutubeImport={(url) => requireUser(() => setModal({ type: 'youtube', url }))} />}
                   <div className="collection-controls">
                     <button

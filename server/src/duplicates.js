@@ -18,7 +18,7 @@ export async function rejectDuplicate(db, uploadsDir, ownerId, title, hash, excl
   for (const row of rows) {
     if (row.id === excludeId) continue;
     if (row.audio_hash === hash) throw new ApiError(409, 'File nhạc này đã có trong thư viện.');
-    if (row.audio_hash) continue;
+    if (row.audio_hash || row.audio_file?.startsWith('online-')) continue;
     try {
       if (await audioHash(path.join(uploadsDir, 'audio', row.audio_file)) === hash)
         throw new ApiError(409, 'File nhạc này đã có trong thư viện.');

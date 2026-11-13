@@ -270,7 +270,7 @@ export function usePlayer(tracks, onListen, notify) {
     if (track && el && wantPlay.current)
       el.play().catch(() => {
         setPlaying(false);
-        notice.current('Trình duyệt chưa phát được file này. Bấm phát để thử lại.');
+        notice.current(track?.isOnline ? 'Chưa phát được nguồn online. Kiểm tra Internet, thử lại hoặc mở trên YouTube.' : 'Trình duyệt chưa phát được file này. Bấm phát để thử lại.');
       });
   }, [trackId, track?.audioUrl]);
   useEffect(() => {
@@ -352,7 +352,7 @@ export function usePlayer(tracks, onListen, notify) {
         if (slot === active.current && source) {
           cancelFade();
           setPlaying(false);
-          notice.current('Không thể đọc file nhạc. File có thể bị lỗi hoặc không còn tồn tại.');
+          notice.current(source.isOnline ? 'Không thể phát online. Kiểm tra Internet hoặc mở bài trên YouTube; bài vẫn được giữ trong thư viện.' : 'Không thể đọc file nhạc. File có thể bị lỗi hoặc không còn tồn tại.');
         }
       },
     };

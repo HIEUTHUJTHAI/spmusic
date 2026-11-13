@@ -21,6 +21,7 @@ export function useInstrumental(track, switchSource, notify) {
 
   async function toggle(mode = 'instrumental') {
     if (!track || busy.current) return;
+    if (track.isOnline) { notify('Tách nhạc cần file trên máy. Bài này đang phát online.'); return; }
     const target = track;
     const url = `/api/tracks/${target.id}/${mode}`;
     const name = mode === 'vocals' ? 'giọng hát' : 'nhạc nền';

@@ -20,6 +20,7 @@ import { accountRoutes, safeUser } from './account.js';
 import { createYoutubeImporter, youtubeRoutes } from './youtube.js';
 import { audioHash, rejectDuplicate } from './duplicates.js';
 import { instrumentalRoutes } from './instrumental.js';
+import { onlineRoutes } from './online.js';
 import { archiveSelection, discoveryRoutes } from './discovery.js';
 
 const scrypt = promisify(scryptCallback);
@@ -36,10 +37,11 @@ const trackView = (row) => ({
   duration: Number(row.duration),
   ownerId: row.owner_id,
   isDemo: false,
+  isOnline: Boolean(row.source_info?.online),
   audioUrl: `/api/media/${row.id}/audio`,
   coverUrl: row.cover_file
     ? `/api/media/${row.id}/cover?v=${encodeURIComponent(row.cover_file)}`
-    : '/covers/fallback.svg',
+    : row.source_info?.online ? `https://i.ytimg.com/vi/${row.source_info.videoId}/hqdefault.jpg` : '/covers/fallback.svg',
   hasLyrics: Boolean(row.lyrics_file),
   audioFormat: row.audio_format || '',
   sampleRate: row.sample_rate || null,
@@ -231,6 +233,7 @@ export async function createApp({
   });
   const youtube = createYoutubeImporter({ db, uploadsDir, trackView, ...youtubeOptions });
   app.locals.youtube = youtube;
+  const online = onlineRoutes(app, { db, requireAuth, trackView });
   youtubeRoutes(app, { service: youtube, requireAuth });
   const multipart = multer({
     storage: multer.diskStorage({
@@ -331,6 +334,7 @@ export async function createApp({
   });
   app.post('/api/tracks/:id/lyrics/align', requireAuth, async (req, res) => {
     const track = await ownTrack(req);
+    if (track.source_info?.online) throw new ApiError(400, 'AI cần file nhạc trên máy; bài này đang phát online.');
     const source = req.body.source || 'original';
     if (!['original', 'vocals'].includes(source)) throw new ApiError(400, 'Nguồn âm thanh không hợp lệ.');
     const audioPath = source === 'vocals' ? path.join(uploadsDir, 'vocals', `${track.id}.wav`) : path.join(uploadsDir, 'audio', track.audio_file);
@@ -618,6 +622,7 @@ export async function createApp({
         throw new ApiError(404, 'Không tìm thấy file.');
       return res.sendFile(file);
     }
+    if (req.params.kind === 'audio' && track.source_info?.online) return online.stream(req, res, track);
     const name =
       req.params.kind === 'audio' ? track.playback_file || track.audio_file : track.cover_file;
     if (!name) throw new ApiError(404, 'Bài hát chưa có ảnh bìa.');
