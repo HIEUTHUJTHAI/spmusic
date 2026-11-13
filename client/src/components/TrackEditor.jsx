@@ -16,7 +16,7 @@ import LyricsTimeline from './LyricsTimeline';
 import BackgroundCropper from './BackgroundCropper';
 
 const MB = 1024 * 1024;
-export default function TrackEditor({ track, initialFile, onClose, onSaved }) {
+export default function TrackEditor({ track, initialFile, onClose, onSaved, artists = [] }) {
   const editing = !!track;
   const [fields, setFields] = useState({
     title: track?.title || '',
@@ -357,7 +357,13 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved }) {
           </div>
           <div className="metadata-fields">
             {!bulk && field('title', 'Tên bài hát *', 'Tên giai điệu của bạn', 160)}
-            {field('artist', 'Nghệ sĩ *', 'Tên nghệ sĩ', 120)}
+            {field('artist', 'Nghệ sĩ *', 'Nhập tên nghệ sĩ mới', 120)}
+            {artists.length > 0 && <label>Hoặc chọn nghệ sĩ đã có
+              <select className="artist-select" aria-label="Chọn nghệ sĩ đã có" disabled={busy || aligning} value={artists.includes(fields.artist) ? fields.artist : ''} onChange={e => setFields(previous => ({...previous, artist: e.target.value}))}>
+                <option value="" disabled>Chọn từ thư viện…</option>
+                {artists.map(artist => <option key={artist} value={artist}>{artist}</option>)}
+              </select>
+            </label>}
             <div className="form-two-columns">
               {field('album', 'Album', 'Đĩa đơn', 160)}
               {field('genre', 'Thể loại', 'Ambient, Indie…', 80)}

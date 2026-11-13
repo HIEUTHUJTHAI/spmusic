@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import './MixArtwork.css';
+import { artworkSpring } from '../lib/springMotion';
 
 const fallback = '/covers/fallback.svg';
 const clamp = (n) => Math.max(0, Math.min(1, n));
@@ -69,7 +70,8 @@ export default function MixArtwork({ track, mix }) {
       oldCover.current.style.transform = `translate3d(${-x * 100 - ending * 8}%,0,0) scale(${small - ending * .12}) rotate(${-5 * intro - ending * 3}deg)`;
       oldCover.current.style.opacity = (1 - ending) * (1 - .18 * intro);
       const incomingScale = .28 + .15 * intro;
-      newCover.current.style.transform = `translate3d(${(36 - 9 * intro) * (1 - ending)}%,0,0) scale(${incomingScale + (1 - incomingScale) * ending}) rotate(${4 * intro * (1 - ending)}deg)`;
+      const arrival = mix ? 0 : artworkSpring((now - started) / 850);
+      newCover.current.style.transform = `translate3d(${(36 - 9 * intro) * (1 - arrival)}%,0,0) scale(${incomingScale + (1 - incomingScale) * arrival}) rotate(${4 * intro * (1 - arrival)}deg)`;
       newCover.current.style.opacity = intro + (1 - intro) * ending;
       badge.current.style.opacity = intro * (1 - ending);
       stage.current.style.setProperty('--mix-progress', progress);

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ChevronDown, Heart, ListMusic, Mic2, Music2, Pause, Play, Repeat,
-  Repeat1, Shuffle, SkipBack, SkipForward, Volume2, VolumeX,
+  Repeat1, Shuffle, SkipBack, SkipForward, Volume2, VolumeX, Maximize2,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { activeLineIndex, parseLrc } from '../lib/lrc';
@@ -12,7 +12,7 @@ import InstrumentalButton from './InstrumentalButton';
 import LiquidTabs from './LiquidTabs';
 import MixArtwork from './MixArtwork';
 
-export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
+export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embedded = false, onExpand }) {
   const [tab, setTab] = useState('player');
   const [lyrics, setLyrics] = useState('');
   const [lyricsError, setLyricsError] = useState('');
@@ -31,19 +31,21 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
     .map((id) => tracks.find((item) => item.id === id)).filter(Boolean);
 
   useEffect(() => {
+    if (embedded) return;
     const root = document.documentElement;
     const previous = root.style.overflow;
     root.style.overflow = 'hidden';
     return () => { root.style.overflow = previous; };
-  }, []);
+  }, [embedded]);
 
   useEffect(() => {
     const closeOnEscape = (event) => {
+      if (embedded && document.querySelector('[aria-modal="true"]')) return;
       if (event.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [onClose]);
+  }, [onClose, embedded]);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,16 +72,16 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
   }, [active, tab, lyricsLoading, lines]);
 
   return (
-    <section className="expanded-player" role="dialog" aria-modal="true" aria-label="Trình phát toàn màn hình">
+    <section className={`expanded-player ${embedded ? "now-playing-panel" : ""}`} role={embedded ? "region" : "dialog"} aria-modal={embedded ? undefined : true} aria-label={embedded ? "Đang phát" : "Trình phát toàn màn hình"}>
       <div className="expanded-backdrop" style={{ backgroundImage: `url("${cover}")` }} aria-hidden="true" />
       {p.mix && <div className="expanded-backdrop expanded-backdrop-outgoing" key={p.mix.from?.id}
         style={mixBackdrop} aria-hidden="true" />}
       <header className="expanded-header">
-        <button className="expanded-dismiss" onClick={onClose} aria-label="Thu nhỏ trình phát" title="Thu nhỏ (Esc)" autoFocus>
+        <button className="expanded-dismiss" onClick={onClose} aria-label={embedded ? "Đóng Đang phát" : "Thu nhỏ trình phát"} title="Thu nhỏ (Esc)" autoFocus>
           <ChevronDown size={26} />
         </button>
-        <span>SPMusic <small>ĐANG PHÁT</small></span>
-        <div aria-hidden="true" />
+        <span>{embedded ? 'Đang phát' : 'SPMusic'} <small>ĐANG PHÁT</small></span>
+        {embedded ? <button className="expanded-icon" onClick={onExpand} aria-label="Phóng lớn Đang phát"><Maximize2 size={19} /></button> : <div aria-hidden="true" />}
       </header>
       <div className="expanded-content">
         <MixArtwork track={p.track} mix={p.mix} />
@@ -157,6 +159,19 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose }) {
                 value={p.volume} onChange={(event) => p.setVolume(Number(event.target.value))}
                 style={{ '--range': `${p.volume * 100}%` }} />
             </div>
+          </div>}
+          {embedded && tab === 'player' && <div className="now-playing-discovery">
+            <button className="now-playing-lyric-preview" onClick={() => setTab('lyrics')}>
+              <span><Mic2 size={15} /> Lời bài hát</span>
+              <strong>{lyricsLoading ? 'Đang tải lời…' : lines.length ? lines[Math.max(0, active)]?.text || '♪' : 'Chưa có lời bài hát đồng bộ'}</strong>
+              {lines.length > 0 && <small>{lines[Math.max(0, active) + 1]?.text || '♪'}</small>}
+            </button>
+            {nextTracks[0] && <div className="now-playing-next"><span>TIẾP THEO</span>
+              <button className="expanded-queue-item" onClick={() => p.play(nextTracks[0])}>
+                <img src={nextTracks[0].coverUrl || '/covers/fallback.svg'} alt="" />
+                <span><strong>{nextTracks[0].title}</strong><small>{nextTracks[0].artist}</small></span><Play size={16} />
+              </button>
+            </div>}
           </div>}
           <LiquidTabs as="nav" className="expanded-tabs" aria-label="Chế độ trình phát">
             <button className={tab === 'lyrics' ? 'active' : ''} onClick={() => setTab('lyrics')}

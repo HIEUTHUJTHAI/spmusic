@@ -825,3 +825,13 @@ input.glass-opacity-range[type='range']::-moz-range-thumb { opacity: 1; }
     font-size: 16px;
   }
 }
+
+@media(prefers-reduced-motion:no-preference) {
+ .modal-shade .aural-modal { animation:glass-bounce-in 550ms both; transform-origin:center 60%; }
+ .user-dropdown,.track-menu,.eq-window { animation:glass-bounce-in 450ms both; transform-origin:top right; }
+ .glass-proximity,.nav-item.glass-proximity { transition:scale 380ms cubic-bezier(.2,1.5,.35,1),translate 380ms cubic-bezier(.2,1.5,.35,1),background-color 180ms,color 180ms; }
+ .icon-btn,.history-button,.main-play,.login-btn,.sidebar-upload button { transition:transform 350ms cubic-bezier(.2,1.6,.35,1),background-color 180ms; }
+ .icon-btn:active:not(:disabled),.history-button:active:not(:disabled),.main-play:active:not(:disabled),.login-btn:active,.sidebar-upload button:active { transform:scale(.9); }
+}
+@keyframes glass-bounce-in { 0% { opacity:0; transform:translateY(14px) scale(.96); } 62% { opacity:1; transform:translateY(-2px) scale(1.008); } 82% { transform:translateY(1px) scale(.998); } 100% { opacity:1; transform:none; } }
+@media(prefers-reduced-motion:reduce) { .modal-shade .aural-modal,.user-dropdown,.track-menu,.eq-window { animation:none; } }

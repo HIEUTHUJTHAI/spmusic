@@ -32,6 +32,7 @@ import {
   ListPlus,
   LoaderCircle,
 } from 'lucide-react';
+import { springFrames, SPRING_DURATION } from './lib/springMotion';
 import { api } from './lib/api';
 import { usePlayer } from './lib/usePlayer';
 import Player, { formatTime } from './components/Player';
@@ -76,13 +77,7 @@ function PrimaryNavigation({ view, navigate }) {
       if (animate && oldTop !== null && previous.current !== null && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
         const delta = oldTop - top;
         if (Math.abs(delta) > 1) {
-          const direction = delta < 0 ? -1 : 1;
-          animationRef.current = marker.animate([
-            { transform: `translateY(${delta}px) scaleY(1) scaleX(1)` },
-            { transform: `translateY(${delta * 0.46}px) scaleY(1.32) scaleX(.96)`, offset: .43 },
-            { transform: `translateY(${direction * 5}px) scaleY(.90) scaleX(1.015)`, offset: .76 },
-            { transform: 'translateY(0) scaleY(1) scaleX(1)' },
-          ], { duration: 480, easing: 'cubic-bezier(.22,.75,.3,1)' });
+          animationRef.current = marker.animate(springFrames(0, delta), { duration: SPRING_DURATION, easing: 'linear' });
         }
       }
       previous.current = top;
@@ -139,6 +134,7 @@ export default function App() {
     [lyricsOpen, setLyricsOpen] = useState(false),
     [queueOpen, setQueueOpen] = useState(false),
     [expandedOpen, setExpandedOpen] = useState(false),
+    [nowPlayingOpen, setNowPlayingOpen] = useState(false),
     [mobile, setMobile] = useState(false),
     [menu, setMenu] = useState(null),
     [draggedTrackId, setDraggedTrackId] = useState(null),
@@ -752,7 +748,7 @@ export default function App() {
     </div>
   );
   return (
-    <div className={`app-shell ${user?.backgroundUrl ? 'has-wallpaper' : ''}`}>
+    <div className={`app-shell ${nowPlayingOpen && !expandedOpen && p.track ? "has-now-playing" : ""} ${user?.backgroundUrl ? 'has-wallpaper' : ''}`}>
       <div className="app-wallpaper" aria-hidden="true"
         style={user?.backgroundUrl ? { backgroundImage: `url("${user.backgroundUrl}")` } : undefined} />
       <audio {...p.audioProps[0]} />
@@ -1294,7 +1290,10 @@ export default function App() {
           })}
         </aside>
       )}
+      {nowPlayingOpen && !expandedOpen && p.track && <ExpandedPlayer embedded p={p} tracks={tracks} liked={likes.includes(p.trackId)} onLike={() => like(p.trackId)} onClose={() => setNowPlayingOpen(false)} onExpand={() => document.querySelector(".expand-player-button")?.click()} />}
       <Player
+        nowPlayingOpen={nowPlayingOpen}
+        onNowPlaying={() => { setNowPlayingOpen(!nowPlayingOpen); setLyricsOpen(false); setQueueOpen(false); }}
         p={p}
         onExpand={() => {
           setExpandedOpen(true);
@@ -1305,11 +1304,13 @@ export default function App() {
           else document.documentElement.requestFullscreen?.().catch(() => {});
         }}
         onLyrics={() => {
+          setNowPlayingOpen(false);
           setLyricsOpen(!lyricsOpen);
           setQueueOpen(false);
         }}
         lyricsOpen={lyricsOpen}
         onQueue={() => {
+          setNowPlayingOpen(false);
           setQueueOpen(!queueOpen);
           setLyricsOpen(false);
         }}
@@ -1342,6 +1343,7 @@ export default function App() {
       )}
       {modal?.type === 'track' && (
         <TrackEditor
+          artists={[...new Set(tracks.map(t => t.artist).filter(Boolean))].sort((a,b) => a.localeCompare(b, "vi"))}
           track={modal.track}
           initialFile={modal.initialFile}
           onClose={() => setModal(null)}

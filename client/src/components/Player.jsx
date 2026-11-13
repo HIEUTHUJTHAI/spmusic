@@ -13,13 +13,13 @@ import {
   ListMusic,
   Heart,
   Music2,
-  Maximize2,
+  Maximize2, PanelRight,
 } from 'lucide-react';
 export const formatTime = (n) =>
   Number.isFinite(n)
     ? `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, '0')}`
     : '0:00';
-export default function Player({ p, onLyrics, lyricsOpen, onQueue, queueOpen, liked, onLike, onExpand }) {
+export default function Player({ p, onLyrics, lyricsOpen, onQueue, queueOpen, liked, onLike, onExpand, onNowPlaying, nowPlayingOpen }) {
   return (
     <footer className="player" aria-label="Trình phát nhạc">
       <div className="now-playing">
@@ -123,6 +123,7 @@ export default function Player({ p, onLyrics, lyricsOpen, onQueue, queueOpen, li
         </div>
       </div>
       <div className="player-tools">
+        <button className={`icon-btn ${nowPlayingOpen ? "is-on" : ""}`} onClick={onNowPlaying} disabled={!p.track} aria-label="Đang phát" aria-pressed={nowPlayingOpen} title="Đang phát"><PanelRight size={19} /></button>
         <button
           className={`icon-btn ${lyricsOpen ? 'is-on' : ''}`}
           onClick={onLyrics}

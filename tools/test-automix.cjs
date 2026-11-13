@@ -15,6 +15,7 @@ async function waitFor(fn, label, timeout = 15000) {
   while (Date.now() - start < timeout) {
     if (await win.webContents.executeJavaScript(`Boolean((${fn.toString()})())`)) {
       if (fn === idle) await assertCoverVisible(label);
+      await fs.appendFile(path.join(output, 'steps.log'), label + '\n');
       return;
     }
     await delay(50);
@@ -54,6 +55,10 @@ app.whenReady().then(async () => {
   win = new BrowserWindow({ show: false, width: 1440, height: 960,
     webPreferences: { offscreen: true, sandbox: true, contextIsolation: true, backgroundThrottling: false } });
   win.webContents.setFrameRate(60);
+  win.webContents.on('render-process-gone', (_event, details) => {
+    require('node:fs').writeFileSync(path.join(output, 'renderer-failure.json'), JSON.stringify(details));
+    app.exit(1);
+  });
   win.webContents.setAudioMuted(true);
   const errors = [];
   win.webContents.on('console-message', (event) => { if (event.level === 'error') errors.push(event.message); });
@@ -92,6 +97,60 @@ app.whenReady().then(async () => {
   await waitFor(() => document.querySelector('[aria-label="Phát Home Again"]'), 'library');
   await click('[aria-label="Phát Home Again"]');
   await waitFor(() => [...document.querySelectorAll('audio')].some((a) => !a.paused && a.currentTime > .1), 'playback');
+  if (process.env.SPMUSIC_QA_SCOPE !== 'player') {
+  // Now Playing is a non-modal dock; navigation and audio remain usable.
+  await click('.player [aria-label="Đang phát"]');
+  await waitFor(() => document.querySelector('.now-playing-panel'), 'Now Playing opens');
+  await delay(800); await assertCoverVisible('Now Playing artwork'); await shot('now-playing');
+  win.setContentSize(1024, 768);
+  await delay(500); await shot('now-playing-small');
+  assert.ok(await evaluate(() => {
+    const rect = document.querySelector('.now-playing-panel').getBoundingClientRect();
+    return rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= document.querySelector('.player').getBoundingClientRect().top && document.documentElement.scrollWidth <= innerWidth;
+  }), 'Compact dock fits above the player without horizontal overflow');
+  win.setContentSize(1440, 960);
+  assert.equal(await evaluate(() => Boolean(document.fullscreenElement)), false, 'Dock does not request fullscreen');
+  assert.ok(await evaluate(() => document.documentElement.style.overflow !== 'hidden'), 'Dock does not lock page scrolling');
+  await next(); await waitFor(mixing, 'dock AutoMix'); await delay(650); await shot('now-playing-mix');
+  await waitFor(idle, 'dock AutoMix settles');
+  await click('.now-playing-lyric-preview');
+  await waitFor(() => document.querySelector('.now-playing-panel .expanded-lyric-line'), 'dock lyrics');
+  await click('.now-playing-panel [aria-label="Danh sách phát"]');
+  await waitFor(() => document.querySelector('.now-playing-panel .expanded-queue'), 'dock queue');
+  await click('[aria-label="Phóng lớn Đang phát"]');
+  await waitFor(() => document.querySelector('.expanded-player:not(.now-playing-panel)'), 'dock promotes to fullscreen');
+  await waitFor(idle, 'promoted artwork');
+  await click('[aria-label="Thu nhỏ trình phát"]');
+  await waitFor(() => !document.fullscreenElement && document.querySelector('.now-playing-panel'), 'return to dock');
+  await delay(300); await click('[aria-label="Đóng Đang phát"]');
+  await waitFor(() => !document.querySelector('.now-playing-panel'), 'dock closes');
+  assert.ok(await evaluate(() => [...document.querySelectorAll('audio')].some(a => !a.paused)), 'Closing dock preserves playback');
+  // Exercise the real upload form's artist choice and free-text alternative.
+  await click('.upload-top');
+  await waitFor(() => document.querySelector('[aria-label="Chọn nghệ sĩ đã có"]'), 'existing artists');
+  await evaluate(() => {
+    const select = document.querySelector('[aria-label="Chọn nghệ sĩ đã có"]');
+    select.value = 'SPMusic · Sound Studies'; select.dispatchEvent(new Event('change', {bubbles:true}));
+  });
+  assert.equal(await evaluate(() => [...document.querySelectorAll('.aural-modal label')].find(l => l.textContent.trim().startsWith('Nghệ sĩ *')).querySelector('input').value), 'SPMusic · Sound Studies');
+  await delay(650); await shot('artist-selection');
+  await evaluate(() => {
+    const input = [...document.querySelectorAll('.aural-modal label')].find(l => l.textContent.trim().startsWith('Nghệ sĩ *')).querySelector('input');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'New Artist');
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  assert.equal(await evaluate(() => document.querySelector('[aria-label="Chọn nghệ sĩ đã có"]').value), '', 'New artist remains freely editable');
+  await click('.aural-modal [aria-label="Đóng"]');
+  await waitFor(() => !document.querySelector('.aural-modal'), 'editor closes');
+  if (process.env.SPMUSIC_QA_SCOPE === 'dock') {
+    assert.deepEqual(errors, []);
+    await fs.writeFile(path.join(output, 'result.json'), JSON.stringify({passed:true,scope:'dock',errors}));
+    console.log('DOCK_QA_PASS',output);
+    await backend.close(); app.exit(0); return;
+  }
+  await click('[aria-label="Phát Home Again"]');
+  await waitFor(() => [...document.querySelectorAll('audio')].some(a => !a.paused), 'resume test sequence');
+  }
   await click('[aria-label="Mở trình phát toàn màn hình"]');
   await waitFor(idle, 'expanded player'); await delay(500);
   await shot('01-before');
@@ -133,7 +192,7 @@ app.whenReady().then(async () => {
   await waitFor(() => !document.fullscreenElement && !document.querySelector('.expanded-player'), 'fullscreen exit');
   await delay(200);
   await click('[aria-label="Mở trình phát toàn màn hình"]'); await waitFor(idle, 'reopen settles');
-  win.webContents.debugger.attach('1.3');
+  if (!win.webContents.debugger.isAttached()) win.webContents.debugger.attach('1.3');
   await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
   await next(); await delay(700);
   assert.equal(await evaluate(() => Boolean(document.querySelector('.mix-dust'))), false, 'Reduced motion disables particles');
@@ -156,7 +215,8 @@ app.whenReady().then(async () => {
   }), 'Artwork stays within small desktop viewport');
   await waitFor(idle, 'compact settles');
   assert.deepEqual(errors, [], 'No renderer errors');
+  await fs.writeFile(path.join(output, 'result.json'), JSON.stringify({ passed: true, checks: ['Now Playing', 'compact dock', 'fullscreen handoff', 'artist choice', 'new artist input', 'AutoMix', 'visible cover', 'reduced motion'], errors }));
   console.log('AUTOMIX_QA_PASS', JSON.stringify({ output, checks: ['manual', 'automatic', 'two streams', 'particles', 'pause', 'seek', 'rapid skip', 'reopen', 'lyrics', 'queue', 'reduced motion', 'compact'] }));
   await backend.close(); app.exit(0);
-}).catch(async (error) => { console.error(error); await backend?.close(); app.exit(1); });
+}).catch(async (error) => { require('node:fs').writeFileSync(path.join(output, 'failure.txt'), error.stack || String(error)); console.error(error); await backend?.close(); app.exit(1); });
 setTimeout(() => { console.error('AutoMix QA timeout'); app.exit(1); }, 120000).unref();

@@ -1,5 +1,7 @@
 # SPMusic — không gian nghe nhạc của bạn
 
+**Bản 2.16.0:** Nút **Đang phát** ở bên phải thanh nhạc mở bảng nghe nhạc với ảnh bìa, nền mờ, AutoMix Dust, lời bài hát xem trước, hàng đợi và nút phóng toàn màn hình. Bảng dùng chung trình phát, mở/đóng không khởi động lại nhạc. Liquid Glass có chuyển động lò xo ở sidebar/tab, độ nảy nhẹ ở nút và cửa sổ; ảnh mới nảy nhẹ khi AutoMix hoàn tất. Form tải file thêm **Hoặc chọn nghệ sĩ đã có** từ thư viện, vẫn cho nhập tên mới. Xem [ghi chú và kiểm tra 2.16.0](docs/NOW-PLAYING.md).
+
 **Bản vá 2.15.1:** Sửa ảnh bìa biến mất hoặc còn thu nhỏ sau AutoMix trong trình phát toàn màn hình. Ảnh hiển thị bình thường được tách khỏi các ảnh dùng cho hiệu ứng để không giữ lại độ trong suốt và vị trí của ảnh cũ. Bổ sung kiểm tra ảnh đã tải, đúng bài, hiện rõ và không còn biến đổi sau khi chuyển bài, tạm dừng, tua hoặc thay đổi chế độ giảm chuyển động.
 
 **Bản 2.15.0:** AutoMix trong trình phát toàn màn hình có hai ảnh bìa thu nhỏ, bụi sáng mịn trôi từ bài cũ sang bài mới và ảnh mới phóng lớn sau khi hòa âm kết thúc. Hiệu ứng bám theo đồng hồ âm thanh, hoạt động ở cả tab trình phát, lyrics và danh sách phát. Tạm dừng, tua hoặc chuyển bài khác sẽ kết thúc hiệu ứng phù hợp. Tự tắt chuyển động khi Windows bật giảm chuyển động. Chi tiết: [AutoMix Dust](docs/AUTOMIX-DUST.md).

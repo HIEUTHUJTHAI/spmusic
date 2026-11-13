@@ -1,3 +1,4 @@
+import { springFrames, SPRING_DURATION } from '../lib/springMotion';
 import { Children, useLayoutEffect, useRef } from 'react';
 
 export default function LiquidTabs({ as: Tag = 'div', children, className = '', ...props }) {
@@ -16,12 +17,7 @@ export default function LiquidTabs({ as: Tag = 'div', children, className = '', 
     Object.assign(lens.style, { left: `${x}px`, top: `${y}px`, width: `${width}px`, height: `${height}px` });
     if (prior && last.current && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const dx = prior.left - base.left + root.scrollLeft - x, dy = prior.top - base.top + root.scrollTop - y;
-      if (Math.abs(dx) + Math.abs(dy) > 1) animation.current = lens.animate([
-        { transform: `translate(${dx}px, ${dy}px) scale(1)`, filter: 'brightness(1)' },
-        { transform: `translate(${dx * .45}px, ${dy * .45}px) scale(${Math.abs(dx) > Math.abs(dy) ? 1.13 : 1.04}, ${Math.abs(dy) >= Math.abs(dx) ? 1.20 : 1.08})`, filter: 'brightness(1.16)', offset: .45 },
-        { transform: 'translate(0, 0) scale(.96)', filter: 'brightness(1.08)', offset: .78 },
-        { transform: 'translate(0, 0) scale(1)', filter: 'brightness(1)' },
-      ], { duration: 520, easing: 'cubic-bezier(.2,.7,.25,1)' });
+      if (Math.abs(dx) + Math.abs(dy) > 1) animation.current = lens.animate(springFrames(dx, dy), { duration: SPRING_DURATION, easing: 'linear' });
     }
     last.current = { x, y };
   }, [selection, items.length]);

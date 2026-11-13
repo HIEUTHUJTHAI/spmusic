@@ -877,3 +877,5 @@
 .ai-review > button {
   justify-self: start;
 }
+.artist-select { display:block; width:100%; min-height:44px; margin-top:8px; padding:10px 12px; border:1px solid var(--line); border-radius:9px; color:var(--text); background:var(--panel); font:inherit; }
+.artist-select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
