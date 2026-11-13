@@ -1,7 +1,10 @@
 import fs from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, createWriteStream } from 'node:fs';
+import { Readable, Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { promisify } from 'node:util';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import ffmpeg from 'ffmpeg-static';
@@ -125,13 +128,28 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
     catch { throw new ApiError(502, 'Không đọc được thông tin video YouTube.'); }
   });
   const downloadAudio = download || (async (url, directory, signal, onProgress) => {
-    await runDownloader([
-      ...baseArgs(), '--newline', '--format', 'bestaudio', '--extract-audio',
-      '--audio-format', 'mp3', '--audio-quality', '0', '--max-filesize', '250M',
-      '--ffmpeg-location', youtubeFfmpegPath(),
-      '--output', path.join(directory, 'audio.%(ext)s'), url,
-    ], signal, 15 * 60 * 1000, onProgress);
-    return path.join(directory, 'audio.mp3');
+    const metadata = await resolveYoutubeAudio(url, signal);
+    const source = new URL(metadata.url);
+    if (source.protocol !== 'https:' || !source.hostname.endsWith('.googlevideo.com') || source.port || source.username || source.password)
+      throw new ApiError(502, 'Nguồn âm thanh không hợp lệ.');
+    const response = await fetch(source.href, { signal, redirect: 'error' });
+    if (!response.ok || !response.body) throw new ApiError(502, 'YouTube chưa cho tải nguồn này. Hãy thử lại sau.');
+    const total = Number(response.headers.get('content-length'));
+    if (total > MAX_AUDIO_BYTES) { await response.body.cancel(); throw new ApiError(413, 'Nguồn nhạc vượt giới hạn 250 MB.'); }
+    const input = path.join(directory, 'source.audio');
+    let bytes = 0;
+    const limit = new Transform({ transform(chunk, encoding, callback) {
+      bytes += chunk.length;
+      if (bytes > MAX_AUDIO_BYTES) return callback(new ApiError(413, 'Nguồn nhạc vượt giới hạn 250 MB.'));
+      if (total > 0) onProgress?.(Math.min(95, bytes / total * 95));
+      callback(null, chunk);
+    } });
+    await pipeline(Readable.fromWeb(response.body), limit, createWriteStream(input, { flags: 'wx' }), { signal });
+    const output = path.join(directory, 'audio.mp3');
+    await promisify(execFile)(youtubeFfmpegPath(), ['-hide_banner', '-loglevel', 'error', '-nostdin', '-i', input,
+      '-vn', '-codec:a', 'libmp3lame', '-q:a', '0', output], { windowsHide: true, signal, timeout: 15 * 60000, maxBuffer: 1024 * 1024 });
+    onProgress?.(100);
+    return output;
   });
 
   async function run(job, video) {
@@ -146,7 +164,8 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
         throw new ApiError(400, 'Chỉ hỗ trợ video thường, tối đa 3 giờ.');
       const sourceKey = JSON.stringify(['youtube', video.id]);
       const previous = await db.query('SELECT * FROM tracks WHERE owner_id=$1 AND source_key=$2', [job.ownerId, sourceKey]);
-      if (previous.rows[0]) {
+      const onlineTrack = previous.rows[0]?.source_info?.online ? previous.rows[0] : null;
+      if (previous.rows[0] && !onlineTrack) {
         job.track = trackView(previous.rows[0]);
         job.existing = true;
         job.status = 'completed'; job.progress = 100;
@@ -154,7 +173,7 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
         return;
       }
       const title = clean(metadata.title, 160, video.id);
-      await rejectDuplicate(db, uploadsDir, job.ownerId, title, null);
+      await rejectDuplicate(db, uploadsDir, job.ownerId, onlineTrack?.title || title, null, onlineTrack?.id);
       directory = await fs.mkdtemp(path.join(uploadsDir, 'temp', 'youtube-'));
       job.status = 'downloading'; job.progress = 10;
       job.message = 'Đang tải âm thanh chất lượng cao nhất có sẵn…';
@@ -168,11 +187,12 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
       job.message = 'Đang kiểm tra file MP3…';
       const info = await prepare({ path: file, originalname: 'youtube.mp3', size }, directory);
       const hash = await audioHash(file);
-      await rejectDuplicate(db, uploadsDir, job.ownerId, title, hash);
+      await rejectDuplicate(db, uploadsDir, job.ownerId, onlineTrack?.title || title, hash, onlineTrack?.id);
       signal.throwIfAborted();
-      const id = randomUUID(), audioFile = `${id}${info.ext}`;
+      const id = onlineTrack?.id || randomUUID(), audioFile = `${id}${info.ext}`;
       let coverFile = null;
       try {
+        if (onlineTrack?.cover_file) throw new Error('keep custom cover');
         const response = await fetch(`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`, { signal: AbortSignal.timeout(8000), redirect: 'error' });
         if (!response.ok || !response.headers.get('content-type')?.startsWith('image/jpeg')) throw new Error('thumbnail unavailable');
         const chunks = []; let bytes = 0;
@@ -193,16 +213,23 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
       job.message = 'Đang lưu vào thư viện…';
       savedFile = path.join(uploadsDir, 'audio', audioFile);
       await fs.rename(file, savedFile);
-      const { rows } = await db.query(
+      const { rows } = onlineTrack ? await db.query(
+        `UPDATE tracks SET duration=$1,audio_file=$2,audio_format=$3,sample_rate=$4,bit_depth=$5,
+          source_info=$6,audio_hash=$7,cover_file=COALESCE(cover_file,$8)
+          WHERE id=$9 AND owner_id=$10 AND source_info->>'online'='true' RETURNING *`,
+        [info.duration,audioFile,info.format,info.sampleRate,info.bitDepth,JSON.stringify(provenance),hash,coverFile,id,job.ownerId],
+      ) : await db.query(
         'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,audio_format,sample_rate,bit_depth,source_key,source_info,audio_hash,cover_file) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *',
         [id, job.ownerId, provenance.title, provenance.artist, '', '', info.duration, audioFile,
           info.format, info.sampleRate, info.bitDepth, sourceKey, JSON.stringify(provenance), hash, coverFile],
       );
+      if (!rows[0]) throw new ApiError(409, 'Bài online đã bị xóa hoặc thay đổi trong lúc tải.');
+      if (savedCover && rows[0].cover_file !== coverFile) await fs.unlink(savedCover).catch(() => {});
       savedFile = null;
       savedCover = null;
       job.track = trackView(rows[0]);
       job.status = 'completed'; job.progress = 100;
-      job.message = 'Đã thêm MP3 vào thư viện.';
+      job.message = 'Đã lưu bản offline vào thư viện.';
     } catch (error) {
       job.status = job.controller.signal.aborted ? 'cancelled' : 'failed';
       job.message = job.status === 'cancelled' ? 'Đã hủy tải nhạc.' :

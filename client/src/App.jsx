@@ -1474,7 +1474,7 @@ export default function App() {
           onClose={() => setModal(null)}
           onImported={(track, existing) => {
             if (track)
-              setTracks((prev) => (prev.some((t) => t.id === track.id) ? prev : [track, ...prev]));
+              setTracks((prev) => (prev.some((t) => t.id === track.id) ? prev.map(t => t.id === track.id ? track : t) : [track, ...prev]));
             notify(existing ? 'Video này đã có trong thư viện.' : 'Đã thêm MP3 vào thư viện của bạn.');
           }}
         />

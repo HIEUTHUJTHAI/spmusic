@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Check, Plus, Play, ExternalLink, Headphones, LoaderCircle } from 'lucide-react';
+import { Check, Plus, Play, Download, Headphones, LoaderCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import './DiscoverMusic.css';
 
-export default function DiscoverMusic({ query, user, onLogin, onImported, notify, onPlayOnline }) {
+export default function DiscoverMusic({ query, user, onLogin, onImported, notify, onPlayOnline, onYoutubeImport }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,7 +53,7 @@ export default function DiscoverMusic({ query, user, onLogin, onImported, notify
           <button onClick={() => setPreview(preview === result.id ? null : result.id)}>{preview === result.id ? 'Đóng xem thử' : 'Xem thử'}</button>
           <button disabled={!!saving} onClick={() => add(result, false)}>{saving === result.id ? <LoaderCircle size={15} className="spin" /> : saved[result.id] ? <Check size={15} /> : <Plus size={15} />}{saved[result.id] ? 'Đã thêm' : 'Thêm thư viện'}</button>
           <button disabled={!!saving} onClick={() => add(result, true)}><Play size={15} /> Nghe ngay</button>
-          <a href={result.sourceUrl} target="_blank" rel="noopener noreferrer" title="Mở trên YouTube" aria-label="Mở trên YouTube"><ExternalLink size={16} /></a>
+          <button className="discover-offline" onClick={() => user ? onYoutubeImport(result.sourceUrl) : onLogin()} title="Tải về để nghe khi không có mạng"><Download size={16} /><span>Tải offline</span></button>
         </div>
         {preview === result.id && <iframe className="youtube-preview" src={result.embedUrl} title={result.title} allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />}
       </article>)}</div>}

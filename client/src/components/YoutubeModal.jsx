@@ -87,11 +87,11 @@ export default function YoutubeModal({ open, onClose, onImported, initialUrl }) 
 
   if (!open) return null;
   return (
-    <Modal title="Thêm nhạc từ link YouTube" onClose={onClose}>
+    <Modal title="Tải nhạc offline" onClose={onClose}>
       <form className="modal-stack" onSubmit={start}>
         <p className="form-description">
           Dán một hoặc nhiều link video công khai, mỗi link một dòng. SPMusic chọn âm thanh tốt nhất có sẵn và lưu thành MP3
-          trong thư viện của bạn. Chuyển sang MP3 không làm tăng chất lượng của nguồn.
+          trong thư viện của bạn. Bài đã lưu Online sẽ được chuyển sang bản offline, giữ nguyên playlist và thông tin đã chỉnh. Chuyển sang MP3 không làm tăng chất lượng của nguồn.
         </p>
         <label className="form-label">
           Link video YouTube
@@ -107,7 +107,7 @@ export default function YoutubeModal({ open, onClose, onImported, initialUrl }) 
         <p className="field-hint">Tối đa 20 link, tải lần lượt · Mỗi video tối đa 3 giờ và 250 MB · Cần kết nối Internet. Giữ app mở đến khi hoàn tất.</p>
         <button className="form-primary" type="submit" disabled={!!working || busy}>
           {busy ? <LoaderCircle size={16} className="spinning" /> : <Link2 size={16} />}
-          {busy ? 'Đang bắt đầu…' : 'Tải MP3 vào thư viện'}
+          {busy ? 'Đang bắt đầu…' : 'Tải để nghe offline'}
         </button>
       </form>
       {job && <div className={`import-status ${job.status}`} role="status">

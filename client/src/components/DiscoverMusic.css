@@ -30,3 +30,8 @@
 @media (max-width: 700px) { .discover-result { grid-template-columns: 1fr; } .discover-result-actions, .discover-inbox-actions { flex-wrap: wrap; } .discover-inbox { flex-direction: column; align-items: stretch; } }
 
 .online-badge { display:inline-block; margin-left:8px; padding:2px 6px; border:1px solid currentColor; border-radius:6px; font-size:10px; opacity:.75; vertical-align:middle; }
+
+.discover-result-actions { flex-wrap: wrap; justify-content: flex-end; }
+.discover-result-actions .discover-offline { background: transparent; border: 1px solid var(--glass-border, var(--line)); color: var(--text); }
+.discover-result-actions .discover-offline:hover { background: var(--accent-soft); color: var(--accent); }
+@media (max-width: 1200px) { .discover-result { grid-template-columns: minmax(0,1fr); } .discover-result-actions { justify-content: flex-start; } }
