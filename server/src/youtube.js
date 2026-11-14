@@ -1,3 +1,4 @@
+import { releaseCover } from './release-cover.js';
 import fs from 'node:fs/promises';
 import { existsSync, createWriteStream } from 'node:fs';
 import { Readable, Transform } from 'node:stream';
@@ -212,15 +213,25 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
       let coverFile = null;
       try {
         if (onlineTrack?.cover_file) throw new Error('keep custom cover');
-        const response = await fetch(`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`, { signal: AbortSignal.timeout(8000), redirect: 'error' });
-        if (!response.ok || !response.headers.get('content-type')?.startsWith('image/jpeg')) throw new Error('thumbnail unavailable');
+        const artwork = await releaseCover(/\b(remix|live|acoustic|cover|instrumental|sped up|slowed)\b/i.test(title) ? title : metadata.track || title, metadata.artist || metadata.uploader || '').catch(() => null);
+        const thumbnail = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
+        let matched = Boolean(artwork);
+        let response = await fetch(artwork || thumbnail, { signal: AbortSignal.timeout(8000), redirect: 'error' }).catch(() => null);
+        if (matched && !response?.ok) { matched = false; response = await fetch(thumbnail, {signal: AbortSignal.timeout(8000)}); }
+        if (!response?.ok || !response.headers.get('content-type')?.startsWith('image/jpeg')) throw new Error('thumbnail unavailable');
         const chunks = []; let bytes = 0;
         for await (const chunk of response.body) { bytes += chunk.length; if (bytes > 5 * 1024 * 1024) throw new Error('thumbnail too large'); chunks.push(chunk); }
         const image = Buffer.concat(chunks);
         if (image.length < 3 || image[0] !== 0xff || image[1] !== 0xd8 || image[2] !== 0xff) throw new Error('invalid image');
         coverFile = `${id}.jpg`;
         savedCover = path.join(uploadsDir, 'covers', coverFile);
-        await fs.writeFile(savedCover, image);
+        if (matched) await fs.writeFile(savedCover, image);
+        else {
+          const input = path.join(directory, 'thumbnail.jpg');
+          await fs.writeFile(input, image);
+          await promisify(execFile)(youtubeFfmpegPath(), ['-nostdin','-loglevel','error','-i',input,'-filter_complex',
+            'split[back][front];[back]scale=600:600:force_original_aspect_ratio=increase,crop=600:600,gblur=sigma=24[blur];[front]scale=600:600:force_original_aspect_ratio=decrease[fit];[blur][fit]overlay=(W-w)/2:(H-h)/2', '-frames:v','1','-y',savedCover], {windowsHide:true, timeout:15000,signal});
+        }
       } catch { if (savedCover) await fs.unlink(savedCover).catch(() => {}); savedCover = null; coverFile = null; }
       const provenance = {
         provider: 'youtube', providerName: 'YouTube', itemId: video.id,

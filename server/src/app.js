@@ -20,6 +20,7 @@ import { accountRoutes, safeUser } from './account.js';
 import { createYoutubeImporter, youtubeRoutes } from './youtube.js';
 import { audioHash, rejectDuplicate } from './duplicates.js';
 import { instrumentalRoutes } from './instrumental.js';
+import { releaseCover } from './release-cover.js';
 import { onlineRoutes } from './online.js';
 import { archiveSelection, discoveryRoutes } from './discovery.js';
 
@@ -233,6 +234,24 @@ export async function createApp({
   });
   const youtube = createYoutubeImporter({ db, uploadsDir, trackView, ...youtubeOptions });
   app.locals.youtube = youtube;
+  app.get('/api/release-cover', requireAuth, async (req, res) => {
+    const title = text(req.query.title, 'Tên bài hát', 200, true);
+    const artist = text(req.query.artist, 'Nghệ sĩ', 200, true);
+    const url = await releaseCover(title, artist);
+    if (!url) throw new ApiError(404, 'Chưa tìm thấy ảnh bìa khớp với bài này.');
+    const response = await fetch(url, { signal: AbortSignal.timeout(8000), redirect: 'error' });
+    if (!response.ok) throw new ApiError(502, 'Không tải được ảnh bìa.');
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of response.body) {
+      size += chunk.length;
+      if (size > 5 * 1024 * 1024) throw new ApiError(413, 'Ảnh bìa quá lớn.');
+      chunks.push(chunk);
+    }
+    const buffer = Buffer.concat(chunks);
+    validateCover({buffer, size, mimetype:'image/jpeg', originalname:'cover.jpg'});
+    res.type('image/jpeg').send(buffer);
+  });
   const online = onlineRoutes(app, { db, requireAuth, trackView });
   youtubeRoutes(app, { service: youtube, requireAuth });
   const multipart = multer({
