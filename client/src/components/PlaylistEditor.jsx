@@ -5,6 +5,10 @@ import Modal from './Modal';
 
 export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
   const [name, setName] = useState(playlist?.name || '');
+  const [query, setQuery] = useState('');
+  const fold = value => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/đ/g, 'd');
+  const term = fold(query.trim());
+  const visibleTracks = term ? tracks.filter(track => fold([track.title, track.artist, track.album].join(' ')).includes(term)) : tracks;
   const [description, setDescription] = useState(playlist?.description || '');
   const [ids, setIds] = useState(playlist?.trackIds || []);
   const [savedPlaylist, setSavedPlaylist] = useState(playlist || null);
@@ -121,8 +125,14 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
         <div className="form-label">
           Chọn bài hát <span className="muted">({ids.length})</span>
         </div>
+        <label className="form-label">
+          <input type="search" aria-label="Tìm bài trong playlist" placeholder="Tìm tên bài, nghệ sĩ, album…"
+            value={query} onChange={event => setQuery(event.target.value)}
+            onKeyDown={event => { if (event.key === 'Enter') event.preventDefault(); }} />
+        </label>
         <div className="playlist-track-picker">
-          {tracks.map((track) => (
+          {!visibleTracks.length && <p className="field-hint">{tracks.length ? 'Không tìm thấy bài phù hợp.' : 'Thư viện chưa có bài hát.'}</p>}
+          {visibleTracks.map((track) => (
             <label key={track.id}>
               <input
                 type="checkbox"

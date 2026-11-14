@@ -879,3 +879,14 @@
 }
 .artist-select { display:block; width:100%; min-height:44px; margin-top:8px; padding:10px 12px; border:1px solid var(--line); border-radius:9px; color:var(--text); background:var(--panel); font:inherit; }
 .artist-select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+.import-status { margin-top:16px; padding:16px; border:1px solid var(--glass-border,var(--line)); border-radius:16px; background:linear-gradient(125deg,#ffffff21,transparent),var(--glass-soft,var(--panel)); box-shadow:inset 0 1px 0 #ffffff45; }
+.import-status > div:first-child { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.import-status strong { display:flex; align-items:center; gap:8px; font-size:14px; }
+.import-status strong svg,.import-status button { flex:none; }
+.import-status small { color:var(--muted); font-size:12px; }
+.liquid-download { height:10px; margin:12px 0 8px; overflow:hidden; border-radius:100px; background:color-mix(in srgb,var(--accent) 12%,transparent); box-shadow:inset 0 1px 3px #0002,inset 0 -1px 0 #fff6; }
+.liquid-download span { display:block; position:relative; height:100%; overflow:hidden; border-radius:inherit; background:linear-gradient(180deg,#ffffff7a,transparent 60%),var(--accent); box-shadow:inset 0 1px 1px #fffa; transition:width .65s ease-out; }
+.liquid-download span::after { content:''; position:absolute; inset:0; background:linear-gradient(105deg,transparent 25%,#fff7,transparent 75%); animation:download-glint 2.8s ease-in-out infinite; }
+@keyframes download-glint { from { transform:translateX(-100%); } to { transform:translateX(100%); } }
+@media (prefers-reduced-motion:reduce) { .liquid-download span { transition:none; } .liquid-download span::after { animation:none; opacity:0; } }

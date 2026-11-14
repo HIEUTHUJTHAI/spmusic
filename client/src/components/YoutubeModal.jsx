@@ -119,7 +119,9 @@ export default function YoutubeModal({ open, onClose, onImported, initialUrl }) 
               catch (e) { setError(e.message); }
             }}>Hủy tải</button>}
         </div>
-        {working && <><progress max="100" value={job.progress} />
+        {working && <><div className="liquid-download" role="progressbar" aria-label="Tiến độ tải offline" aria-valuemin={0} aria-valuemax={100} aria-valuenow={job.progress}>
+          <span style={{ width: job.progress + '%' }} />
+        </div>
           <small>{job.progress}% · Có thể đóng cửa sổ này, app vẫn tiếp tục tải.</small></>}
         {job.track && <p className="field-hint">{job.track.title} · {job.track.artist}</p>}
       </div>}
