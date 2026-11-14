@@ -234,9 +234,7 @@ export async function createApp({
   });
   const youtube = createYoutubeImporter({ db, uploadsDir, trackView, ...youtubeOptions });
   app.locals.youtube = youtube;
-  app.get('/api/release-cover', requireAuth, async (req, res) => {
-    const title = text(req.query.title, 'Tên bài hát', 200, true);
-    const artist = text(req.query.artist, 'Nghệ sĩ', 200, true);
+  async function fetchReleaseCover(title, artist) {
     const url = await releaseCover(title, artist);
     if (!url) throw new ApiError(404, 'Chưa tìm thấy ảnh bìa khớp với bài này.');
     const response = await fetch(url, { signal: AbortSignal.timeout(8000), redirect: 'error' });
@@ -250,7 +248,12 @@ export async function createApp({
     }
     const buffer = Buffer.concat(chunks);
     validateCover({buffer, size, mimetype:'image/jpeg', originalname:'cover.jpg'});
-    res.type('image/jpeg').send(buffer);
+    return buffer;
+  }
+  app.get('/api/release-cover', requireAuth, async (req, res) => {
+    const title = text(req.query.title, 'Tên bài hát', 200, true);
+    const artist = text(req.query.artist, 'Nghệ sĩ', 200, true);
+    res.type('image/jpeg').send(await fetchReleaseCover(title, artist));
   });
   const online = onlineRoutes(app, { db, requireAuth, trackView });
   youtubeRoutes(app, { service: youtube, requireAuth });
@@ -471,10 +474,12 @@ export async function createApp({
     await rejectDuplicate(db, uploadsDir, req.user.id, title, hash);
     const archive = req.body.archiveId && req.body.archiveFile
       ? await archiveSelection(req.body.archiveId, req.body.archiveFile) : null;
+    const matchedCover = !cover && req.body.findReleaseCover === 'true'
+      ? await fetchReleaseCover(title, artist).catch(() => null) : null;
     const id = randomUUID(),
       audioFile = `${id}${audioInfo.ext}`,
       playbackFile = audioInfo.playbackPath ? `${id}.flac` : null,
-      coverFile = coverExt ? `${id}${coverExt}` : null,
+      coverFile = coverExt || matchedCover ? `${id}${coverExt || '.jpg'}` : null,
       lyricsFile = lrc ? `${id}.lrc` : null;
     const createdFiles = [];
     try {
@@ -490,7 +495,7 @@ export async function createApp({
       };
       await move(audio.path, 'audio', audioFile);
       if (playbackFile) await move(audioInfo.playbackPath, 'playback', playbackFile);
-      if (coverFile) await save('covers', coverFile, cover.buffer);
+      if (coverFile) await save('covers', coverFile, cover?.buffer ?? matchedCover);
       if (lyricsFile) await save('lyrics', lyricsFile, lrc);
       const { rows } = await db.query(
         'INSERT INTO tracks(id,owner_id,title,artist,album,genre,duration,audio_file,cover_file,lyrics_file,playback_file,audio_format,sample_rate,bit_depth,audio_hash,source_key,source_info) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *',

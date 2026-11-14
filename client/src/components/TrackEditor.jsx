@@ -208,6 +208,7 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved, arti
           form.append('genre', fields.genre.trim());
           form.append('audio', file);
           if (cover) form.append('cover', cover);
+          else form.append('findReleaseCover', 'true');
           try {
             await upload('/tracks', form, (value) =>
               setProgress(((i + value / 100) / bulkFiles.length) * 100),
@@ -258,6 +259,7 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved, arti
         for (const [key, value] of Object.entries(fields)) form.append(key, value.trim());
         form.append('audio', audio);
         if (cover) form.append('cover', cover);
+        if (!cover) form.append('findReleaseCover', 'true');
         if (content.trim())
           form.append(
             'lyrics',
@@ -353,7 +355,7 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved, arti
                   onChange={(e) => { chooseFile(e.target.files[0], 'cover'); e.target.value = ''; }}
                 />
               </label>
-            {editing && <button type="button" disabled={busy || findingCover || !fields.title || !fields.artist} onClick={findCover}>{findingCover ? 'Đang tìm bìa…' : 'Tìm bìa chính thức'}</button>}
+            {!bulk && <button type="button" disabled={busy || findingCover || !fields.title || !fields.artist} onClick={findCover}>{findingCover ? 'Đang tìm bìa…' : 'Tìm bìa chính thức'}</button>}
             {editing && (cover || (!removeCover && track?.coverUrl !== '/covers/fallback.svg')) && (
               <button
                 type="button"
@@ -365,7 +367,7 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved, arti
               </button>
             )}
             <span className="field-hint">
-              JPG, PNG, WebP · Tối đa 5 MB
+              JPG, PNG, WebP · Tối đa 5 MB{!editing && ' · Để trống để tự tìm bìa theo tên bài và nghệ sĩ.'}
             </span>
           </div>
           <div className="metadata-fields">
