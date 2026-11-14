@@ -213,7 +213,10 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
       let coverFile = null;
       try {
         if (onlineTrack?.cover_file) throw new Error('keep custom cover');
-        const artwork = await releaseCover(/\b(remix|live|acoustic|cover|instrumental|sped up|slowed)\b/i.test(title) ? title : metadata.track || title, metadata.artist || metadata.uploader || '').catch(() => null);
+        const artist = metadata.artist || metadata.uploader || '';
+        let artwork = await releaseCover(title, artist).catch(() => null);
+        if (!artwork && metadata.track && metadata.track !== title && !/\b(remix|live|acoustic|cover|instrumental|sped up|slowed)\b/i.test(title))
+          artwork = await releaseCover(metadata.track, artist).catch(() => null);
         const thumbnail = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
         let matched = Boolean(artwork);
         let response = await fetch(artwork || thumbnail, { signal: AbortSignal.timeout(8000), redirect: 'error' }).catch(() => null);
