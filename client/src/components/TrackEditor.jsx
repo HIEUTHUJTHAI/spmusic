@@ -47,7 +47,7 @@ export default function TrackEditor({ track, initialFile, onClose, onSaved, arti
   const [originalContent, setOriginalContent] = useState('');
   const [removeLyrics, setRemoveLyrics] = useState(false);
   const [coverPreview, setCoverPreview] = useState(null);
-  const [licensed, setLicensed] = useState(false);
+  const [licensed, setLicensed] = useState(true);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
