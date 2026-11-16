@@ -1,5 +1,5 @@
 const normalize = value => String(value || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/đ/g,'d').replace(/[^a-z0-9]+/g,' ').trim();
-const clean = value => value.replace(/^\s*\d{1,2}[.)]\s+/, '').replace(/\s*[|(\[]?\s*(?:official music video|official audio|official mv|official video|lyric video|official visualizer)\s*[)\]]?\s*$/i,'').trim();
+const clean = value => value.replace(/^\s*\d{1,2}[.)]\s+/, '').replace(/\s*[|(\[]?\s*(?:(?:official\s+)?music video|official audio|official mv|official video|lyric video|official visualizer)\s*[)\]]?\s*$/i,'').trim();
 const inCredits = (name, credits) => Boolean(name && (' '+credits+' ').includes(' '+name+' '));
 function titleInfo(value) {
   const [name, ...guests] = clean(value).split(/\s*[(\[]?\b(?:ft|feat|featuring)\.?\s+/i);

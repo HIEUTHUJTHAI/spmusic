@@ -8,7 +8,7 @@ const finished = (status) => ['completed', 'failed', 'cancelled'].includes(statu
 
 export default function YoutubeModal({ open, onClose, onImported, initialUrl }) {
   const [url, setUrl] = useState('');
-  const [licensed, setLicensed] = useState(false);
+  const [licensed, setLicensed] = useState(true);
   const [job, setJob] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -20,7 +20,7 @@ export default function YoutubeModal({ open, onClose, onImported, initialUrl }) 
   const working = job && !finished(job.status);
 
   useEffect(() => {
-    if (open && initialUrl) { setUrl(initialUrl); setLicensed(false); setError(''); }
+    if (open && initialUrl) { setUrl(initialUrl); setLicensed(true); setError(''); }
   }, [open, initialUrl]);
 
   useEffect(() => {
@@ -56,15 +56,26 @@ export default function YoutubeModal({ open, onClose, onImported, initialUrl }) 
   useEffect(() => {
     if (!job || !finished(job.status)) return;
     setResults((items) => items.some((item) => item.id === job.id) ? items : [...items, job]);
-    if (!pending.length || busy) return;
-    let cancelled = false;
-    setBusy(true);
-    api('/youtube/jobs', { method: 'POST', body: { url: pending[0], licensed: true } })
-      .then(({ job: next }) => { if (!cancelled) { setBusy(false); setPending((items) => items.slice(1)); setJob(next); } })
-      .catch((e) => { if (!cancelled) { setBusy(false); setPending([]); setError(e.message); } });
-    return () => { cancelled = true; };
-  }, [job?.id, job?.status, pending.length]);
+  }, [job?.id, job?.status]);
 
+  const submitting = useRef(false);
+  useEffect(() => {
+    if (working || !pending.length || submitting.current || busy) return;
+    submitting.current = true;
+    setBusy(true);
+    const nextUrl = pending[0];
+    api('/youtube/jobs', { method: 'POST', body: { url: nextUrl, licensed: true } })
+      .then(({ job: next }) => setJob(next))
+      .catch((e) => {
+        setError(e.message);
+        setResults(items => [...items, { id: crypto.randomUUID(), status: 'failed' }]);
+      })
+      .finally(() => {
+        setPending(items => items.slice(1));
+        submitting.current = false;
+        setBusy(false);
+      });
+  }, [working, pending, busy]);
   async function start(event) {
     event.preventDefault();
     setError('');
@@ -72,19 +83,10 @@ export default function YoutubeModal({ open, onClose, onImported, initialUrl }) 
     const links = [...new Set(url.split(/[\s,]+/).filter(Boolean))];
     if (!links.length || links.length > 20) { setError('Hãy nhập từ 1 đến 20 link.'); return; }
     if (links.some((link) => { try { const value = new URL(link); return !['https:', 'http:'].includes(value.protocol); } catch { return true; } })) { setError('Có link không hợp lệ. Hãy kiểm tra từng link.'); return; }
-    setBusy(true);
-    setResults([]);
-    try {
-      const result = await api('/youtube/jobs', { method: 'POST', body: { url: links[0], licensed: true } });
-      setPending(links.slice(1));
-      setJob(result.job);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
+    if (!working && !pending.length) setResults([]);
+    setPending(items => [...new Set([...items, ...links])]);
+    setUrl('');
   }
-
   if (!open) return null;
   return (
     <Modal title="Tải nhạc offline" onClose={onClose}>
@@ -97,17 +99,17 @@ export default function YoutubeModal({ open, onClose, onImported, initialUrl }) 
           Link video YouTube
           <textarea required maxLength={12000} value={url}
             onChange={(event) => setUrl(event.target.value)}
-            placeholder="https://www.youtube.com/watch?v=..." disabled={!!working || busy} />
+            placeholder="https://www.youtube.com/watch?v=..." disabled={busy} />
         </label>
         <label className="license-checkbox">
-          <input type="checkbox" checked={licensed} disabled={!!working || busy}
+          <input type="checkbox" checked={licensed} disabled={busy}
             onChange={(event) => setLicensed(event.target.checked)} />
           <span>Tôi sở hữu video này hoặc được phép tải và sử dụng âm thanh của video.</span>
         </label>
         <p className="field-hint">Tối đa 20 link, tải lần lượt · Mỗi video tối đa 3 giờ và 250 MB · Cần kết nối Internet. Giữ app mở đến khi hoàn tất.</p>
-        <button className="form-primary" type="submit" disabled={!!working || busy}>
+        <button className="form-primary" type="submit" disabled={busy || !licensed || !url.trim()}>
           {busy ? <LoaderCircle size={16} className="spinning" /> : <Link2 size={16} />}
-          {busy ? 'Đang bắt đầu…' : 'Tải để nghe offline'}
+          {busy ? 'Đang bắt đầu…' : working || pending.length ? 'Thêm vào hàng chờ' : 'Tải để nghe offline'}
         </button>
       </form>
       {job && <div className={`import-status ${job.status}`} role="status">
@@ -115,7 +117,7 @@ export default function YoutubeModal({ open, onClose, onImported, initialUrl }) 
           <strong>{working && <LoaderCircle size={15} className="spinning" />} {job.message}</strong>
           {working && <button className="form-text-button" disabled={job.status === 'saving'}
             onClick={async () => {
-              try { setPending([]); setJob((await api(`/youtube/jobs/${job.id}`, { method: 'DELETE' })).job); }
+              try { setJob((await api(`/youtube/jobs/${job.id}`, { method: 'DELETE' })).job); }
               catch (e) { setError(e.message); }
             }}>Hủy tải</button>}
         </div>
