@@ -12,6 +12,7 @@ let glassPreferenceWrite = Promise.resolve();
 
 let backend;
 let mainWindow;
+let miniRestore;
 let stopping = false;
 let updateState = { status: 'idle', version: null, progress: 0, message: '' };
 let ignoredUpdateVersion = null;
@@ -73,7 +74,7 @@ async function start() {
       preload: path.join(__dirname, 'preload.cjs'),
     },
   });
-  mainWindow.on('leave-full-screen', () => mainWindow?.webContents.send('player:fullscreen-changed', false));
+  mainWindow.on('leave-full-screen', () => { if (!miniRestore) mainWindow?.webContents.send('player:fullscreen-changed', false); });
   const appOrigin = new URL(backend.url).origin;
   const isAppOrigin = (origin) => {
     try { return new URL(origin).origin === appOrigin; } catch { return false; }
@@ -183,9 +184,32 @@ ipcMain.handle('glass:set', (event, opacity) => {
 ipcMain.handle('inbox:path', () => musicInbox.inbox);
 ipcMain.handle('inbox:open', () => musicInbox.openInbox());
 ipcMain.handle('inbox:read', (_event, name, offset) => musicInbox.readInboxChunk(name, offset));
+ipcMain.handle('player:mini', (event, detail) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win || win !== mainWindow || typeof detail !== 'boolean') return false;
+  if (!miniRestore) {
+    miniRestore = { bounds: win.getNormalBounds(), maximized: win.isMaximized() };
+    win.setFullScreen(false);
+    if (win.isMaximized()) win.unmaximize();
+    win.setMinimumSize(360, 195);
+    win.setAlwaysOnTop(true);
+  }
+  const area = require('electron').screen.getDisplayMatching(win.getBounds()).workArea;
+  const width = Math.min(420, area.width), height = Math.min(detail ? 590 : 215, area.height);
+  const {x,y} = win.getBounds();
+  win.setBounds({width,height,x:Math.max(area.x,Math.min(x,area.x+area.width-width)),y:Math.max(area.y,Math.min(y,area.y+area.height-height))});
+  return true;
+});
 ipcMain.handle('player:fullscreen', (event, enabled) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win || win !== mainWindow || typeof enabled !== 'boolean') return false;
+  if (miniRestore) {
+    win.setAlwaysOnTop(false);
+    win.setMinimumSize(760, 600);
+    win.setBounds(miniRestore.bounds);
+    if (miniRestore.maximized) win.maximize();
+    miniRestore = null;
+  }
   win.setFullScreen(enabled);
   return true;
 });

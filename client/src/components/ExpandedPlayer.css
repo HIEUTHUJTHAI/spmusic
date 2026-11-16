@@ -236,3 +236,27 @@
  .cinema.with-side .cinema-meta { margin:6px 0; }
  .cinema-side .expanded-lyrics { margin:10px 0; }
 }
+
+.cinema-mini-toggle { position:absolute; right:58px; top:10px; z-index:2; width:36px; height:36px; display:grid; place-items:center; border-radius:7px; }
+.cinema-mini-toggle:hover { background:#ffffff21; }
+.cinema-mini-toggle svg { width:19px; }
+.cinema.mini { padding:12px 16px; grid-template:64px minmax(0,1fr) 62px / minmax(0,1fr); gap:4px; }
+.cinema.mini .cinema-deck { display:contents; }
+.cinema.mini .expanded-artwork { grid-area:1/1; width:54px; height:54px; justify-self:start; }
+.cinema.mini .mix-cover { border-radius:6px; }
+.cinema.mini .cinema-meta { grid-area:1/1; justify-self:stretch; min-width:0; margin:0 55px 0 64px; text-align:left; }
+.cinema.mini .cinema-meta h1 { font-size:15px; }
+.cinema.mini .cinema-meta p { font-size:12px; }
+.cinema.mini .cinema-console { grid-area:3/1; width:100%; }
+.cinema.mini .cinema-buttons { margin-top:3px; }
+.cinema.mini .cinema-side { grid-area:2/1; overflow:hidden; }
+.cinema.mini .cinema-side .expanded-lyrics,.cinema.mini .expanded-queue { margin:4px 0; }
+.cinema.mini .expanded-lyric-line { font-size:22px; }
+.cinema.mini .cinema-close,.cinema.mini .cinema-mini-toggle { top:6px; right:4px; width:24px; height:24px; }
+.cinema.mini .cinema-mini-toggle { right:30px; }
+.cinema.mini .cinema-close svg,.cinema.mini .cinema-mini-toggle svg { width:15px; }
+.mini-queue-tabs { display:flex; gap:4px; margin-bottom:8px; }
+.mini-queue-tabs button { flex:1; padding:6px; border-radius:7px; }
+.mini-queue-tabs button[aria-pressed=true] { background:#fff2; }
+.cinema.mini .cinema-side:has(.mini-queue-tabs) .expanded-queue-modes { display:none; }
+.cinema.mini .cinema-pop { max-height:80vh; overflow:auto; }

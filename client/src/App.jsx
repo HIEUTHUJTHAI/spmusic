@@ -1304,7 +1304,7 @@ export default function App() {
         onLike={() => like(p.trackId)}
       />
       {expandedOpen && p.track && (
-        <ExpandedPlayer p={p} tracks={tracks} liked={likes.includes(p.trackId)}
+        <ExpandedPlayer recent={recent} p={p} tracks={tracks} liked={likes.includes(p.trackId)}
           onLike={() => like(p.trackId)} onClose={closeExpandedPlayer} />
       )}
       {toast && (

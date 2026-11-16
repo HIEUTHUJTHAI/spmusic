@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('spmusicDesktop', {
     ipcRenderer.on('inbox:new', handler);
     return () => ipcRenderer.removeListener('inbox:new', handler);
   },
+  setPlayerMini: detail => ipcRenderer.invoke('player:mini', detail),
   setPlayerFullscreen: (enabled) => ipcRenderer.invoke('player:fullscreen', enabled),
   onPlayerFullscreen: (listener) => {
     const handler = (_event, enabled) => listener(enabled);

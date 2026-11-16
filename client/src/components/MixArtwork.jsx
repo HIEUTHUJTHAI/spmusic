@@ -17,7 +17,7 @@ const motes = Array.from({ length: 130 }, (_, i) => {
     alpha: .15 + noise(83.1) * .65, warm: noise(14.13) > .55 };
 });
 
-export default function MixArtwork({ track, mix }) {
+export default function MixArtwork({ track, mix, wide = false }) {
   const [scene, setScene] = useState(null);
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   const stage = useRef(null), oldCover = useRef(null), newCover = useRef(null);
@@ -48,10 +48,11 @@ export default function MixArtwork({ track, mix }) {
       paint.fillStyle = glow; paint.fillRect(0, 0, 48, 48);
       return sprite;
     });
-    let frame, size = 0, stopped = false;
+    let room = 0, frame, size = 0, stopped = false;
     const started = performance.now();
     const resize = () => {
       size = stage.current.clientWidth;
+      room = wide ? clamp(stage.current.parentElement.clientWidth / Math.max(1,size) - 1) : 0;
       const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.current.width = Math.round(size * ratio);
       canvas.current.height = Math.round(size * ratio);
@@ -65,13 +66,13 @@ export default function MixArtwork({ track, mix }) {
       const progress = scene.progress();
       const intro = ease(progress * scene.duration / Math.min(.7, scene.duration * .32));
       const ending = mix ? 0 : ease((now - started) / 850);
-      const x = .27 * intro;
-      const small = 1 - .57 * intro;
+      const x = (.27 + .27 * room) * intro;
+      const small = 1 - (.57 - .39 * room) * intro;
       oldCover.current.style.transform = `translate3d(${-x * 100 - ending * 8}%,0,0) scale(${small - ending * .12}) rotate(${-5 * intro - ending * 3}deg)`;
       oldCover.current.style.opacity = (1 - ending) * (1 - .18 * intro);
-      const incomingScale = .28 + .15 * intro;
+      const incomingScale = .28 + (.15 + .39 * room) * intro;
       const arrival = mix ? 0 : artworkSpring((now - started) / 850);
-      newCover.current.style.transform = `translate3d(${(36 - 9 * intro) * (1 - arrival)}%,0,0) scale(${incomingScale + (1 - incomingScale) * arrival}) rotate(${4 * intro * (1 - arrival)}deg)`;
+      newCover.current.style.transform = `translate3d(${(36 - 9 * intro + 27 * room * intro) * (1 - arrival)}%,0,0) scale(${incomingScale + (1 - incomingScale) * arrival}) rotate(${4 * intro * (1 - arrival)}deg)`;
       newCover.current.style.opacity = intro + (1 - intro) * ending;
       badge.current.style.opacity = intro * (1 - ending);
       stage.current.style.setProperty('--mix-progress', progress);
@@ -84,7 +85,7 @@ export default function MixArtwork({ track, mix }) {
         for (const mote of motes) {
           const travel = (mote.phase + elapsed * mote.speed) % 1;
           const edgeFade = Math.sin(Math.PI * travel) ** .65;
-          const px = size * (.29 + .43 * travel);
+          const px = size * (.5 + (travel - .5) * (.43 + .46 * room));
           const py = size * (.5 + mote.lane * .25 +
             Math.sin(travel * Math.PI * 2 + mote.drift * 6 + elapsed * .45) * .045 * Math.sin(Math.PI * travel));
           const radius = mote.size * Math.max(.65, size / 550);
@@ -102,7 +103,7 @@ export default function MixArtwork({ track, mix }) {
     }
     frame = requestAnimationFrame(draw);
     return () => { stopped = true; cancelAnimationFrame(frame); observer.disconnect(); };
-  }, [scene, mix, reduced]);
+  }, [scene, mix, reduced, wide]);
 
   const animated = scene && !reduced && (mix || track?.id === scene.to.id);
   // Keep the steady image distinct from the imperative animation nodes: React must not

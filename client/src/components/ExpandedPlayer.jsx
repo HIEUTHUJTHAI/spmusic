@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  X, MessageSquareQuote, MoreHorizontal, ChevronDown, Heart, ListMusic, Mic2, Music2, Pause, Play, Repeat,
+  Minimize2, X, MessageSquareQuote, MoreHorizontal, ChevronDown, Heart, ListMusic, Mic2, Music2, Pause, Play, Repeat,
   Repeat1, Shuffle, SkipBack, SkipForward, Volume2, VolumeX, Maximize2,
 } from 'lucide-react';
 import { api } from '../lib/api';
@@ -12,7 +12,9 @@ import InstrumentalButton from './InstrumentalButton';
 import LiquidTabs from './LiquidTabs';
 import MixArtwork from './MixArtwork';
 
-export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embedded = false, onExpand }) {
+export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, recent = [], embedded = false, onExpand }) {
+  const [mini,setMini] = useState(false);
+  const [showHistory,setShowHistory] = useState(false);
   const [tab, setTab] = useState('player');
   const [devices,setDevices] = useState([]);
   const [deviceError,setDeviceError] = useState('');
@@ -73,6 +75,10 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embe
     });
   }, [active, tab, lyricsLoading, lines]);
 
+  useEffect(() => {
+    if (mini) window.spmusicDesktop.setPlayerMini(tab !== 'player');
+  }, [mini,tab]);
+  const queueRows = mini && showHistory ? recent : nextTracks;
   const panels = <>
           {tab === 'lyrics' && (
             <div className="expanded-lyrics" ref={scrollRef} aria-label="Lời bài hát đồng bộ">
@@ -92,6 +98,7 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embe
           {tab === 'lyrics' && <div className="expanded-instrumental"><InstrumentalButton p={p} /></div>}
           {tab === 'queue' && (
             <div className="expanded-queue">
+              {mini && <div className="mini-queue-tabs"><button aria-pressed={!showHistory} onClick={()=>setShowHistory(false)}>Tiếp theo</button><button aria-pressed={showHistory} onClick={()=>setShowHistory(true)}>Lịch sử</button></div>}
               <div className="expanded-queue-modes">
                 <button className={p.shuffle ? 'active' : ''} onClick={() => p.setShuffle(!p.shuffle)}
                   aria-label="Phát ngẫu nhiên" aria-pressed={p.shuffle}><Shuffle size={19} /></button>
@@ -102,13 +109,13 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embe
                 </button>
                 <span>Tiếp tục phát</span>
               </div>
-              {nextTracks.length ? nextTracks.map((track) => (
+              {queueRows.length ? queueRows.map((track) => (
                 <button className="expanded-queue-item" key={track.id} onClick={() => p.play(track)}>
                   <img src={track.coverUrl || '/covers/fallback.svg'} alt="" />
                   <span><strong>{track.title}</strong><small>{track.artist}</small></span>
                   <Play size={17} />
                 </button>
-              )) : <p className="expanded-empty">Chưa có bài hát tiếp theo.</p>}
+              )) : <p className="expanded-empty">{mini && showHistory ? 'Chưa có lịch sử nghe.' : 'Chưa có bài hát tiếp theo.'}</p>}
             </div>
           )}
 
@@ -118,10 +125,11 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embe
       <div className="expanded-backdrop" style={{ backgroundImage: `url("${cover}")` }} aria-hidden="true" />
       {p.mix && <div className="expanded-backdrop expanded-backdrop-outgoing" key={p.mix.from?.id}
         style={mixBackdrop} aria-hidden="true" />}
-      {!embedded ? <div className={'cinema '+(tab === 'player' ? '' : 'with-side')}>
+      {!embedded ? <div className={'cinema '+(mini?'mini ':'')+(tab === 'player' ? '' : 'with-side')}>
+        {window.spmusicDesktop?.setPlayerMini && <button className="cinema-mini-toggle" title={mini?'Toàn màn hình':'Cửa sổ mini'} aria-label={mini?'Toàn màn hình':'Cửa sổ mini'} onClick={()=>{if(mini) window.spmusicDesktop.setPlayerFullscreen(true);setMini(!mini)}}>{mini?<Maximize2/>:<Minimize2/>}</button>}
         <button className="cinema-close" onClick={onClose} aria-label="Thu nhỏ trình phát" title="Thu nhỏ (Esc)" autoFocus><X /></button>
         <div className="cinema-deck">
-          <MixArtwork track={p.track} mix={p.mix} />
+          <MixArtwork track={p.track} mix={p.mix} wide={!mini} />
           <div className="cinema-meta"><h1>{p.track?.title || 'Chọn một bài hát'}</h1><p>{[p.track?.artist,p.track?.album].filter(Boolean).join(' — ')}</p></div>
           <div className="cinema-console">
             <div className="cinema-seek"><span>{formatTime(p.time)}</span><input aria-label="Tua nhạc toàn màn hình" type="range" min="0" max={p.duration || 1} step=".1" value={Math.min(p.time,p.duration || 1)} onChange={e=>p.seek(Number(e.target.value))}/><span>-{formatTime(Math.max(0,p.duration-p.time))}</span></div>
@@ -138,6 +146,7 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embe
               </div>
               <div className="cinema-transport"><button onClick={p.previous} aria-label="Bài trước"><SkipBack/></button><button onClick={p.toggle} aria-label={p.playing?'Tạm dừng':'Phát'}>{p.playing?<Pause/>:<Play/>}</button><button onClick={()=>p.next()} aria-label="Bài tiếp theo"><SkipForward/></button></div>
               <button className="cinema-words" aria-label="Lời bài hát" aria-pressed={tab==='lyrics'} onClick={()=>setTab(tab==='lyrics'?'player':'lyrics')}><MessageSquareQuote/></button>
+              {mini && <button aria-label="Danh sách phát" aria-pressed={tab==='queue'} onClick={()=>setTab(tab==='queue'?'player':'queue')}><ListMusic/></button>}
             </div>
           </div>
         </div>
