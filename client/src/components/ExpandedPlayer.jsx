@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ChevronDown, Heart, ListMusic, Mic2, Music2, Pause, Play, Repeat,
+  X, MessageSquareQuote, MoreHorizontal, ChevronDown, Heart, ListMusic, Mic2, Music2, Pause, Play, Repeat,
   Repeat1, Shuffle, SkipBack, SkipForward, Volume2, VolumeX, Maximize2,
 } from 'lucide-react';
 import { api } from '../lib/api';
@@ -14,6 +14,8 @@ import MixArtwork from './MixArtwork';
 
 export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embedded = false, onExpand }) {
   const [tab, setTab] = useState('player');
+  const [devices,setDevices] = useState([]);
+  const [deviceError,setDeviceError] = useState('');
   const [lyrics, setLyrics] = useState('');
   const [lyricsError, setLyricsError] = useState('');
   const [lyricsLoading, setLyricsLoading] = useState(false);
@@ -71,33 +73,7 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embe
     });
   }, [active, tab, lyricsLoading, lines]);
 
-  return (
-    <section className={`expanded-player ${embedded ? "now-playing-panel" : ""}`} role={embedded ? "region" : "dialog"} aria-modal={embedded ? undefined : true} aria-label={embedded ? "Đang phát" : "Trình phát toàn màn hình"}>
-      <div className="expanded-backdrop" style={{ backgroundImage: `url("${cover}")` }} aria-hidden="true" />
-      {p.mix && <div className="expanded-backdrop expanded-backdrop-outgoing" key={p.mix.from?.id}
-        style={mixBackdrop} aria-hidden="true" />}
-      <header className="expanded-header">
-        <button className="expanded-dismiss" onClick={onClose} aria-label={embedded ? "Đóng Đang phát" : "Thu nhỏ trình phát"} title="Thu nhỏ (Esc)" autoFocus>
-          <ChevronDown size={26} />
-        </button>
-        <span>{embedded ? 'Đang phát' : 'SPMusic'} <small>ĐANG PHÁT</small></span>
-        {embedded ? <button className="expanded-icon" onClick={onExpand} aria-label="Phóng lớn Đang phát"><Maximize2 size={19} /></button> : <div aria-hidden="true" />}
-      </header>
-      <div className="expanded-content">
-        <MixArtwork track={p.track} mix={p.mix} />
-        <div className="expanded-details">
-          <div className="expanded-track-heading">
-            <div>
-              <h1>{p.track?.title || 'Chọn một bài hát'}</h1>
-              <p>{p.track?.artist || 'SPMusic'}</p>
-              {p.track?.album && <small>{p.track.album}</small>}
-            </div>
-            <button className={`expanded-icon ${liked ? 'is-on' : ''}`} onClick={onLike}
-              disabled={!p.track} aria-label="Yêu thích" aria-pressed={liked}>
-              <Heart size={25} fill={liked ? 'currentColor' : 'none'} />
-            </button>
-          </div>
-
+  const panels = <>
           {tab === 'lyrics' && (
             <div className="expanded-lyrics" ref={scrollRef} aria-label="Lời bài hát đồng bộ">
               {lyricsLoading ? <p className="expanded-empty">Đang tải lời bài hát…</p>
@@ -136,6 +112,59 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embe
             </div>
           )}
 
+  </>;
+  return (
+    <section className={`expanded-player ${embedded ? "now-playing-panel" : ""}`} role={embedded ? "region" : "dialog"} aria-modal={embedded ? undefined : true} aria-label={embedded ? "Đang phát" : "Trình phát toàn màn hình"}>
+      <div className="expanded-backdrop" style={{ backgroundImage: `url("${cover}")` }} aria-hidden="true" />
+      {p.mix && <div className="expanded-backdrop expanded-backdrop-outgoing" key={p.mix.from?.id}
+        style={mixBackdrop} aria-hidden="true" />}
+      {!embedded ? <div className={'cinema '+(tab === 'player' ? '' : 'with-side')}>
+        <button className="cinema-close" onClick={onClose} aria-label="Thu nhỏ trình phát" title="Thu nhỏ (Esc)" autoFocus><X /></button>
+        <div className="cinema-deck">
+          <MixArtwork track={p.track} mix={p.mix} />
+          <div className="cinema-meta"><h1>{p.track?.title || 'Chọn một bài hát'}</h1><p>{[p.track?.artist,p.track?.album].filter(Boolean).join(' — ')}</p></div>
+          <div className="cinema-console">
+            <div className="cinema-seek"><span>{formatTime(p.time)}</span><input aria-label="Tua nhạc toàn màn hình" type="range" min="0" max={p.duration || 1} step=".1" value={Math.min(p.time,p.duration || 1)} onChange={e=>p.seek(Number(e.target.value))}/><span>-{formatTime(Math.max(0,p.duration-p.time))}</span></div>
+            <div className="cinema-buttons">
+              <button popoverTarget="cinema-output" aria-label="Âm lượng và đầu ra" onClick={()=>navigator.mediaDevices?.enumerateDevices().then(items=>setDevices(items.filter(d=>d.kind==='audiooutput' && d.deviceId))).catch(()=>{})}><Volume2/></button>
+              <div popover="auto" id="cinema-output" className="cinema-pop">
+                <label>Âm lượng<input type="range" min="0" max="1" step=".01" value={p.volume} onChange={e=>p.setVolume(Number(e.target.value))}/></label>
+                <label>Đầu ra<select value={p.outputDeviceId} onChange={async e=>{try {await p.setOutputDevice(devices.find(d=>d.deviceId===e.target.value)); setDeviceError('');}catch(err){setDeviceError(err.message)}}}><option value="">Mặc định hệ thống</option>{devices.map((d,i)=><option key={d.deviceId} value={d.deviceId}>{d.label || 'Loa '+(i+1)}</option>)}</select></label>{deviceError && <small role="alert">{deviceError}</small>}
+              </div>
+              <button popoverTarget="cinema-more" aria-label="Tùy chọn phát"><MoreHorizontal/></button>
+              <div popover="auto" id="cinema-more" className="cinema-pop">
+                <button onClick={onLike} aria-pressed={liked}>{liked?'Bỏ yêu thích':'Yêu thích'}</button>
+                <button onClick={e=>{setTab(tab==='queue'?'player':'queue');e.currentTarget.parentElement.hidePopover()}}>Danh sách phát</button>
+              </div>
+              <div className="cinema-transport"><button onClick={p.previous} aria-label="Bài trước"><SkipBack/></button><button onClick={p.toggle} aria-label={p.playing?'Tạm dừng':'Phát'}>{p.playing?<Pause/>:<Play/>}</button><button onClick={()=>p.next()} aria-label="Bài tiếp theo"><SkipForward/></button></div>
+              <button className="cinema-words" aria-label="Lời bài hát" aria-pressed={tab==='lyrics'} onClick={()=>setTab(tab==='lyrics'?'player':'lyrics')}><MessageSquareQuote/></button>
+            </div>
+          </div>
+        </div>
+        {tab!=='player' && <aside className="cinema-side">{panels}</aside>}
+      </div> : <>      <header className="expanded-header">
+        <button className="expanded-dismiss" onClick={onClose} aria-label={embedded ? "Đóng Đang phát" : "Thu nhỏ trình phát"} title="Thu nhỏ (Esc)" autoFocus>
+          <ChevronDown size={26} />
+        </button>
+        <span>{embedded ? 'Đang phát' : 'SPMusic'} <small>ĐANG PHÁT</small></span>
+        {embedded ? <button className="expanded-icon" onClick={onExpand} aria-label="Phóng lớn Đang phát"><Maximize2 size={19} /></button> : <div aria-hidden="true" />}
+      </header>
+      <div className="expanded-content">
+        <MixArtwork track={p.track} mix={p.mix} />
+        <div className="expanded-details">
+          <div className="expanded-track-heading">
+            <div>
+              <h1>{p.track?.title || 'Chọn một bài hát'}</h1>
+              <p>{p.track?.artist || 'SPMusic'}</p>
+              {p.track?.album && <small>{p.track.album}</small>}
+            </div>
+            <button className={`expanded-icon ${liked ? 'is-on' : ''}`} onClick={onLike}
+              disabled={!p.track} aria-label="Yêu thích" aria-pressed={liked}>
+              <Heart size={25} fill={liked ? 'currentColor' : 'none'} />
+            </button>
+          </div>
+
+          {panels}
           {tab === 'player' && <div className="expanded-controls">
             <div className="expanded-progress">
               <input aria-label="Tua nhạc toàn màn hình" type="range" min="0" max={p.duration || 1}
@@ -183,6 +212,7 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, embe
           </LiquidTabs>
         </div>
       </div>
+      </> }
     </section>
   );
 }
