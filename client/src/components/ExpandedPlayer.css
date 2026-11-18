@@ -274,3 +274,19 @@ body:has(.desktop-caption) .app-shell { margin-top:28px; }
 .mini-drag-region { position:absolute; top:0; left:0; right:96px; height:88px; z-index:1; -webkit-app-region:drag; app-region:drag; cursor:move; }
 .cinema.mini .cinema-close,.cinema.mini .cinema-mini-toggle { background:#ffffff10; }
 .cinema.mini .cinema-close:hover,.cinema.mini .cinema-mini-toggle:hover { background:#ffffff30; }
+/* Compact player proportions and touch targets. */
+.cinema.mini { padding:12px 14px; grid-template:88px minmax(0,1fr) 74px / minmax(0,1fr); gap:8px; }
+.cinema.mini .expanded-artwork { width:80px; height:80px; align-self:center; }
+.cinema.mini .mix-cover { border-radius:10px; }
+.cinema.mini .cinema-meta { margin:0 0 0 94px; padding-top:34px; align-self:stretch; display:flex; flex-direction:column; justify-content:center; }
+.cinema.mini .cinema-meta h1 { font-size:17px; line-height:1.3; white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.cinema.mini .cinema-meta p { font-size:13px; line-height:1.5; }
+.cinema.mini .cinema-buttons { margin-top:8px; }
+.cinema.mini .cinema-buttons button { width:42px; height:42px; }
+.cinema.mini .cinema-buttons svg { width:22px; height:22px; }
+.cinema.mini .cinema-transport { gap:2px; }
+.cinema.mini .cinema-transport button { width:44px; }
+.cinema.mini .cinema-transport svg { width:25px; height:25px; }
+.cinema.mini .cinema-seek { font-size:13px; gap:12px; }
+.cinema.mini .mini-drag-region { height:110px; right:100px; }
+.cinema.mini .cinema-console { align-self:end; }
