@@ -13,6 +13,16 @@ import { ApiError } from './validation.js';
 import { MAX_AUDIO_BYTES, prepareAudio } from './audio.js';
 import { audioHash, rejectDuplicate } from './duplicates.js';
 
+export function cleanVideoTitle(value) {
+  const original = String(value || '');
+  const label = '(?:(?:official\\s+)?(?:music\\s+video|lyrics?\\s+video|video\\s+lyrics?|video|audio|visuali[sz]er)|(?:official\\s+)?lyrics?)';
+  const bracketed = new RegExp('\\s*[\\[(]\\s*' + label + '\\s*[\\])]\\s*', 'gi');
+  const suffix = new RegExp('(?:\\s*[-|–—:]\\s*|\\s+)' + label + '\\s*$', 'i');
+  let title = original.replace(bracketed, ' ').trim();
+  let previous;
+  do { previous = title; title = title.replace(suffix, '').trim(); } while (title !== previous);
+  return title.replace(/\\s{2,}/g, ' ') || original;
+}
 const here = path.dirname(fileURLToPath(import.meta.url));
 const localTools = path.resolve(here, '../../tools/vendor');
 const packagedTools = process.resourcesPath && path.join(process.resourcesPath, 'tools');
@@ -192,7 +202,7 @@ export function createYoutubeImporter({ db, uploadsDir, trackView, inspect, down
         job.message = 'Video này đã có trong thư viện.';
         return;
       }
-      const title = clean(metadata.title, 160, video.id);
+      const title = clean(cleanVideoTitle(metadata.title), 160, video.id);
       await rejectDuplicate(db, uploadsDir, job.ownerId, onlineTrack?.title || title, null, onlineTrack?.id);
       directory = await fs.mkdtemp(path.join(uploadsDir, 'temp', 'youtube-'));
       job.status = 'downloading'; job.progress = 10;

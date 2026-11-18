@@ -260,3 +260,12 @@
 .mini-queue-tabs button[aria-pressed=true] { background:#fff2; }
 .cinema.mini .cinema-side:has(.mini-queue-tabs) .expanded-queue-modes { display:none; }
 .cinema.mini .cinema-pop { max-height:80vh; overflow:auto; }
+
+.desktop-caption { position:fixed; top:0; left:0; right:0; height:28px; display:flex; align-items:center; z-index:200; background:#252630; color:#eee; -webkit-app-region:drag; }
+.desktop-caption span { flex:1; font-size:11px; padding-left:12px; }
+.desktop-caption button { -webkit-app-region:no-drag; width:42px; height:28px; font-size:18px; }
+.desktop-caption button:hover { background:#ffffff20; }
+.desktop-caption button:last-child:hover { background:#c42b1c; }
+body:has(.desktop-caption) .app-shell { margin-top:28px; }
+.cinema.mini .cinema-meta,.cinema.mini .expanded-artwork { -webkit-app-region:drag; }
+.cinema.mini button,.cinema.mini input,.cinema.mini select { -webkit-app-region:no-drag; }

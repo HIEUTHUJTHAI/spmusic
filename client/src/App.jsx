@@ -1275,6 +1275,7 @@ export default function App() {
           })}
         </aside>
       )}
+      {window.spmusicDesktop?.windowControl && !expandedOpen && <div className="desktop-caption"><span>SPMusic</span><button aria-label="Thu nhỏ cửa sổ" onClick={()=>window.spmusicDesktop.windowControl('minimize')}>−</button><button aria-label="Phóng to cửa sổ" onClick={()=>window.spmusicDesktop.windowControl('maximize')}>□</button><button aria-label="Đóng ứng dụng" onClick={()=>window.spmusicDesktop.windowControl('close')}>×</button></div>}
       {nowPlayingOpen && !expandedOpen && p.track && <ExpandedPlayer embedded p={p} tracks={tracks} liked={likes.includes(p.trackId)} onLike={() => like(p.trackId)} onClose={() => setNowPlayingOpen(false)} onExpand={() => document.querySelector(".expand-player-button")?.click()} />}
       <Player
         nowPlayingOpen={nowPlayingOpen}

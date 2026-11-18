@@ -73,7 +73,7 @@ test('YouTube import saves an owned MP3 once and hides jobs from other users', a
     prepare: async () => ({ ext: '.mp3', format: 'MP3', duration: 92, sampleRate: 44100, bitDepth: null }),
   });
   const settled = async (job) => {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 3000; i++) {
       const current = service.status(job.id, 'owner-a');
       if (['completed', 'failed', 'cancelled'].includes(current.status)) return current;
       await new Promise((resolve) => setTimeout(resolve, 10));

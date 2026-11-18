@@ -60,6 +60,7 @@ async function start() {
   );
 
   mainWindow = new BrowserWindow({
+    frame: false,
     width: 1360,
     height: 900,
     minWidth: 760,
@@ -184,6 +185,13 @@ ipcMain.handle('glass:set', (event, opacity) => {
 ipcMain.handle('inbox:path', () => musicInbox.inbox);
 ipcMain.handle('inbox:open', () => musicInbox.openInbox());
 ipcMain.handle('inbox:read', (_event, name, offset) => musicInbox.readInboxChunk(name, offset));
+ipcMain.handle('window:control', (event, action) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win !== mainWindow || !win) return;
+  if (action === 'minimize') win.minimize();
+  if (action === 'maximize') win.isMaximized() ? win.unmaximize() : win.maximize();
+  if (action === 'close') win.close();
+});
 ipcMain.handle('player:mini', (event, detail) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win || win !== mainWindow || typeof detail !== 'boolean') return false;
