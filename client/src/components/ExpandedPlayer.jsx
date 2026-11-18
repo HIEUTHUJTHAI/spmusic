@@ -128,6 +128,7 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, rece
       {!embedded ? <div className={'cinema '+(mini?'mini ':'')+(tab === 'player' ? '' : 'with-side')}>
         {window.spmusicDesktop?.setPlayerMini && <button className="cinema-mini-toggle" title={mini?'Toàn màn hình':'Cửa sổ mini'} aria-label={mini?'Toàn màn hình':'Cửa sổ mini'} onClick={()=>{if(mini) window.spmusicDesktop.setPlayerFullscreen(true);setMini(!mini)}}>{mini?<Maximize2/>:<Minimize2/>}</button>}
         <button className="cinema-close" onClick={onClose} aria-label="Thu nhỏ trình phát" title="Thu nhỏ (Esc)" autoFocus><X /></button>
+        {mini && <div className="mini-drag-region" aria-hidden="true" />}
         <div className="cinema-deck">
           <MixArtwork track={p.track} mix={p.mix} wide={!mini} />
           <div className="cinema-meta"><h1>{p.track?.title || 'Chọn một bài hát'}</h1><p>{[p.track?.artist,p.track?.album].filter(Boolean).join(' — ')}</p></div>
