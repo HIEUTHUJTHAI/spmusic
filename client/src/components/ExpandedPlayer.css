@@ -227,7 +227,33 @@
 .cinema-pop { inset:auto; bottom:calc(anchor(top) + 6px); left:clamp(8px,anchor(left),calc(100vw - 290px)); margin:0; width:min(280px,90vw); padding:14px; background:#29292bf5; color:white; border:1px solid #ffffff38; border-radius:12px; box-shadow:0 10px 36px #0004; }
 .cinema-pop label { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px; }
 .cinema-pop select { max-width:68%; background:#333; }
-.cinema-buttons .cinema-pop button { width:100%; }
+.cinema-buttons [popovertarget="cinema-more"] { anchor-name: --cinema-more-trigger; }
+#cinema-more {
+  position: fixed;
+  position-anchor: --cinema-more-trigger;
+  inset: auto;
+  left: clamp(8px, anchor(left), calc(100vw - 208px));
+  bottom: calc(anchor(top) + 6px);
+  width: min(200px, calc(100vw - 16px));
+  box-sizing: border-box;
+  padding: 6px;
+  backdrop-filter: blur(16px);
+}
+#cinema-more button {
+  width: 100%;
+  height: auto;
+  min-height: 38px;
+  padding: 7px 12px;
+  justify-items: start;
+  text-align: start;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #cinema-more:popover-open { animation: cinema-menu-open 160ms ease-out; }
+  @keyframes cinema-menu-open {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+}
 .cinema-side { width:100%; min-height:0; height:100%; display:flex; flex-direction:column; }
 .cinema-side .expanded-lyric-line { font-size:clamp(25px,2.65vw,52px); padding:0 0 .78em; }
 @media(max-width:680px) {
@@ -282,7 +308,7 @@ body:has(.desktop-caption) .app-shell { margin-top:28px; }
 .cinema.mini .cinema-meta h1 { font-size:17px; line-height:1.3; white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 .cinema.mini .cinema-meta p { font-size:13px; line-height:1.5; }
 .cinema.mini .cinema-buttons { margin-top:8px; }
-.cinema.mini .cinema-buttons button { width:42px; height:42px; }
+.cinema.mini .cinema-buttons > button,.cinema.mini .cinema-transport button { width:42px; height:42px; }
 .cinema.mini .cinema-buttons svg { width:22px; height:22px; }
 .cinema.mini .cinema-transport { gap:2px; }
 .cinema.mini .cinema-transport button { width:44px; }
