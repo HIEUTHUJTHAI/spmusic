@@ -7,7 +7,7 @@ Tài liệu này ghi lại tiến độ, trạng thái hiện tại và các lư
 
 ## ⚡ Trạng thái dự án hiện tại
 * **Tên dự án**: SPMusic (Auralis)
-* **Phiên bản hiện tại**: `2.21.7`
+* **Phiên bản hiện tại**: `2.21.8`
 * **Nhánh Git**: `main` (Remote: `https://github.com/HIEUTHUJTHAI/spmusic.git`)
 * **Tình trạng tổng thể**: 
   * Codebase ổn định với đầy đủ tính năng: Liquid Glass UI, AutoMix Dust, Sync Lyrics LRC, Local AI Whisper, Desktop Electron Builder.
@@ -24,6 +24,11 @@ Tài liệu này ghi lại tiến độ, trạng thái hiện tại và các lư
 ---
 
 ## 📜 Lịch sử bàn giao gần nhất
+
+### 2026-11-21 — Codex | Khôi phục giao diện mini
+* electron/main.cjs theo dõi trạng thái mini trước khi rời fullscreen; client/src/components/ExpandedPlayer.jsx chỉ yêu cầu kích thước mini một lần mỗi lần đổi chế độ. client/src/App.jsx đóng mini trực tiếp.
+* Build Vite đạt. tools/test-mini-roundtrip.cjs chạy qua ứng dụng Electron thật với thư viện riêng: phát bài, fullscreen → mini, mở lyrics, phóng lại fullscreen, về mini và đóng về cửa sổ chính (MINI_ROUNDTRIP_PASS).
+* Kênh phát hành Windows: [v2.21.8](https://github.com/HIEUTHUJTHAI/spmusic/releases/tag/v2.21.8). Phiên bản đồng bộ ở package.json gốc, client, server và package-lock.json.
 
 ### 🕒 2026-11-21 23:45 — Antigravity | Phát hành v2.21.7: Vá lỗi nút phóng to toàn màn hình từ Mini Player
 * **Vấn đề đã khắc phục**: Trong chế độ Mini Player, nút phóng to về toàn màn hình (`.cinema-mini-toggle`) không bấm được do:

@@ -167,11 +167,6 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, rece
                 }
               } else {
                 setMini(true);
-                try {
-                  await window.spmusicDesktop?.setPlayerMini(tab !== 'player');
-                } catch (err) {
-                  console.error('Lỗi chuyển cửa sổ mini:', err);
-                }
               }
             }}
           >

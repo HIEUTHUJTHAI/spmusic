@@ -227,7 +227,7 @@ export default function App() {
   const closeExpandedPlayer = () => {
     const el = document.querySelector('.expanded-player:not(.now-playing-panel)');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (el && !reduced) {
+    if (el && !reduced && !el.querySelector('.cinema.mini')) {
       el.classList.add('closing');
       el.addEventListener('animationend', () => {
         setExpandedOpen(false);

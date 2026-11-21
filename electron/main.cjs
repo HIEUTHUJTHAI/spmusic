@@ -13,6 +13,7 @@ let glassPreferenceWrite = Promise.resolve();
 let backend;
 let mainWindow;
 let miniRestore;
+let miniActive = false;
 let stopping = false;
 let updateState = { status: 'idle', version: null, progress: 0, message: '' };
 let ignoredUpdateVersion = null;
@@ -76,7 +77,7 @@ async function start() {
     },
   });
   mainWindow.on('leave-full-screen', () => {
-    if (mainWindow.isAlwaysOnTop()) return;
+    if (miniActive || mainWindow.isFullScreen()) return;
     if (miniRestore) {
       mainWindow.setAlwaysOnTop(false);
       mainWindow.setMinimumSize(760, 600);
@@ -208,10 +209,13 @@ ipcMain.handle('player:mini', (event, detail) => {
   if (!miniRestore) {
     miniRestore = { bounds: win.getNormalBounds(), maximized: win.isMaximized() };
   }
-  win.setAlwaysOnTop(true);
-  win.setFullScreen(false);
-  if (win.isMaximized()) win.unmaximize();
-  win.setMinimumSize(360, 195);
+  if (!miniActive) {
+    miniActive = true;
+    win.setFullScreen(false);
+    if (win.isMaximized()) win.unmaximize();
+    win.setMinimumSize(360, 195);
+    win.setAlwaysOnTop(true);
+  }
   const area = require('electron').screen.getDisplayMatching(win.getBounds()).workArea;
   const width = Math.min(420, area.width), height = Math.min(detail ? 590 : 215, area.height);
   const {x,y} = win.getBounds();
@@ -221,6 +225,7 @@ ipcMain.handle('player:mini', (event, detail) => {
 ipcMain.handle('player:fullscreen', (event, enabled) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win || win !== mainWindow || typeof enabled !== 'boolean') return false;
+  miniActive = false;
   if (enabled) {
     win.setAlwaysOnTop(false);
     win.setMinimumSize(760, 600);
