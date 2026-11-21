@@ -7,7 +7,7 @@ Tài liệu này ghi lại tiến độ, trạng thái hiện tại và các lư
 
 ## ⚡ Trạng thái dự án hiện tại
 * **Tên dự án**: SPMusic (Auralis)
-* **Phiên bản hiện tại**: `2.21.6`
+* **Phiên bản hiện tại**: `2.21.7`
 * **Nhánh Git**: `main` (Remote: `https://github.com/HIEUTHUJTHAI/spmusic.git`)
 * **Tình trạng tổng thể**: 
   * Codebase ổn định với đầy đủ tính năng: Liquid Glass UI, AutoMix Dust, Sync Lyrics LRC, Local AI Whisper, Desktop Electron Builder.
@@ -24,6 +24,16 @@ Tài liệu này ghi lại tiến độ, trạng thái hiện tại và các lư
 ---
 
 ## 📜 Lịch sử bàn giao gần nhất
+
+### 🕒 2026-11-21 23:45 — Antigravity | Phát hành v2.21.7: Vá lỗi nút phóng to toàn màn hình từ Mini Player
+* **Vấn đề đã khắc phục**: Trong chế độ Mini Player, nút phóng to về toàn màn hình (`.cinema-mini-toggle`) không bấm được do:
+  1. **Xung đột vùng kéo cửa sổ (Window Drag Region)**: `.cinema-meta` có thuộc tính `-webkit-app-region: drag` bị tràn `margin-right: 0`, che phủ hơn 60% diện tích của nút bấm ở góc trên phải. Hệ điều hành Windows bắt nhầm thành thao tác kéo cửa sổ (`HTCAPTION`), khiến trình duyệt không nhận được sự kiện `click`.
+  2. **Thứ tự DOM & z-index**: Đã chuyển các nút điều khiển (`.cinema-mini-toggle`, `.cinema-close`) ra sau `.cinema-deck` trong DOM, đặt `z-index: 100`, bổ sung `-webkit-app-region: no-drag !important` và `pointer-events: auto !important`.
+  3. **Độ căn lề**: Cập nhật `.cinema.mini .cinema-meta` có `margin: 0 96px 0 94px; min-width: 0;`, xóa `padding-top: 34px` thừa, đảm bảo vùng tên bài hát căn giữa gọn gàng cạnh ảnh bìa mà không bao giờ va chạm vào cụm nút điều khiển.
+  4. **Logic khôi phục kích thước cửa sổ Electron**: Trong `electron/main.cjs`, tách rõ logic chuyển sang toàn màn hình (`enabled === true`) và thoát toàn màn hình (`enabled === false`). Khi phóng to từ mini mode về fullscreen, lưu giữ `miniRestore` gốc để khi người dùng nhấn ESC/đóng player sau này, kích thước cửa sổ ban đầu của người dùng được phục hồi chính xác.
+  5. **Bổ sung Unit Test**: Tạo test suite `electron/mini-player.test.cjs` kiểm chứng toàn bộ quy trình chuyển đổi trạng thái giữa Normal -> Fullscreen -> Mini -> Fullscreen -> Normal.
+* Toàn bộ 64/64 automated tests pass 100%, Vite build client hoàn tất thành công.
+* **File thay đổi**: `client/package.json`, `client/src/components/ExpandedPlayer.css`, `client/src/components/ExpandedPlayer.jsx`, `electron/main.cjs`, `electron/mini-player.test.cjs`, `package-lock.json`, `package.json`, `server/package.json`, `HANDOFF.md`.
 
 ### 🕒 2026-11-21 23:14 — Antigravity | Phát hành v2.21.6: Hiệu ứng Fullscreen macOS & Vá Test Suite
 * Nâng phiên bản toàn dự án lên **`v2.21.6`** (`package.json`, `client`, `server`, `package-lock.json`).

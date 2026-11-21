@@ -75,7 +75,17 @@ async function start() {
       preload: path.join(__dirname, 'preload.cjs'),
     },
   });
-  mainWindow.on('leave-full-screen', () => { if (!miniRestore) mainWindow?.webContents.send('player:fullscreen-changed', false); });
+  mainWindow.on('leave-full-screen', () => {
+    if (mainWindow.isAlwaysOnTop()) return;
+    if (miniRestore) {
+      mainWindow.setAlwaysOnTop(false);
+      mainWindow.setMinimumSize(760, 600);
+      mainWindow.setBounds(miniRestore.bounds);
+      if (miniRestore.maximized) mainWindow.maximize();
+      miniRestore = null;
+    }
+    mainWindow?.webContents.send('player:fullscreen-changed', false);
+  });
   const appOrigin = new URL(backend.url).origin;
   const isAppOrigin = (origin) => {
     try { return new URL(origin).origin === appOrigin; } catch { return false; }
@@ -197,11 +207,11 @@ ipcMain.handle('player:mini', (event, detail) => {
   if (!win || win !== mainWindow || typeof detail !== 'boolean') return false;
   if (!miniRestore) {
     miniRestore = { bounds: win.getNormalBounds(), maximized: win.isMaximized() };
-    win.setFullScreen(false);
-    if (win.isMaximized()) win.unmaximize();
-    win.setMinimumSize(360, 195);
-    win.setAlwaysOnTop(true);
   }
+  win.setAlwaysOnTop(true);
+  win.setFullScreen(false);
+  if (win.isMaximized()) win.unmaximize();
+  win.setMinimumSize(360, 195);
   const area = require('electron').screen.getDisplayMatching(win.getBounds()).workArea;
   const width = Math.min(420, area.width), height = Math.min(detail ? 590 : 215, area.height);
   const {x,y} = win.getBounds();
@@ -211,6 +221,13 @@ ipcMain.handle('player:mini', (event, detail) => {
 ipcMain.handle('player:fullscreen', (event, enabled) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (!win || win !== mainWindow || typeof enabled !== 'boolean') return false;
+  if (enabled) {
+    win.setAlwaysOnTop(false);
+    win.setMinimumSize(760, 600);
+    win.setFullScreen(true);
+    return true;
+  }
+  win.setFullScreen(false);
   if (miniRestore) {
     win.setAlwaysOnTop(false);
     win.setMinimumSize(760, 600);
@@ -218,7 +235,6 @@ ipcMain.handle('player:fullscreen', (event, enabled) => {
     if (miniRestore.maximized) win.maximize();
     miniRestore = null;
   }
-  win.setFullScreen(enabled);
   return true;
 });
 ipcMain.handle('updates:state', () => updateState);

@@ -291,9 +291,27 @@
 .cinema.mini .cinema-side { grid-area:2/1; overflow:hidden; }
 .cinema.mini .cinema-side .expanded-lyrics,.cinema.mini .expanded-queue { margin:4px 0; }
 .cinema.mini .expanded-lyric-line { font-size:22px; }
-.cinema.mini .cinema-close,.cinema.mini .cinema-mini-toggle { top:8px; right:8px; width:38px; height:38px; }
-.cinema.mini .cinema-mini-toggle { right:50px; }
-.cinema.mini .cinema-close svg,.cinema.mini .cinema-mini-toggle svg { width:21px; height:21px; }
+.cinema.mini .cinema-close,
+.cinema.mini .cinema-mini-toggle {
+  top: 8px;
+  right: 8px;
+  width: 38px;
+  height: 38px;
+  z-index: 100;
+  -webkit-app-region: no-drag !important;
+  app-region: no-drag !important;
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+.cinema.mini .cinema-mini-toggle { right: 50px; }
+.cinema.mini .cinema-close svg,
+.cinema.mini .cinema-mini-toggle svg {
+  width: 21px;
+  height: 21px;
+  pointer-events: none;
+  -webkit-app-region: no-drag !important;
+  app-region: no-drag !important;
+}
 .mini-queue-tabs { display:flex; gap:4px; margin-bottom:8px; }
 .mini-queue-tabs button { flex:1; padding:6px; border-radius:7px; }
 .mini-queue-tabs button[aria-pressed=true] { background:#fff2; }
@@ -306,8 +324,11 @@
 .desktop-caption button:hover { background:#ffffff20; }
 .desktop-caption button:last-child:hover { background:#c42b1c; }
 body:has(.desktop-caption) .app-shell { margin-top:28px; }
-.cinema.mini .cinema-meta,.cinema.mini .expanded-artwork { -webkit-app-region:drag; }
-.cinema.mini button,.cinema.mini input,.cinema.mini select { -webkit-app-region:no-drag; }
+.cinema.mini .cinema-meta,
+.cinema.mini .expanded-artwork { -webkit-app-region: drag; app-region: drag; }
+.cinema.mini button,
+.cinema.mini input,
+.cinema.mini select { -webkit-app-region: no-drag !important; app-region: no-drag !important; }
 
 .expanded-player:has(.cinema.mini) { animation:none; transform:none; }
 .mini-drag-region { position:absolute; top:0; left:0; right:96px; height:88px; z-index:1; -webkit-app-region:drag; app-region:drag; cursor:move; }
@@ -317,7 +338,7 @@ body:has(.desktop-caption) .app-shell { margin-top:28px; }
 .cinema.mini { padding:12px 14px; grid-template:88px minmax(0,1fr) 74px / minmax(0,1fr); gap:8px; }
 .cinema.mini .expanded-artwork { width:80px; height:80px; align-self:center; }
 .cinema.mini .mix-cover { border-radius:10px; }
-.cinema.mini .cinema-meta { margin:0 0 0 94px; padding-top:34px; align-self:stretch; display:flex; flex-direction:column; justify-content:center; }
+.cinema.mini .cinema-meta { margin:0 96px 0 94px; align-self:stretch; display:flex; flex-direction:column; justify-content:center; min-width:0; }
 .cinema.mini .cinema-meta h1 { font-size:17px; line-height:1.3; white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 .cinema.mini .cinema-meta p { font-size:13px; line-height:1.5; }
 .cinema.mini .cinema-buttons { margin-top:8px; }

@@ -126,8 +126,6 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, rece
       {p.mix && <div className="expanded-backdrop expanded-backdrop-outgoing" key={p.mix.from?.id}
         style={mixBackdrop} aria-hidden="true" />}
       {!embedded ? <div className={'cinema '+(mini?'mini ':'')+(tab === 'player' ? '' : 'with-side')}>
-        {window.spmusicDesktop?.setPlayerMini && <button className="cinema-mini-toggle" title={mini?'Toàn màn hình':'Cửa sổ mini'} aria-label={mini?'Toàn màn hình':'Cửa sổ mini'} onClick={()=>{if(mini) window.spmusicDesktop.setPlayerFullscreen(true);setMini(!mini)}}>{mini?<Maximize2/>:<Minimize2/>}</button>}
-        <button className="cinema-close" onClick={onClose} aria-label="Thu nhỏ trình phát" title="Thu nhỏ (Esc)" autoFocus><X /></button>
         {mini && <div className="mini-drag-region" aria-hidden="true" />}
         <div className="cinema-deck">
           <MixArtwork track={p.track} mix={p.mix} wide={!mini} />
@@ -152,6 +150,44 @@ export default function ExpandedPlayer({ p, tracks, liked, onLike, onClose, rece
           </div>
         </div>
         {tab!=='player' && <aside className="cinema-side">{panels}</aside>}
+        {window.spmusicDesktop?.setPlayerMini && (
+          <button
+            type="button"
+            className="cinema-mini-toggle"
+            title={mini ? 'Toàn màn hình' : 'Cửa sổ mini'}
+            aria-label={mini ? 'Toàn màn hình' : 'Cửa sổ mini'}
+            onClick={async (e) => {
+              e.stopPropagation();
+              if (mini) {
+                setMini(false);
+                try {
+                  await window.spmusicDesktop?.setPlayerFullscreen(true);
+                } catch (err) {
+                  console.error('Lỗi phóng to toàn màn hình:', err);
+                }
+              } else {
+                setMini(true);
+                try {
+                  await window.spmusicDesktop?.setPlayerMini(tab !== 'player');
+                } catch (err) {
+                  console.error('Lỗi chuyển cửa sổ mini:', err);
+                }
+              }
+            }}
+          >
+            {mini ? <Maximize2 /> : <Minimize2 />}
+          </button>
+        )}
+        <button
+          type="button"
+          className="cinema-close"
+          onClick={onClose}
+          aria-label="Thu nhỏ trình phát"
+          title="Thu nhỏ (Esc)"
+          autoFocus
+        >
+          <X />
+        </button>
       </div> : <>      <header className="expanded-header">
         <button className="expanded-dismiss" onClick={onClose} aria-label={embedded ? "Đóng Đang phát" : "Thu nhỏ trình phát"} title="Thu nhỏ (Esc)" autoFocus>
           <ChevronDown size={26} />
