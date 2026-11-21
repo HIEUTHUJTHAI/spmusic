@@ -2,11 +2,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createDatabase } from '../src/db.js';
 import { createYoutubeImporter } from '../src/youtube.js';
 
+const testDir = path.dirname(fileURLToPath(import.meta.url));
+const serverRoot = path.resolve(testDir, '..');
+
 test('offline download upgrades online row without losing playlist or edited metadata', async () => {
- const db=await createDatabase();const dir=await fs.mkdtemp(path.resolve('server/test-offline-'));
+ const db=await createDatabase();const dir=await fs.mkdtemp(path.join(serverRoot, 'test-offline-'));
  for(const name of ['temp','audio','covers'])await fs.mkdir(path.join(dir,name));
  const key=JSON.stringify(['youtube','jNQXAC9IVRw']);
  await db.query("INSERT INTO users(id,name,email,password_hash) VALUES('owner','Test','offline@test','x')");
@@ -16,7 +20,7 @@ test('offline download upgrades online row without losing playlist or edited met
  let downloads=0;
  const service=createYoutubeImporter({db,uploadsDir:dir,trackView:r=>r,
  inspect:async()=>({id:'jNQXAC9IVRw',title:'Source title',duration:1}),
- download:async(_url,directory)=>{downloads++;const file=path.join(directory,'audio.mp3');await fs.copyFile('server/test/fixtures/silence.mp3',file);return file;},
+ download:async(_url,directory)=>{downloads++;const file=path.join(directory,'audio.mp3');await fs.copyFile(path.join(testDir, 'fixtures', 'silence.mp3'),file);return file;},
  prepare:async()=>({ext:'.mp3',format:'MP3',duration:1,sampleRate:44100,bitDepth:null})});
  const wait=async job=>{for(let i=0;i<100;i++){const j=service.status(job.id,'owner');if(['completed','failed'].includes(j.status)&&!service.active('owner'))return j;await new Promise(r=>setTimeout(r,20));}throw Error('timeout');};
  try {

@@ -7,11 +7,23 @@
   color: #fff;
   background: #343039;
   transform-origin: bottom left;
-  animation: expanded-open 420ms cubic-bezier(.2,.8,.2,1) both;
+  animation: expanded-open 540ms cubic-bezier(.32,1.08,.5,1) both;
 }
+/* macOS-style fullscreen zoom: scale up from player bar position with shrinking border-radius */
 @keyframes expanded-open {
-  from { opacity: 0; transform: translate3d(-8%, 15%, 0) scale(.84); border-radius: 28px; }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); border-radius: 0; }
+  0%   { opacity: 0; transform: scale(.42) translateY(38%); border-radius: 18px; filter: brightness(.82); }
+  40%  { opacity: 1; filter: brightness(.94); }
+  100% { opacity: 1; transform: scale(1) translateY(0); border-radius: 0; filter: brightness(1); }
+}
+/* macOS-style close: shrink back down to player bar */
+.expanded-player.closing {
+  animation: expanded-close 440ms cubic-bezier(.36,.0,.66,-.08) forwards;
+  pointer-events: none;
+}
+@keyframes expanded-close {
+  0%   { opacity: 1; transform: scale(1) translateY(0); border-radius: 0; filter: brightness(1); }
+  60%  { opacity: .85; filter: brightness(.92); }
+  100% { opacity: 0; transform: scale(.42) translateY(38%); border-radius: 18px; filter: brightness(.8); }
 }
 .expanded-backdrop {
   position: absolute;
@@ -150,6 +162,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .expanded-player { animation: none; }
+  .expanded-player.closing { animation: none; }
   .expanded-backdrop { animation: none; will-change: auto; }
   .expanded-backdrop-outgoing { display: none; }
   .expanded-lyric-line { transition: none; }

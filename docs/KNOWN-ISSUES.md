@@ -4,3 +4,4 @@
 - Fixed: toolbar remains at the top of the viewport; dock aligns 12px below it at every page scroll position. Preserved bottom player clearance, independent dock scrolling and horizontal-overflow fix.
 - Verify at page top, mid-scroll and return to top, with dock open/closed and multiple window sizes.
 - Included in the requested shell redesign rather than a standalone patch.
+- Verified on 2026-11-21 (Antigravity): Executed `tools/test-shell.cjs` with Electron and confirmed `SHELL_QA_PASS`. Layout, dock alignment (12px below fixed toolbar), and scroll bounds are completely verified.

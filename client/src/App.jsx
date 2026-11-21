@@ -225,12 +225,24 @@ export default function App() {
   };
   const p = usePlayer(tracks, record, notify);
   const closeExpandedPlayer = () => {
-    setExpandedOpen(false);
-    if (window.spmusicDesktop?.setPlayerFullscreen) {
-      window.spmusicDesktop.setPlayerFullscreen(false).catch(() => {});
-      return;
+    const el = document.querySelector('.expanded-player:not(.now-playing-panel)');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (el && !reduced) {
+      el.classList.add('closing');
+      el.addEventListener('animationend', () => {
+        setExpandedOpen(false);
+        if (window.spmusicDesktop?.setPlayerFullscreen)
+          window.spmusicDesktop.setPlayerFullscreen(false).catch(() => {});
+        else if (document.fullscreenElement)
+          document.exitFullscreen?.().catch(() => {});
+      }, { once: true });
+    } else {
+      setExpandedOpen(false);
+      if (window.spmusicDesktop?.setPlayerFullscreen)
+        window.spmusicDesktop.setPlayerFullscreen(false).catch(() => {});
+      else if (document.fullscreenElement)
+        document.exitFullscreen?.().catch(() => {});
     }
-    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
   };
   useEffect(() => {
     if (!expandedOpen) return;
