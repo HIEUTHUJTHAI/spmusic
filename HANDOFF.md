@@ -32,6 +32,7 @@ Tài liệu này ghi lại tiến độ, trạng thái hiện tại và các lư
 * Sửa lỗi hardcode đường dẫn trong `server/test/offline.test.js` để test chạy độc lập ở bất kỳ CWD nào.
 * Thiết lập giao thức đa agent (`AGENTS.md`) và sổ bàn giao (`HANDOFF.md`) giữa Codex và Antigravity.
 * Build Vite đạt, toàn bộ 63/63 automated tests pass 100%.
+* Đã phát hành Windows [v2.21.6](https://github.com/HIEUTHUJTHAI/spmusic/releases/tag/v2.21.6), commit `3615427`. Workflow 44923403741 thành công, đã đăng tải `SPMusic-2.21.6-x64.exe` (256.78 MB).
 * **File thay đổi**: `client/package.json`, `client/src/App.jsx`, `client/src/components/ExpandedPlayer.css`, `docs/KNOWN-ISSUES.md`, `package-lock.json`, `package.json`, `server/package.json`, `server/test/offline.test.js`, `AGENTS.md`, `HANDOFF.md`.
 
 ### 2026-11-21 22:36 — Codex | Vá menu tùy chọn mini player
