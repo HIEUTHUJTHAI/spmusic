@@ -7,7 +7,7 @@ Tài liệu này ghi lại tiến độ, trạng thái hiện tại và các lư
 
 ## ⚡ Trạng thái dự án hiện tại
 * **Tên dự án**: SPMusic (Auralis)
-* **Phiên bản hiện tại**: `2.21.8`
+* **Phiên bản hiện tại**: `2.21.9`
 * **Nhánh Git**: `main` (Remote: `https://github.com/HIEUTHUJTHAI/spmusic.git`)
 * **Tình trạng tổng thể**: 
   * Codebase ổn định với đầy đủ tính năng: Liquid Glass UI, AutoMix Dust, Sync Lyrics LRC, Local AI Whisper, Desktop Electron Builder.
@@ -24,6 +24,10 @@ Tài liệu này ghi lại tiến độ, trạng thái hiện tại và các lư
 ---
 
 ## 📜 Lịch sử bàn giao gần nhất
+
+### 2026-11-22 — Codex | Mở toàn màn hình từ tâm
+* client/src/components/ExpandedPlayer.css: player mở từ tâm, scale 24% → 100% trong 520ms.
+* Build Vite đạt; kiểm thử Electron tools/test-mini-roundtrip.cjs đạt. Bản Windows [v2.21.9](https://github.com/HIEUTHUJTHAI/spmusic/releases/tag/v2.21.9).
 
 ### 2026-11-21 — Codex | Khôi phục giao diện mini
 * electron/main.cjs theo dõi trạng thái mini trước khi rời fullscreen; client/src/components/ExpandedPlayer.jsx chỉ yêu cầu kích thước mini một lần mỗi lần đổi chế độ. client/src/App.jsx đóng mini trực tiếp.
