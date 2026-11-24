@@ -7,7 +7,7 @@ Tài liệu này ghi lại tiến độ, trạng thái hiện tại và các lư
 
 ## ⚡ Trạng thái dự án hiện tại
 * **Tên dự án**: SPMusic (Auralis)
-* **Phiên bản hiện tại**: `2.22.0`
+* **Phiên bản hiện tại**: `2.22.1`
 * **Nhánh Git**: `main` (Remote: `https://github.com/HIEUTHUJTHAI/spmusic.git`)
 * **Tình trạng tổng thể**: 
   * Codebase ổn định với đầy đủ tính năng: Liquid Glass UI, AutoMix Dust, Sync Lyrics LRC, Local AI Whisper, Desktop Electron Builder.
@@ -24,6 +24,10 @@ Tài liệu này ghi lại tiến độ, trạng thái hiện tại và các lư
 ---
 
 ## 📜 Lịch sử bàn giao gần nhất
+
+### 2026-11-25 — Codex | Playlist 2.22.1
+* App.jsx, PlaylistEditor.jsx: tạo thông tin trước rồi mở bảng thêm bài. Menu bài trong playlist chỉ có thao tác gỡ về mặt thành viên. Menu đo khoảng trống với thanh phát để lật lên trên.
+* tools/test-shell.cjs kiểm tra form tạo và vị trí menu ở hàng sát thanh phát trong Electron. Build Vite đạt. Đồng bộ phiên bản gốc/client/server và lockfile.
 
 ### 2026-11-25 — Codex | Playlist 2.22.0
 * App.jsx, PlaylistEditor.jsx, PlaylistShelf.jsx, playlist.css và playlistDrag.js: tách thông tin và thêm bài, hoàn tác, gỡ từ menu bài, kéo thả nhường chỗ và hỗ trợ bàn phím.

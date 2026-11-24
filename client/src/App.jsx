@@ -145,6 +145,26 @@ export default function App() {
     [selection, setSelection] = useState(null),
     [tab, setTab] = useState('Bài hát');
   const userMenuRef = useRef(null);
+  const trackMenuRef = useRef(null);
+  useLayoutEffect(() => {
+    const panel = trackMenuRef.current;
+    if (!menu || !panel) return;
+    const place = () => {
+      const anchor = panel.parentElement.getBoundingClientRect();
+      const bottom = Math.min(innerHeight, document.querySelector('.player')?.getBoundingClientRect().top ?? innerHeight);
+      const above = anchor.top - Math.max(0, document.querySelector('.topbar')?.getBoundingClientRect().bottom ?? 0) - 8;
+      const below = bottom - anchor.bottom - 8;
+      const up = below < panel.scrollHeight + 2 && above > below;
+      panel.style.top = up ? 'auto' : 'calc(100% + 4px)';
+      panel.style.bottom = up ? 'calc(100% + 4px)' : 'auto';
+      panel.style.maxHeight = Math.max(0, up ? above : below) + 'px';
+      panel.style.overflowY = 'auto';
+    };
+    place();
+    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', place);
+    return () => { window.removeEventListener('scroll', place, true); window.removeEventListener('resize', place); };
+  }, [menu]);
   const pageRef = useRef(null), pageAnimation = useRef(null), navigationId = useRef(0);
   const navigationPending = useRef(false);
   function cancelPageNavigation() {
@@ -669,7 +689,7 @@ export default function App() {
                     onClick={() => setMenu(null)}
                     aria-label="Đóng tùy chọn"
                   />
-                  <div className="track-menu">
+                  <div className="track-menu" ref={trackMenuRef}>
                     {sortablePlaylist && <button onClick={async()=>{setMenu(null);try{await changeMembership(t.id,false);notify('Đã gỡ khỏi playlist.')}catch(e){notify(e.message)}}}><Trash2 size={16}/>Gỡ khỏi playlist</button>}
                     {t.sourceInfo && (
                       <button
@@ -682,7 +702,7 @@ export default function App() {
                         Nguồn và giấy phép
                       </button>
                     )}
-                    <button
+                    {!sortablePlaylist && <button
                       onClick={() => {
                         setMenu(null);
                         requireUser(() => setModal({ type: 'addTo', track: t }));
@@ -690,7 +710,7 @@ export default function App() {
                     >
                       <ListPlus size={16} />
                       Thêm vào playlist
-                    </button>
+                    </button>}
                     {user && t.ownerId === user.id && !t.isDemo && (
                       <>
                         <button
@@ -1358,12 +1378,12 @@ export default function App() {
       {modal?.type === 'playlist' && (
         <PlaylistEditor
           playlist={modal.playlist}
-          tracks={tracks}
           onClose={() => setModal(null)}
           onSaved={async (pl) => {
             setModal(null);
             await refresh();
-            navigate('playlist', pl.id);
+            await navigate('playlist', pl.id);
+            if (!modal.playlist?.id) setModal({type:'playlistShelf'});
             notify('Đã lưu playlist.');
           }}
         />
@@ -1378,6 +1398,7 @@ export default function App() {
               <button
                 className="playlist-choice"
                 key={pl.id}
+                disabled={pl.trackIds.includes(modal.track.id)}
                 onClick={async () => {
                   try {
                     await api('/playlists/' + pl.id, {
@@ -1395,9 +1416,9 @@ export default function App() {
                 <Music2 size={20} />
                 <span>
                   {pl.name}
-                  <small>{pl.trackIds.length} bài hát</small>
+                  <small>{pl.trackIds.includes(modal.track.id) ? 'Đã có bài này' : pl.trackIds.length+' bài hát'}</small>
                 </span>
-                <Plus size={18} />
+                {!pl.trackIds.includes(modal.track.id) && <Plus size={18} />}
               </button>
             ))}
             <button

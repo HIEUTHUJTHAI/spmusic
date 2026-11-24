@@ -3,14 +3,9 @@ import { ImagePlus, Music2, Trash2 } from 'lucide-react';
 import { api, upload } from '../lib/api';
 import Modal from './Modal';
 
-export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
+export default function PlaylistEditor({ playlist, onClose, onSaved }) {
   const [name, setName] = useState(playlist?.name || '');
-  const [query, setQuery] = useState('');
-  const fold = value => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/đ/g, 'd');
-  const term = fold(query.trim());
-  const visibleTracks = term ? tracks.filter(track => fold([track.title, track.artist, track.album].join(' ')).includes(term)) : tracks;
   const [description, setDescription] = useState(playlist?.description || '');
-  const [ids, setIds] = useState(playlist?.trackIds || []);
   const [savedPlaylist, setSavedPlaylist] = useState(playlist || null);
   const [cover, setCover] = useState(null);
   const [removeCover, setRemoveCover] = useState(false);
@@ -53,7 +48,7 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
     try {
       const result = await api(savedPlaylist?.id ? '/playlists/' + savedPlaylist.id : '/playlists', {
         method: savedPlaylist?.id ? 'PATCH' : 'POST',
-        body: playlist?.id ? {name, description} : { name, description, trackIds: ids },
+        body: {name, description, trackIds: savedPlaylist?.id ? undefined : playlist?.trackIds},
       });
       let updated = result.playlist;
       setSavedPlaylist(updated);
@@ -74,14 +69,14 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
 
   return (
     <Modal title={playlist?.id ? 'Chỉnh sửa playlist' : 'Tạo playlist của bạn'} onClose={() => !busy && onClose()}>
-      <form className={playlist?.id ? 'modal-stack playlist-details' : 'modal-stack'} onSubmit={save}>
+      <form className="modal-stack playlist-details" onSubmit={save}>
         <div className="playlist-cover-editor">
           {coverPreview || (!removeCover && savedPlaylist?.coverUrl) ? (
             <img src={coverPreview || savedPlaylist.coverUrl} alt="Ảnh bìa playlist" />
           ) : (
             <span className="playlist-cover-placeholder"><Music2 size={36} /></span>
           )}
-          <details open={playlist?.id ? undefined : true}>
+          <details>
             <summary aria-label="Tùy chọn ảnh bìa"><ImagePlus size={18}/></summary>
             <strong>Ảnh bìa playlist</strong>
             <span className="field-hint">JPG, PNG, WebP · Tối đa 5 MB</span>
@@ -124,36 +119,6 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
             onChange={(e) => setDescription(e.target.value)}
           />
         </label>
-        {!playlist?.id && <><div className="form-label">
-          Chọn bài hát <span className="muted">({ids.length})</span>
-        </div>
-        <label className="form-label">
-          <input type="search" aria-label="Tìm bài trong playlist" placeholder="Tìm tên bài, nghệ sĩ, album…"
-            value={query} onChange={event => setQuery(event.target.value)}
-            onKeyDown={event => { if (event.key === 'Enter') event.preventDefault(); }} />
-        </label>
-        <div className="playlist-track-picker">
-          {!visibleTracks.length && <p className="field-hint">{tracks.length ? 'Không tìm thấy bài phù hợp.' : 'Thư viện chưa có bài hát.'}</p>}
-          {visibleTracks.map((track) => (
-            <label key={track.id}>
-              <input
-                type="checkbox"
-                checked={ids.includes(track.id)}
-                onChange={(e) =>
-                  setIds(
-                    e.target.checked ? [...ids, track.id] : ids.filter((id) => id !== track.id),
-                  )
-                }
-              />
-              <img src={track.coverUrl || '/favicon.svg'} alt="" />
-              <span>
-                <strong>{track.title}</strong>
-                <small>{track.artist}</small>
-              </span>
-            </label>
-          ))}
-        </div>
-        </>}
         {cover && (
           <label className="license-checkbox">
             <input type="checkbox" checked={licensed} onChange={(e) => setLicensed(e.target.checked)} />
@@ -170,7 +135,7 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
           </p>
         )}
         <footer className="playlist-save"><button type="button" className="secondary-btn" disabled={busy} onClick={onClose}>Hủy</button><button disabled={busy} className="primary-btn" type="submit">
-          {busy ? 'Đang lưu...' : 'Lưu playlist'}
+          {busy ? 'Đang lưu...' : playlist?.id ? 'Lưu playlist' : 'Tạo và thêm bài hát'}
         </button></footer>
       </form>
     </Modal>

@@ -76,6 +76,22 @@ app.whenReady().then(async () => {
   await waitFor(()=>document.querySelector('.playlist-nav .nav-item'),'library');
   await click('.playlist-nav .nav-item');
   await waitFor(()=>document.querySelector('[aria-label="Phát Afterglow"]'),'playlist');
+  await evaluate(()=>{
+    const limit=document.querySelector('.player').getBoundingClientRect().top;
+    const buttons=[...document.querySelectorAll('[data-song] button[aria-label^="Tùy chọn"]')];
+    buttons.filter(b=>b.getBoundingClientRect().bottom<limit).at(-1).click();
+  });
+  await delay(350);
+  assert.ok(await evaluate(()=>{
+    const panel=document.querySelector('.track-menu');
+    return !panel.textContent.includes('Thêm vào playlist') &&
+      panel.getBoundingClientRect().bottom <= panel.parentElement.getBoundingClientRect().top;
+  }),'Playlist menu opens above bottom rows without redundant add');
+  await click('.menu-dismiss');
+  await click('[aria-label="Tạo playlist"]');
+  await waitFor(()=>document.querySelector('.playlist-details'),'compact create');
+  assert.equal(await evaluate(()=>!!document.querySelector('.playlist-track-picker')),false);
+  await click('.modal-heading button');
   await click('[aria-label="Chỉnh sửa thông tin playlist"]');
   await waitFor(()=>document.querySelector('.playlist-details'),'metadata');
   assert.equal(await evaluate(()=>!!document.querySelector('.playlist-track-picker')),false);
