@@ -43,6 +43,8 @@ import AuthModal from './components/AuthModal';
 import TrackEditor from './components/TrackEditor';
 import LyricsPanel from './components/LyricsPanel';
 import PlaylistEditor from './components/PlaylistEditor';
+import PlaylistShelf from './components/PlaylistShelf';
+import { startPlaylistDrag } from './components/playlistDrag';
 import LyricsEditor from './components/LyricsEditor';
 import AccountModal, { Avatar } from './components/AccountModal';
 import SettingsModal from './components/SettingsModal';
@@ -137,8 +139,6 @@ export default function App() {
     [nowPlayingOpen, setNowPlayingOpen] = useState(false),
     [mobile, setMobile] = useState(false),
     [menu, setMenu] = useState(null),
-    [draggedTrackId, setDraggedTrackId] = useState(null),
-    [dropTargetTrackId, setDropTargetTrackId] = useState(null),
     [userMenu, setUserMenu] = useState(false),
     [loggingOut, setLoggingOut] = useState(false),
     [toast, setToast] = useState(''),
@@ -287,6 +287,16 @@ export default function App() {
     } finally {
       reorderBusy.current = false;
     }
+  }
+  async function changeMembership(id, add) {
+    if (reorderBusy.current) throw Error('Đang lưu playlist, thử lại sau một lát.');
+    reorderBusy.current = true;
+    try {
+      const ids = activePlaylist.trackIds;
+      const trackIds = add ? [...new Set([...ids,id])] : ids.filter(item=>item!==id);
+      const {playlist} = await api('/playlists/'+activePlaylist.id,{method:'PATCH',body:{trackIds}});
+      setPlaylists(current=>current.map(item=>item.id===playlist.id?playlist:item));
+    } finally { reorderBusy.current=false; }
   }
   useEffect(() => {
     const root = document.documentElement;
@@ -580,41 +590,19 @@ export default function App() {
       {items.length ? (
         items.map((t, i) => (
           <div
-            className={`track-row ${p.trackId === t.id ? 'current-track' : ''} ${draggedTrackId === t.id ? 'dragging-track' : ''} ${dropTargetTrackId === t.id ? 'drop-target' : ''}`}
+            className={`track-row ${p.trackId === t.id ? 'current-track' : ''}`}
+            data-song={sortablePlaylist ? t.id : undefined}
             key={t.id}
             onDoubleClick={() => p.play(t, items)}
-            onDragOver={(event) => {
-              if (sortablePlaylist && draggedTrackId && draggedTrackId !== t.id) {
-                event.preventDefault();
-                setDropTargetTrackId(t.id);
-              }
-            }}
-            onDrop={(event) => {
-              if (!sortablePlaylist || !draggedTrackId) return;
-              event.preventDefault();
-              void reorderPlaylistTrack(draggedTrackId, t.id);
-              setDraggedTrackId(null);
-              setDropTargetTrackId(null);
-            }}
           >
             <div className="row-position">
               {sortablePlaylist && user && (
                 <button
                   className="playlist-order-handle"
                   type="button"
-                  draggable
+                  onPointerDown={event=>{if(!reorderBusy.current) startPlaylistDrag(event,reorderPlaylistTrack)}}
                   title="Kéo để đổi thứ tự; dùng phím mũi tên lên/xuống"
                   aria-label={`Di chuyển ${t.title}, vị trí ${i + 1}`}
-                  onDragStart={(event) => {
-                    event.dataTransfer.effectAllowed = 'move';
-                    event.dataTransfer.setData('text/plain', t.id);
-                    setDraggedTrackId(t.id);
-                    setDropTargetTrackId(null);
-                  }}
-                  onDragEnd={() => {
-                    setDraggedTrackId(null);
-                    setDropTargetTrackId(null);
-                  }}
                   onKeyDown={(event) => {
                     if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
                     const nextIndex = i + (event.key === 'ArrowUp' ? -1 : 1);
@@ -682,6 +670,7 @@ export default function App() {
                     aria-label="Đóng tùy chọn"
                   />
                   <div className="track-menu">
+                    {sortablePlaylist && <button onClick={async()=>{setMenu(null);try{await changeMembership(t.id,false);notify('Đã gỡ khỏi playlist.')}catch(e){notify(e.message)}}}><Trash2 size={16}/>Gỡ khỏi playlist</button>}
                     {t.sourceInfo && (
                       <button
                         onClick={() => {
@@ -1085,7 +1074,7 @@ export default function App() {
                       <p className="eyebrow">
                         {view === 'playlist' ? 'PLAYLIST CỦA BẠN' : 'SPMUSIC LIBRARY'}
                       </p>
-                      <h1>{title}</h1>
+                      <h1>{title} {view==='playlist' && <button className="icon-btn" aria-label="Chỉnh sửa thông tin playlist" onClick={()=>setModal({type:'playlist',playlist:activePlaylist})}><Pencil size={18}/></button>}</h1>
                       <p className="muted">{subtitle}</p>
                     </div>
                   </div>
@@ -1106,10 +1095,10 @@ export default function App() {
                       <>
                         <button
                           className="secondary-btn"
-                          onClick={() => setModal({ type: 'playlist', playlist: activePlaylist })}
+                          onClick={() => setModal({ type: 'playlistShelf' })}
                         >
-                          <Pencil size={16} />
-                          Sửa playlist
+                          <Plus size={16} />
+                          Thêm bài hát
                         </button>
                         <button
                           className="icon-btn"
@@ -1365,6 +1354,7 @@ export default function App() {
           </div>
         </Modal>
       )}
+      {modal?.type==='playlistShelf' && activePlaylist && <PlaylistShelf playlist={activePlaylist} tracks={tracks} change={changeMembership} onClose={()=>setModal(null)}/>}
       {modal?.type === 'playlist' && (
         <PlaylistEditor
           playlist={modal.playlist}

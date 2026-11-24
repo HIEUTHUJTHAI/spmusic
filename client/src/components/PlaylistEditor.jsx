@@ -53,7 +53,7 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
     try {
       const result = await api(savedPlaylist?.id ? '/playlists/' + savedPlaylist.id : '/playlists', {
         method: savedPlaylist?.id ? 'PATCH' : 'POST',
-        body: { name, description, trackIds: ids },
+        body: playlist?.id ? {name, description} : { name, description, trackIds: ids },
       });
       let updated = result.playlist;
       setSavedPlaylist(updated);
@@ -74,14 +74,15 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
 
   return (
     <Modal title={playlist?.id ? 'Chỉnh sửa playlist' : 'Tạo playlist của bạn'} onClose={() => !busy && onClose()}>
-      <form className="modal-stack" onSubmit={save}>
+      <form className={playlist?.id ? 'modal-stack playlist-details' : 'modal-stack'} onSubmit={save}>
         <div className="playlist-cover-editor">
           {coverPreview || (!removeCover && savedPlaylist?.coverUrl) ? (
             <img src={coverPreview || savedPlaylist.coverUrl} alt="Ảnh bìa playlist" />
           ) : (
             <span className="playlist-cover-placeholder"><Music2 size={36} /></span>
           )}
-          <div>
+          <details open={playlist?.id ? undefined : true}>
+            <summary aria-label="Tùy chọn ảnh bìa"><ImagePlus size={18}/></summary>
             <strong>Ảnh bìa playlist</strong>
             <span className="field-hint">JPG, PNG, WebP · Tối đa 5 MB</span>
             <label className="form-secondary file-button">
@@ -100,12 +101,13 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
                 <Trash2 size={14} /> Xóa ảnh bìa
               </button>
             )}
-          </div>
+          </details>
         </div>
         <label className="form-label">
           Tên playlist
           <input
             required
+            data-autofocus
             maxLength={100}
             placeholder="Một chiều thật chậm..."
             value={name}
@@ -122,7 +124,7 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
             onChange={(e) => setDescription(e.target.value)}
           />
         </label>
-        <div className="form-label">
+        {!playlist?.id && <><div className="form-label">
           Chọn bài hát <span className="muted">({ids.length})</span>
         </div>
         <label className="form-label">
@@ -151,6 +153,7 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
             </label>
           ))}
         </div>
+        </>}
         {cover && (
           <label className="license-checkbox">
             <input type="checkbox" checked={licensed} onChange={(e) => setLicensed(e.target.checked)} />
@@ -166,9 +169,9 @@ export default function PlaylistEditor({ playlist, tracks, onClose, onSaved }) {
             {error}
           </p>
         )}
-        <button disabled={busy} className="primary-btn" type="submit">
+        <footer className="playlist-save"><button type="button" className="secondary-btn" disabled={busy} onClick={onClose}>Hủy</button><button disabled={busy} className="primary-btn" type="submit">
           {busy ? 'Đang lưu...' : 'Lưu playlist'}
-        </button>
+        </button></footer>
       </form>
     </Modal>
   );
